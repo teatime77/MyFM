@@ -1,2 +1,0 @@
-# MyFM
-My Formal Methods
