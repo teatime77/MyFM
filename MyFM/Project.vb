@@ -47,6 +47,7 @@ Public Class TProject
 
     <XmlIgnoreAttribute()> Public SimpleParameterizedClassList As New TList(Of TClass)
 
+    <XmlIgnoreAttribute(), _Weak()> Public ProjectHome As String
     <XmlIgnoreAttribute(), _Weak()> Public ApplicationClassList As TList(Of TClass)
     <XmlIgnoreAttribute(), _Weak()> Public SrcPrj As New TList(Of TSourceFile)
     <XmlIgnoreAttribute(), _Weak()> Public ClassNameTable As Dictionary(Of String, String)
@@ -1528,8 +1529,8 @@ Public Class TProject
     Public Sub MakeAllSourceCode(parser As TSourceParser)
         SetTokenListClsAll(parser)
 
-        Dim out_dir2 As String = String.Format("{0}\{1}", OutputDirectory, parser.LanguageSP)
-        TDirectory.CreateDirectory(out_dir2)
+        Dim out_dir As String = Path.GetFullPath(String.Format("{0}\{1}\{2}", ProjectHome, OutputDirectory, parser.LanguageSP))
+        TDirectory.CreateDirectory(out_dir)
 
         '  すべてのソースに対し
         For Each src_f In SrcPrj
@@ -1538,7 +1539,7 @@ Public Class TProject
             Dim navi_make_source_code As New TNaviMakeSourceCode(Me, parser)
             navi_make_source_code.NaviSourceFile(src_f)
 
-            Dim src_path As String = String.Format("{0}\{1}{2}", out_dir2, TPath.GetFileNameWithoutExtension(src_f.FileSrc), FileExtension(parser.LanguageSP))
+            Dim src_path As String = String.Format("{0}\{1}{2}", out_dir, TPath.GetFileNameWithoutExtension(src_f.FileSrc), FileExtension(parser.LanguageSP))
             Dim src_txt2 As String = TokenListToString(parser, src_f.TokenListSrc)
             TFile.WriteAllText(src_path, src_txt2)
 
@@ -1567,7 +1568,7 @@ Public Class TProject
                     End Select
                 Next
 
-                Dim src_path As String = String.Format("{0}\{1}{2}", out_dir2, "Generated", FileExtension(parser.LanguageSP))
+                Dim src_path As String = String.Format("{0}\{1}{2}", out_dir, "Generated", FileExtension(parser.LanguageSP))
                 TFile.WriteAllText(src_path, sw.ToString())
             End If
         End If

@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Language>Basic</Language>
+  <OutputDirectory>out</OutputDirectory>
+  <MainClassName>TProject</MainClassName>
+  <MainFunctionName />
+  <OutputNotUsed>false</OutputNotUsed>
+  <UseReferenceGraph>true</UseReferenceGraph>
+  <ClassNameTablePath>C:\usr\prj\MyIDE\etc\Translation\NameTable.txt</ClassNameTablePath>
+  <Dataflow>false</Dataflow>
+  <OutputLanguageList>
+    <ELanguage>Basic</ELanguage>
+  </OutputLanguageList>
+  <LibraryList>
+    <TLibrary>
+      <LibraryDirectory>.</LibraryDirectory>
+      <SourceFileNameList>
+        <string>sys.vb</string>
+        <string>System.vb</string>
+        <string>Invariant.vb</string>
+        <string>BasicParser.vb</string>
+        <string>ScriptParser.vb</string>
+        <string>Graph.vb</string>
+        <string>LALR.vb</string>
+        <string>Logic.vb</string>
+        <string>Navigation.vb</string>
+        <string>Declarative.vb</string>
+        <string>ProgramTransformation.vb</string>
+        <string>Project.vb</string>
+        <string>Proof.vb</string>
+      </SourceFileNameList>
+    </TLibrary>
+  </LibraryList>
+</TProject>

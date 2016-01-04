@@ -25,12 +25,15 @@ Partial Public Class TProject
                 src_f.IsSystem = True
             End If
             Debug.Assert(src_f.vTextSrc Is Nothing)
+
+            Dim src_file_path As String = Path.GetFullPath(ProjectHome + "\" + src_f.LibSrc.LibraryDirectory + "\" + src_f.FileSrc)
+
             If Language = ELanguage.Basic Then
-                src_f.vTextSrc = TFile.ReadAllLines(src_f.LibSrc.LibraryDirectory + "\" + src_f.FileSrc)
+                src_f.vTextSrc = TFile.ReadAllLines(src_file_path)
                 src_f.LineTkn = New TList(Of TList(Of TToken))(From line1 In src_f.vTextSrc Select ParsePrj.Lex(line1))
 
             Else
-                Dim src_text As String = TFile.ReadAllText(src_f.LibSrc.LibraryDirectory + "\" + src_f.FileSrc)
+                Dim src_text As String = TFile.ReadAllText(src_file_path)
                 src_f.InputTokenList = ParsePrj.Lex(src_text)
             End If
 
@@ -292,17 +295,19 @@ Partial Public Class TProject
         Return result_class_list
     End Function
 
-    Public Shared Function MakeProject(project_path As String) As TProject
+    Public Shared Function MakeProject(project_file_path As String) As TProject
         'XmlSerializerオブジェクトを作成
         Dim serializer As New XmlSerializer(GetType(TProject))
 
         '読み込むファイルを開く
-        Dim sr As New StreamReader(project_path, Encoding.UTF8)
+        Dim sr As New StreamReader(project_file_path, Encoding.UTF8)
 
         'XMLファイルから読み込み、逆シリアル化する
         Dim prj1 As TProject = CType(serializer.Deserialize(sr), TProject)
         'ファイルを閉じる
         sr.Close()
+
+        prj1.ProjectHome = Path.GetDirectoryName(project_file_path)
 
         For Each s In From x In prj1.LibraryList From y In x.SourceFileNameList Select y
             Debug.Print(s)

@@ -1,9 +1,29 @@
-﻿Module Module1
+﻿Imports System.IO
+Imports System.Reflection
+Imports System.Diagnostics
+
+Module Module1
 
     Sub Main()
-        Dim project_name_list As String() = {"App1", "InvariantBasicOrigin", "CSharp", "TypeScript", "StackPanel", "Circle", "View", "MyView"}
-        For Each project_name In project_name_list
-            Dim prj1 As TProject = TProject.MakeProject("C:\usr\prj\MyIDE\InvariantBasicOrigin\" + project_name + ".xml")
+        ' 実行ファイルのパスを得る。
+        Dim exe_path As String = Assembly.GetExecutingAssembly().Location
+
+        ' MyFM.slnがあるフォルダまでさかのぼる。
+        Dim root_dir As String = Path.GetDirectoryName(exe_path)
+        Do While Not File.Exists(root_dir + "\MyFM.sln")
+            root_dir = Path.GetDirectoryName(root_dir)
+        Loop
+
+        ' プロジェクトファイルのリスト
+        Dim project_file_list As String() = {"MyFM\MyFM.xml", "sample\Basic\App1\App1.xml"}
+
+        For Each project_file In project_file_list
+
+            ' プロジェクトファイルの絶対パス
+            Dim project_file_path As String = root_dir + "\" + project_file
+
+            ' プロジェクトファイルからプロジェクトを作る。
+            Dim prj1 As TProject = TProject.MakeProject(project_file_path)
             prj1.OutputSourceFile()
         Next
     End Sub
