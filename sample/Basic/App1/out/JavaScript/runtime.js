@@ -56,6 +56,9 @@ TRuntime.prototype.RuntimeInitialize = function () {
         //console.log("onmousewheel");
     };
     this.App.AppInitialize();
+    if (this.App.__SetParent) {
+        this.App.__SetParent(this.App, undefined);
+    }
 
     for (var i = 0; i < this.App.ShapeList.length; i++) {
         SetImageOnLoad( this.App.ShapeList[i] );

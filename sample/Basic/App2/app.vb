@@ -2,6 +2,7 @@
     Inherits TApplication
     Public CircleR As Double = 80
     Public cnt As Double = 0
+    <_Weak()> Public Razania As TImage
 
     Public Overrides Sub AppInitialize()
         Dim x As Double = 100, y As Double = 100
@@ -13,6 +14,7 @@
         circle.Velocity.Y = 2
         ShapeList.push(circle)
         y += 100
+
         Dim rc1 = New TRectangle()
         rc1.SetBoundingRectangle(x, y, 80, 40)
         rc1.Velocity.X = 1
@@ -22,6 +24,7 @@
         rc1.BorderWidth = 10
         ShapeList.push(rc1)
         y += 100
+
         Dim rc2 = New TRectangle()
         rc2.SetBoundingRectangle(x, y, 80, 40)
         rc2.Velocity.X = 2
@@ -29,6 +32,7 @@
         rc2.BorderColor = "#0000FF"
         rc2.BorderWidth = 10
         ShapeList.push(rc2)
+
         Dim ell1 = New TEllipse()
         ell1.SetBoundingRectangle(x + 5, y + 5, 70, 30)
         ell1.Velocity.X = 3
@@ -38,6 +42,7 @@
         ell1.BorderWidth = 10
         ShapeList.push(ell1)
         y += 100
+
         Dim txt1 = New TLabel()
         txt1.SetBoundingRectangle(x, y, 80, 40)
         txt1.Velocity.X = 4
@@ -49,25 +54,29 @@
         txt1.Text = "こんにちは4"
         ShapeList.push(txt1)
         y += 100
-        Dim razania = New TImage()
-        razania.Load("../img/food_lasagna_razania.png")
-        razania.SetBoundingRectangle(x, y, 100, 741 / 8.0)
-        razania.Velocity.X = 2
-        razania.Velocity.Y = 2
-        ShapeList.push(razania)
+
+        Razania = New TImage()
+        Razania.Load("../img/food_lasagna_razania.png")
+        Razania.SetBoundingRectangle(x, y, 100, 741 / 8.0)
+        Razania.Velocity.X = 2
+        Razania.Velocity.Y = 2
+        ShapeList.push(Razania)
         y += 100
+
         Dim pizza = New TImage()
         pizza.Load("../img/food_pizza_takuhai.png")
         pizza.SetBoundingRectangle(x, y, 100, 712 / 8.0)
         pizza.Velocity.X = 2
         pizza.Velocity.Y = 2
         ShapeList.push(pizza)
+
         Dim grp = New TGroup()
         grp.SetBoundingRectangle(300, 300, 100, 100)
         grp.Velocity.X = 2
         grp.Velocity.Y = 2
         ShapeList.push(grp)
         y += 100
+
         Dim rc3 = New TRectangle()
         rc3.SetBoundingRectangle(-25, -25, 50, 50)
         rc3.Velocity.X = 1
@@ -77,6 +86,7 @@
         rc3.BorderWidth = 10
         rc3.Parent = grp
         grp.Children.push(rc3)
+
         Dim txt2 = New TLabel()
         txt2.SetBoundingRectangle(25, 25, 50, 50)
         txt2.Velocity.X = 4
@@ -129,6 +139,10 @@
                             .Size.Y = app.CircleR + 20 * Math.Cos(Math.PI * app.cnt / 180)
                         End If
 
+                        If self Is app.Razania Then
+                            .Center.X = app.MousePosition.X
+                            .Center.Y = app.MousePosition.Y
+                        End If
                     End With
 
                 ElseIf TypeOf self Is TGroup Then

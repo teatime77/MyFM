@@ -262,6 +262,8 @@ Public Class TModifier
     Public isIterator As Boolean
     Public isWeak As Boolean
     Public isParent As Boolean
+    Public isPrev As Boolean
+    Public isNext As Boolean
     Public isInvariant As Boolean
 
     Public isXmlIgnore As Boolean
@@ -269,7 +271,7 @@ Public Class TModifier
     Public TokenListMod As List(Of TToken)
 
     Public Function isStrong() As Boolean
-        Return Not isWeak AndAlso Not isParent
+        Return Not isWeak AndAlso Not isParent AndAlso Not isPrev AndAlso Not isNext
     End Function
 
 End Class
@@ -1059,7 +1061,7 @@ End Class
 ' -------------------------------------------------------------------------------- TVariableDeclaration
 Public Class TVariableDeclaration
     Inherits TStatement
-    Public ModDecl As TModifier
+    Public ModDecl As New TModifier
     <_Weak()> Public TypeDecl As TClass
     Public VarDecl As New TList(Of TVariable)
 

@@ -15,7 +15,7 @@ Module Module1
         Loop
 
         ' プロジェクトファイルのリスト
-        Dim project_file_list As String() = {"MyFM\MyFM.xml", "sample\Basic\App1\App1.xml"}
+        Dim project_file_list As String() = {"sample\Basic\App1\App1.xml", "sample\Basic\App2\App2.xml", "MyFM\MyFM.xml"}
 
         For Each project_file In project_file_list
 

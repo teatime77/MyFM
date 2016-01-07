@@ -564,7 +564,7 @@ Public Class TNaviMakeSourceCode
         If TypeOf self Is TTerm Then
             With CType(self, TTerm)
 
-                If .CastType IsNot Nothing Then
+                If .CastType IsNot Nothing AndAlso ParserMK.LanguageSP <> ELanguage.JavaScript Then
 
                     tw.Fmt(EToken.eCType, EToken.eLP)
                 End If
@@ -633,7 +633,11 @@ Public Class TNaviMakeSourceCode
                             ElseIf TypeOf .VarRef Is TField AndAlso CType(.VarRef, TField).ClaFld IsNot ParserMK.PrjParse.SystemType OrElse TypeOf .VarRef Is TFunction AndAlso CType(.VarRef, TFunction).ClaFnc IsNot ParserMK.PrjParse.SystemType Then
                                 ' Systemクラス以外のフィールドの参照の場合
 
-                                tw.Fmt(ParserMK.ThisName, EToken.eDot, self)
+                                If ParserMK.LanguageSP = ELanguage.JavaScript AndAlso TypeOf .UpTrm Is TApply AndAlso CType(.UpTrm, TApply).TypeApp = EToken.eBaseCall Then
+                                    tw.Fmt(self)
+                                Else
+                                    tw.Fmt(ParserMK.ThisName, EToken.eDot, self)
+                                End If
                             Else
 
                                 tw.Fmt(self)
@@ -676,7 +680,11 @@ Public Class TNaviMakeSourceCode
 
                             Case EToken.eBaseCall
 
-                                tw.Fmt(EToken.eBase, EToken.eDot, .FncApp.TokenList, AppArgTokenList(self))
+                                If ParserMK.LanguageSP = ELanguage.JavaScript Then
+                                    tw.Fmt("this", EToken.eDot, "SuperClass", EToken.eDot, .FncApp.TokenList, AppArgTokenList(self))
+                                Else
+                                    tw.Fmt(EToken.eBase, EToken.eDot, .FncApp.TokenList, AppArgTokenList(self))
+                                End If
 
                             Case EToken.eBaseNew
 
@@ -729,7 +737,12 @@ Public Class TNaviMakeSourceCode
                                 If ParserMK.LanguageSP = ELanguage.Basic Then
                                     tw.Fmt(EToken.eInstanceof, .ArgApp(0).TokenList, EToken.eIs, CType(.ArgApp(1), TReference).VarRef.TokenListVar)
                                 Else
-                                    tw.Fmt(.ArgApp(0).TokenList, EToken.eInstanceof, CType(.ArgApp(1), TReference).VarRef.TokenListVar)
+                                    Dim test_class As TClass = CType(CType(.ArgApp(1), TReference).VarRef, TClass)
+                                    If test_class.OrgCla IsNot Nothing Then
+                                        tw.Fmt("Array", EToken.eDot, "isArray", EToken.eLP, .ArgApp(0).TokenList, EToken.eRP)
+                                    Else
+                                        tw.Fmt(.ArgApp(0).TokenList, EToken.eInstanceof, test_class.TokenListVar)
+                                    End If
                                 End If
 
                             '--------------------------------------------------------------------------------------
@@ -885,7 +898,7 @@ Public Class TNaviMakeSourceCode
                     Debug.Assert(False)
                 End If
 
-                If .CastType IsNot Nothing Then
+                If .CastType IsNot Nothing AndAlso ParserMK.LanguageSP <> ELanguage.JavaScript Then
 
                     tw.Fmt(EToken.eComma, .CastType.TokenListVar, EToken.eRP)
                 End If
@@ -1208,27 +1221,49 @@ Public Class TNaviMakeSourceCode
 
         ElseIf TypeOf self Is TModifier Then
             With CType(self, TModifier)
-                If .isXmlIgnore OrElse .isWeak OrElse .isParent OrElse .isInvariant Then
+                If .isXmlIgnore OrElse .isWeak OrElse .isParent OrElse .isPrev OrElse .isNext OrElse .isInvariant Then
                     tw.Fmt(EToken.eLT)
 
+                    Dim need_comma As Boolean = False
                     If .isXmlIgnore Then
                         tw.Fmt("XmlIgnoreAttribute", EToken.eLP, EToken.eRP)
+                        need_comma = True
                     End If
 
                     If .isWeak Then
-                        If .isXmlIgnore Then
+                        If need_comma Then
                             tw.Fmt(EToken.eComma)
                         End If
 
                         tw.Fmt("_Weak", EToken.eLP, EToken.eRP)
+                        need_comma = True
                     End If
 
                     If .isParent Then
-                        If .isXmlIgnore OrElse .isWeak Then
+                        If need_comma Then
                             tw.Fmt(EToken.eComma)
                         End If
 
                         tw.Fmt("_Parent", EToken.eLP, EToken.eRP)
+                        need_comma = True
+                    End If
+
+                    If .isPrev Then
+                        If need_comma Then
+                            tw.Fmt(EToken.eComma)
+                        End If
+
+                        tw.Fmt("_Prev", EToken.eLP, EToken.eRP)
+                        need_comma = True
+                    End If
+
+                    If .isNext Then
+                        If need_comma Then
+                            tw.Fmt(EToken.eComma)
+                        End If
+
+                        tw.Fmt("_Next", EToken.eLP, EToken.eRP)
+                        need_comma = True
                     End If
 
                     If .isInvariant Then

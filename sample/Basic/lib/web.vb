@@ -19,6 +19,20 @@ Public Class _Parent
     End Sub
 End Class
 
+Public Class _Prev
+    Inherits Attribute
+
+    Public Sub New()
+    End Sub
+End Class
+
+Public Class _Next
+    Inherits Attribute
+
+    Public Sub New()
+    End Sub
+End Class
+
 Public Class TList(Of T)
     Inherits List(Of T)
 

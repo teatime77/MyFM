@@ -393,6 +393,8 @@ Partial Public Class TProject
 
             processed_class_list.Add(cls1)
 
+            Dim super_class_list = From c In TNaviUp.DistinctThisAncestorSuperClassList(cls1) Where c IsNot ObjectType
+
             Dim fnc1 As TFunction = MakeSetParentSub(set_parent_name, cls1)
             Dim self_var As TVariable = fnc1.ArgFnc(0)
             Dim parent_var As TVariable = fnc1.ArgFnc(1)
@@ -403,7 +405,7 @@ Partial Public Class TProject
 
 
             ' 親フィールドを得る。
-            Dim parent_field_list = From f In cls1.FldCla Where f.ModVar.isParent
+            Dim parent_field_list = From c In super_class_list From f In c.FldCla Where f.ModVar.isParent Select f
             If parent_field_list.Any() Then
                 ' 親フィールドがある場合
 
@@ -413,32 +415,37 @@ Partial Public Class TProject
                 fnc1.BlcFnc.AddStmtBlc(New TAssignment(New TDot(Nothing, parent_field), New TReference(parent_var)))
             End If
 
-            Dim strong_field_list = From f In cls1.FldCla Where f.ModVar.isStrong() AndAlso f.TypeVar.KndCla = EClass.eClassCla
+            Dim strong_field_list = From c In super_class_list From f In c.FldCla Where f.ModVar.isStrong() AndAlso f.TypeVar.KndCla = EClass.eClassCla Select f
             For Each fld In strong_field_list
                 If ApplicationClassList.Contains(fld.TypeVar) Then
                     ' フィールドの型が単純クラスの場合
 
-                    ' このフィールドの型およびその子孫のサブクラスで未処理のものを得る。
-                    Dim pending_this_descendant_sub_class_list = From c In TNaviUp.ThisDescendantSubClassList(fld.TypeVar) Where ApplicationClassList.Contains(c) AndAlso Not pending_class_list.Contains(c) AndAlso Not processed_class_list.Contains(c)
+                    If (From c In TNaviUp.ThisAncestorSuperClassList(fld.TypeVar) From f In c.FldCla Where f.ModVar.isParent Select f).Any() Then
 
-                    ' 未処理のクラスのリストに追加する。
-                    pending_class_list.AddRange(pending_this_descendant_sub_class_list)
+                        ' このフィールドの型およびその子孫のサブクラスで未処理のものを得る。
+                        Dim pending_this_descendant_sub_class_list = From c In TNaviUp.ThisDescendantSubClassList(fld.TypeVar) Where ApplicationClassList.Contains(c) AndAlso Not pending_class_list.Contains(c) AndAlso Not processed_class_list.Contains(c)
 
-                    ' SetParentのCall文を作る。
-                    Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TDot(Nothing, fld), dummy_function))
-                    app1.AddInArg(New TDot(Nothing, fld))
-                    app1.AddInArg(New TReference(self_var))
+                        ' 未処理のクラスのリストに追加する。
+                        pending_class_list.AddRange(pending_this_descendant_sub_class_list)
 
-                    Dim if1 As TIf = MakeNotNullIf(TApply.NewOpr2(EToken.eIsNot, New TDot(Nothing, fld), New TReference(ParsePrj.NullName())))
-                    if1.IfBlc(0).BlcIf.StmtBlc.Add(New TCall(app1))
+                        ' SetParentのCall文を作る。
+                        Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TDot(Nothing, fld), dummy_function))
+                        app1.AddInArg(New TDot(Nothing, fld))
+                        app1.AddInArg(New TReference(self_var))
 
-                    fnc1.BlcFnc.AddStmtBlc(if1)
+                        Dim if1 As TIf = MakeNotNullIf(TApply.NewOpr2(EToken.eIsNot, New TDot(Nothing, fld), New TReference(ParsePrj.NullName())))
+                        if1.IfBlc(0).BlcIf.StmtBlc.Add(New TCall(app1))
 
-                    If Not must_implement_class_list.Contains(fld.TypeVar) Then
-                        must_implement_class_list.Add(fld.TypeVar)
+                        fnc1.BlcFnc.AddStmtBlc(if1)
+
+                        If Not must_implement_class_list.Contains(fld.TypeVar) Then
+                            must_implement_class_list.Add(fld.TypeVar)
+                        End If
+
+                        Debug.Print("make set parent : {0} {1}", cls1.NameVar, fld.NameVar)
                     End If
 
-                    Debug.Print("make set parent : {0} {1}", cls1.NameVar, fld.NameVar)
+
 
                 ElseIf fld.TypeVar.NameVar = "TList" Then
                     ' フィールドの型がリストの場合
@@ -447,36 +454,78 @@ Partial Public Class TProject
 
                     If ApplicationClassList.Contains(element_type) Then
 
-                        ' このフィールドの型およびその子孫のサブクラスで未処理のものを得る。
-                        Dim pending_this_descendant_sub_class_list = From c In TNaviUp.ThisDescendantSubClassList(element_type) Where ApplicationClassList.Contains(c) AndAlso Not pending_class_list.Contains(c) AndAlso Not processed_class_list.Contains(c)
+                        If (From c In TNaviUp.ThisAncestorSuperClassList(element_type) From f In c.FldCla Where f.ModVar.isParent Select f).Any() Then
 
-                        ' 未処理のクラスのリストに追加する。
-                        pending_class_list.AddRange(pending_this_descendant_sub_class_list)
+                            ' このフィールドの型およびその子孫のサブクラスで未処理のものを得る。
+                            Dim pending_this_descendant_sub_class_list = From c In TNaviUp.ThisDescendantSubClassList(element_type) Where ApplicationClassList.Contains(c) AndAlso Not pending_class_list.Contains(c) AndAlso Not processed_class_list.Contains(c)
 
-                        Dim if1 As TIf = MakeNotNullIf(TApply.NewOpr2(EToken.eIsNot, New TDot(Nothing, fld), New TReference(ParsePrj.NullName())))
+                            ' 未処理のクラスのリストに追加する。
+                            pending_class_list.AddRange(pending_this_descendant_sub_class_list)
 
-                        ' リストの親フィールドに親の値を代入する。
-                        Dim list_parent_field As TField = (From f In fld.TypeVar.OrgCla.FldCla Where f.ModVar.isParent).First()
-                        if1.IfBlc(0).BlcIf.AddStmtBlc(New TAssignment(New TDot(New TDot(Nothing, fld), list_parent_field), New TReference(self_var)))
+                            Dim if1 As TIf = MakeNotNullIf(TApply.NewOpr2(EToken.eIsNot, New TDot(Nothing, fld), New TReference(ParsePrj.NullName())))
 
-                        Dim for1 As New TFor
-                        for1.InVarFor = New TVariable("x", element_type)
-                        for1.InTrmFor = New TDot(Nothing, fld)
-                        for1.BlcFor = New TBlock()
+                            ' リストの親フィールドに親の値を代入する。
+                            Dim list_parent_field As TField = (From f In fld.TypeVar.OrgCla.FldCla Where f.ModVar.isParent).First()
+                            if1.IfBlc(0).BlcIf.AddStmtBlc(New TAssignment(New TDot(New TDot(Nothing, fld), list_parent_field), New TReference(self_var)))
 
-                        Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TReference(for1.InVarFor), dummy_function))
-                        app1.ArgApp.Add(New TReference(for1.InVarFor))
-                        app1.ArgApp.Add(New TDot(Nothing, fld))
-                        for1.BlcFor.AddStmtBlc(New TCall(app1))
-                        if1.IfBlc(0).BlcIf.AddStmtBlc(for1)
+                            ' 直前のフィールドのリストを得る。
+                            Dim prev_field_list = From f In element_type.FldCla Where f.ModVar.isPrev
+                            Dim prev_var As TVariable = Nothing
 
-                        fnc1.BlcFnc.AddStmtBlc(if1)
+                            If prev_field_list.Any() Then
+                                ' 直前のフィールドがある場合
 
-                        If Not must_implement_class_list.Contains(element_type) Then
-                            must_implement_class_list.Add(element_type)
+                                ' 直前の値の作業変数(__prev)を宣言する。
+                                Dim var_decl As New TVariableDeclaration
+                                prev_var = New TVariable("__prev", element_type)
+                                var_decl.VarDecl.Add(prev_var)
+                                if1.IfBlc(0).BlcIf.AddStmtBlc(var_decl)
+                            End If
+
+                            Dim for1 As New TFor
+                            for1.InVarFor = New TVariable("x", element_type)
+                            for1.InTrmFor = New TDot(Nothing, fld)
+                            for1.BlcFor = New TBlock()
+
+                            If prev_field_list.Any() Then
+                                ' 直前のフィールドがある場合
+
+                                ' 直前のフィールドを得る。
+                                Dim prev_field As TField = prev_field_list.First()
+
+                                ' 直前のフィールドに作業変数(__prev)を代入する。
+                                for1.BlcFor.AddStmtBlc(New TAssignment(New TDot(New TReference(for1.InVarFor), prev_field), New TReference(prev_var)))
+
+                                ' 作業変数(__prev)を更新する。
+                                for1.BlcFor.AddStmtBlc(New TAssignment(New TReference(prev_var), New TReference(for1.InVarFor)))
+                            End If
+
+                            Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TReference(for1.InVarFor), dummy_function))
+                            app1.ArgApp.Add(New TReference(for1.InVarFor))
+
+                            ' 親の引数に値を入れる。
+                            If OutputLanguageList(0) = ELanguage.JavaScript Then
+
+                                ' 親はself
+                                app1.ArgApp.Add(New TReference(self_var))
+                            Else
+
+                                ' 親はリスト
+                                app1.ArgApp.Add(New TDot(Nothing, fld))
+                            End If
+
+                            for1.BlcFor.AddStmtBlc(New TCall(app1))
+                            if1.IfBlc(0).BlcIf.AddStmtBlc(for1)
+
+                            fnc1.BlcFnc.AddStmtBlc(if1)
+
+                            If Not must_implement_class_list.Contains(element_type) Then
+                                must_implement_class_list.Add(element_type)
+                            End If
+
+                            Debug.Print("make set parent : {0} {1}", cls1.NameVar, fld.NameVar)
                         End If
 
-                        Debug.Print("make set parent : {0} {1}", cls1.NameVar, fld.NameVar)
                     End If
                 Else
                 End If

@@ -46,7 +46,11 @@ Public Class TScriptParser
     End Sub
 
     Public Overrides Function NullName() As String
-        Return "null"
+        If LanguageSP = ELanguage.JavaScript Then
+            Return "undefined"
+        Else
+            Return "null"
+        End If
     End Function
 
     Public Function GetTkn(type1 As EToken) As TToken
@@ -375,6 +379,7 @@ Public Class TScriptParser
             vTknName.Add(EToken.eAs, ":")
         End If
         vTknName.Add(EToken.eIs, "==")
+        vTknName.Add(EToken.eIsNot, "!=")
         vTknName.Add(EToken.ePublic, "")
     End Sub
 
@@ -571,7 +576,7 @@ Public Class TScriptParser
                     End If
                 Next
                 str1 = src_text.Substring(cur1, k1 - cur1)
-                Debug.Assert(str1 = "@_Weak" OrElse str1 = "@_Invariant" OrElse str1 = "@_Parent")
+                Debug.Assert(str1 = "@_Weak" OrElse str1 = "@_Invariant" OrElse str1 = "@_Parent" OrElse str1 = "@_Prev" OrElse str1 = "@_Next")
 
                 tkn1 = New TToken(EToken.Attribute, str1, cur1)
                 cur1 += str1.Length
@@ -1834,6 +1839,10 @@ Public Class TScriptParser
                         mod1.isInvariant = True
                     ElseIf CurTkn.StrTkn = "@_Parent" Then
                         mod1.isParent = True
+                    ElseIf CurTkn.StrTkn = "@_Prev" Then
+                        mod1.isPrev = True
+                    ElseIf CurTkn.StrTkn = "@_Next" Then
+                        mod1.isNext = True
                     Else
                         Debug.Assert(False)
                     End If
@@ -1850,6 +1859,10 @@ Public Class TScriptParser
                             mod1.isWeak = True
                         ElseIf id1.StrTkn = "_Parent" Then
                             mod1.isParent = True
+                        ElseIf id1.StrTkn = "_Prev" Then
+                            mod1.isPrev = True
+                        ElseIf id1.StrTkn = "_Next" Then
+                            mod1.isNext = True
                         ElseIf id1.StrTkn = "_Invariant" Then
                             mod1.isInvariant = True
                         Else
@@ -1937,7 +1950,7 @@ Public Class TScriptParser
                 Case EToken.eFunction
                     GetTkn(EToken.eFunction)
                     Dim fnc1 As TFunction = ReadFunction(Nothing, mod1)
-                    Debug.Assert(fnc1.NameVar = "_Weak" OrElse fnc1.NameVar = "_Parent" OrElse fnc1.NameVar = "_Invariant")
+                    Debug.Assert(fnc1.NameVar = "_Weak" OrElse fnc1.NameVar = "_Parent" OrElse fnc1.NameVar = "_Prev" OrElse fnc1.NameVar = "_Next" OrElse fnc1.NameVar = "_Invariant")
 
                 Case Else
                     Exit Do

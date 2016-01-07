@@ -1296,6 +1296,10 @@ Public Class TBasicParser
                             mod1.isWeak = True
                         ElseIf id1.StrTkn = "_Parent" Then
                             mod1.isParent = True
+                        ElseIf id1.StrTkn = "_Prev" Then
+                            mod1.isPrev = True
+                        ElseIf id1.StrTkn = "_Next" Then
+                            mod1.isNext = True
                         ElseIf id1.StrTkn = "_Invariant" Then
                             mod1.isInvariant = True
                         Else

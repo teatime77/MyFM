@@ -97,7 +97,8 @@ Public Class TRect
 End Class
 
 Public Class TShape
-    <_Parent()> Public Parent As TShape = Nothing
+    <_Parent()> Public Parent As Object = Nothing
+    <_Prev()> Public Prev As TShape = Nothing
     Public Center As New TPoint
     Public Radius As Double
     Public AbsCenter As New TPoint
