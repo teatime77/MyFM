@@ -405,6 +405,23 @@ Public Class TVariable
     End Function
 End Class
 
+' -------------------------------------------------------------------------------- TLocalVariable
+Public Class TLocalVariable
+    Inherits TVariable
+
+    Public Sub New()
+        MyBase.New()
+    End Sub
+
+    Public Sub New(id1 As TToken, type1 As TClass)
+        MyBase.New(id1, type1)
+    End Sub
+
+    Public Sub New(name1 As String, type1 As TClass)
+        MyBase.New(name1, type1)
+    End Sub
+End Class
+
 ' -------------------------------------------------------------------------------- TClass
 Public Class TClass
     Inherits TVariable
@@ -694,7 +711,7 @@ Public Class TFunction
         NameVar = function_name
         ModVar = New TModifier()
         TypeFnc = EToken.eSub
-        ThisFnc = New TVariable(prj1.ParsePrj.ThisName, cla1)
+        ThisFnc = New TLocalVariable(prj1.ParsePrj.ThisName, cla1)
         ClaFnc = cla1
         ClaFnc.FncCla.Add(Me)
         BlcFnc = New TBlock()
@@ -1218,7 +1235,7 @@ Public Class TFor
     Public Sub New(prj1 As TProject, idx_name As String, from1 As TTerm, to1 As TTerm)
         TypeStmt = EToken.eFor
 
-        IdxVarFor = New TVariable(idx_name, prj1.IntType)
+        IdxVarFor = New TLocalVariable(idx_name, prj1.IntType)
         IdxFor = New TReference(IdxVarFor)
         FromFor = from1
         ToFor = to1

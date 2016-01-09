@@ -656,7 +656,7 @@ Public Class TDataflow
         Dim self_var As TVariable, sync_var As TVariable
 
         self_var = RuleCp.ArgFnc(0)
-        sync_var = New TVariable("_sync", New TClass(ProjectDtf, SyncClassName))
+        sync_var = New TLocalVariable("_sync", New TClass(ProjectDtf, SyncClassName))
 
         RuleCp.BlcFnc.StmtBlc(0).BeforeSrc = String.Format("Dim {0} As {1} = CType(_sync.SelfSync,{1})", self_var.NameVar, self_var.TypeVar.NameVar)
 
@@ -862,9 +862,8 @@ Public Class TDataflow
     End Function
 
     ' 条件を追加する
-    Public Sub AddCondition(stmt1 As TStatement, up_stmt As TStatement, is_parent As Boolean, and1 As TApply)
+    Public Sub AddCondition(stmt1 As TStatement, up_stmt As TStatement, and1 As TApply)
         Dim if_blc As TIfBlock, case1 As TCase, if1 As TIf, not1 As TApply, cnd1 As TTerm
-        Dim trans As TTransRelative, is_invalid As Boolean
 
         If TypeOf up_stmt Is TIf Then
             Debug.Assert(TypeOf stmt1 Is TIfBlock)
@@ -874,33 +873,20 @@ Public Class TDataflow
             if_blc = CType(up_stmt, TIfBlock)
             if1 = CType(UpStmt(up_stmt.ParentStmt), TIf)
             For Each _child In if1.IfBlc
-                If is_parent Then
-                    trans = New TTransRelative(E相対位置.親)
-                    cnd1 = trans.TransTrm(_child.CndIf, Nothing)
-                    is_invalid = trans.無効
-                Else
-                    cnd1 = Sys.CopyTrm(_child.CndIf, Nothing)
-                    is_invalid = False
-                End If
+                cnd1 = Sys.CopyTrm(_child.CndIf, Nothing)
 
                 If _child IsNot if_blc Then
                     ' 手前のIfブロックの場合
 
-                    If Not is_invalid Then
+                    ' 否定の条件を追加する
+                    not1 = TApply.NewOpr(EToken.eNot)
 
-                        ' 否定の条件を追加する
-                        not1 = TApply.NewOpr(EToken.eNot)
-
-                        not1.AddInArg(cnd1)
-                    End If
+                    not1.AddInArg(cnd1)
                 Else
                     ' 現在のIfブロックの場合
 
-                    If Not is_invalid Then
-
-                        ' 条件を追加する
-                        and1.AddInArg(cnd1)
-                    End If
+                    ' 条件を追加する
+                    and1.AddInArg(cnd1)
 
                     Exit For
                 End If
@@ -921,7 +907,7 @@ Public Class TDataflow
 
         ' 文を実行する前提条件を返す
         pre_cond = TApply.NewOpr(EToken.eAnd)
-        CalcPreCondition(stmt, False, pre_cond)
+        CalcPreCondition(stmt, pre_cond)
 
         ' 余分な条件を取り除く
         CleanCondition(pre_cond)
@@ -930,7 +916,7 @@ Public Class TDataflow
     End Function
 
     ' 文を実行する前提条件を返す
-    Public Sub CalcPreCondition(stmt1 As TStatement, is_parent As Boolean, and1 As TApply)
+    Public Sub CalcPreCondition(stmt1 As TStatement, and1 As TApply)
         Dim up_stmt As TStatement, up_obj As Object
 
         If TypeOf stmt1 Is TAssignment Then
@@ -940,6 +926,7 @@ Public Class TDataflow
         ElseIf TypeOf stmt1 Is TSelect Then
         ElseIf TypeOf stmt1 Is TCase Then
         ElseIf TypeOf stmt1 Is TFor Then
+            Debug.Assert(False)
         Else
             Debug.Assert(False)
         End If
@@ -954,14 +941,9 @@ Public Class TDataflow
 
             '            Debug.WriteLine("前提条件 {0} > {1}", stmt1.TypeStmt, up_stmt.ToString())
 
-            AddCondition(stmt1, up_stmt, is_parent, and1)
+            AddCondition(stmt1, up_stmt, and1)
 
-            If TypeOf up_stmt Is TFor Then
-                Debug.Assert(Not is_parent)
-                CalcPreCondition(up_stmt, True, and1)
-            Else
-                CalcPreCondition(up_stmt, is_parent, and1)
-            End If
+            CalcPreCondition(up_stmt, and1)
 
         ElseIf TypeOf up_obj Is TFunction Then
 
@@ -1226,6 +1208,7 @@ Public Enum ERefPathType
     App
 
     SelfField
+    SelfFieldSubField
     ParentField
     PrevField
     AppField
@@ -1236,6 +1219,11 @@ Public Enum ERefPathType
 
     局所変数
     その他
+    Constant
+    ClassRef
+    Apply
+    GlobalRef
+    Unknown
 End Enum
 
 Public Enum EBinomialInference
@@ -1247,7 +1235,7 @@ End Enum
 
 ' 参照パス
 Public Class TRefPath
-    Public RefPathType As ERefPathType
+    Public RefPathType As ERefPathType = ERefPathType.Unknown
     Public FieldPath As New List(Of TField)
 End Class
 
@@ -1962,7 +1950,7 @@ Public Class Sys
             Return cpy.dctVar(var1)
         End If
 
-        var2 = New TVariable(var1.NameVar, var1.TypeVar)
+        var2 = New TLocalVariable(var1.NameVar, var1.TypeVar)
         var2.ParamArrayVar = var1.ParamArrayVar
         var2.InitVar = CopyTrm(var1.InitVar, cpy)
         cpy.dctVar.Add(var1, var2)

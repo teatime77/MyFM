@@ -375,8 +375,11 @@ Public Class TProject
 
         If TypeOf var_src Is TField Then
             var1 = New TField()
+        ElseIf TypeOf var_src Is TLocalVariable Then
+            var1 = New TLocalVariable()
         Else
-            var1 = New TVariable()
+            Debug.Assert(False)
+            var1 = Nothing
         End If
 
         var_src.CopyVarMem(var1)
@@ -745,7 +748,7 @@ Public Class TProject
             ini_fnc.ClaFnc = cls1
             ini_fnc.ModVar = New TModifier()
             ini_fnc.TypeFnc = EToken.eSub
-            ini_fnc.ThisFnc = New TVariable(ParsePrj.ThisName, cls1)
+            ini_fnc.ThisFnc = New TLocalVariable(ParsePrj.ThisName, cls1)
             ini_fnc.BlcFnc = New TBlock()
 
             ' フィールドの初期化式から作った代入文をメソッドで定義する。
@@ -807,7 +810,7 @@ Public Class TProject
                 new_fnc.ClaFnc = cls1
                 new_fnc.ModVar = New TModifier()
                 new_fnc.TypeFnc = EToken.eNew
-                new_fnc.ThisFnc = New TVariable(ParsePrj.ThisName, cls1)
+                new_fnc.ThisFnc = New TLocalVariable(ParsePrj.ThisName, cls1)
                 new_fnc.BlcFnc = New TBlock()
                 new_fnc.IsNew = True
 

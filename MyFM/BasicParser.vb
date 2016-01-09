@@ -447,7 +447,7 @@ Public Class TBasicParser
     End Function
 
     Function ReadVariable(up1 As Object) As TVariable
-        Dim var1 As New TVariable
+        Dim var1 As New TLocalVariable
         Dim id1 As TToken
         Dim app1 As TApply
 
@@ -664,7 +664,7 @@ Public Class TBasicParser
             If CurTkn.TypeTkn = EToken.eId Then
 
                 id1 = GetTkn(EToken.eId)
-                stmt1.InVarForStmt = New TVariable(id1.StrTkn, Nothing)
+                stmt1.InVarForStmt = New TLocalVariable(id1.StrTkn, Nothing)
             End If
 
             If CurTkn.TypeTkn = EToken.eAt Then
@@ -1115,7 +1115,7 @@ Public Class TBasicParser
         fnc1 = New TFunction("Invoke", stmt1.RetType)
         fnc1.SetModFnc(stmt1.ModifierFncStmt)
         fnc1.ArgFnc = stmt1.ArgumentFncStmt
-        fnc1.ThisFnc = New TVariable(ThisName, dlg1)
+        fnc1.ThisFnc = New TLocalVariable(ThisName, dlg1)
         fnc1.ClaFnc = dlg1
         dlg1.FncCla.Add(fnc1)
 
@@ -1141,7 +1141,7 @@ Public Class TBasicParser
         fnc2.OpFnc = fnc1.OpFncStmt
         fnc2.ArgumentClassFnc = fnc1.ArgumentClassFncStmt
         fnc2.ArgFnc.AddRange(fnc1.ArgumentFncStmt)
-        fnc2.ThisFnc = New TVariable(ThisName, cla1)
+        fnc2.ThisFnc = New TLocalVariable(ThisName, cla1)
         fnc2.InterfaceFnc = fnc1.InterfaceFncStmt
         fnc2.ImplFnc = New TReference(fnc1.InterfaceFncName)
         fnc2.IsNew = (fnc1.TypeStmt = EToken.eNew)
@@ -2030,7 +2030,7 @@ Public Class TBasicParser
         GetTkn(EToken.eFrom)
 
         Dim id1 As TToken = GetTkn(EToken.eId)
-        from1.VarQry = New TVariable(id1, Nothing)
+        from1.VarQry = New TLocalVariable(id1, Nothing)
 
         GetTkn(EToken.eIn)
         from1.SeqQry = TermExpression()
@@ -2067,7 +2067,7 @@ Public Class TBasicParser
 
         GetTkn(EToken.eAggregate)
         id1 = GetTkn(EToken.eId)
-        aggr1.VarQry = New TVariable(id1, Nothing)
+        aggr1.VarQry = New TLocalVariable(id1, Nothing)
 
         GetTkn(EToken.eIn)
         aggr1.SeqQry = TermExpression()

@@ -813,7 +813,7 @@ Public Class TScriptParser
 
         GetTkn(EToken.eFrom)
         Dim id1 As TToken = GetTkn(EToken.eId)
-        from1.VarQry = New TVariable(id1, Nothing)
+        from1.VarQry = New TLocalVariable(id1, Nothing)
 
         GetTkn(EToken.eIn)
         from1.SeqQry = TermExpression()
@@ -849,7 +849,7 @@ Public Class TScriptParser
 
         GetTkn(EToken.eAggregate)
         id1 = GetTkn(EToken.eId)
-        aggr1.VarQry = New TVariable(id1, Nothing)
+        aggr1.VarQry = New TLocalVariable(id1, Nothing)
 
         GetTkn(EToken.eIn)
         aggr1.SeqQry = TermExpression()
@@ -1301,7 +1301,7 @@ Public Class TScriptParser
             If CurTkn.TypeTkn = EToken.eId Then
 
                 id1 = GetTkn(EToken.eId)
-                for1.InVarFor = New TVariable(id1.StrTkn, Nothing)
+                for1.InVarFor = New TLocalVariable(id1.StrTkn, Nothing)
             End If
 
             If CurTkn.TypeTkn = EToken.eAt Then
@@ -1515,7 +1515,7 @@ Public Class TScriptParser
         If is_field Then
             var1 = New TField()
         Else
-            var1 = New TVariable()
+            var1 = New TLocalVariable()
         End If
 
         id1 = GetTkn(EToken.eId)
@@ -1614,7 +1614,7 @@ Public Class TScriptParser
         End Select
 
         fnc1.ModVar = mod1
-        fnc1.ThisFnc = New TVariable(ThisName, cla1)
+        fnc1.ThisFnc = New TLocalVariable(ThisName, cla1)
         fnc1.IsNew = (fnc1.TypeFnc = EToken.eNew)
 
         ReadFunctionArgument(fnc1.ArgFnc)
@@ -1712,7 +1712,7 @@ Public Class TScriptParser
             Dim fnc1 As New TFunction("Invoke", dlg1.RetDlg)
             fnc1.SetModFnc(mod1)
             fnc1.ArgFnc = dlg1.ArgDlg
-            fnc1.ThisFnc = New TVariable(ThisName, dlg1)
+            fnc1.ThisFnc = New TLocalVariable(ThisName, dlg1)
             fnc1.ClaFnc = dlg1
             dlg1.FncCla.Add(fnc1)
         Else

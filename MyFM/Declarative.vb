@@ -1091,8 +1091,8 @@ Public Class TNaviMakeNavigateFunction
 
         NaviFunctionList.Add(fnc1)
 
-        Dim self_var As New TVariable("self", Prj.ObjectType)
-        Dim app_var As New TVariable("app", Prj.MainClass)
+        Dim self_var As New TLocalVariable("self", Prj.ObjectType)
+        Dim app_var As New TLocalVariable("app", Prj.MainClass)
         fnc1.ArgFnc.Add(self_var)
         fnc1.ArgFnc.Add(app_var)
         fnc1.WithFnc = cla1
@@ -1215,7 +1215,7 @@ Public Class TNaviMakeNavigateFunction
 
                             ' ループを作る。
                             Dim for1 As New TFor
-                            for1.InVarFor = New TVariable("x", Nothing)
+                            for1.InVarFor = New TLocalVariable("x", Nothing)
                             for1.InTrmFor = New TDot(Nothing, used_field)
                             for1.BlcFor = New TBlock()
 
@@ -1292,14 +1292,23 @@ Public Class TNaviSetRefPath
                                 Case ERefPathType.Self
                                     .RefPathTrm.RefPathType = ERefPathType.SelfField
 
+                                Case ERefPathType.SelfField, ERefPathType.SelfFieldSubField
+                                    .RefPathTrm.RefPathType = ERefPathType.SelfFieldSubField
+
                                 Case ERefPathType.Parent
                                     .RefPathTrm.RefPathType = ERefPathType.ParentField
 
                                 Case ERefPathType.Prev
                                     .RefPathTrm.RefPathType = ERefPathType.PrevField
 
-                                Case ERefPathType.App
+                                Case ERefPathType.App, ERefPathType.AppField
                                     .RefPathTrm.RefPathType = ERefPathType.AppField
+
+                                Case ERefPathType.ClassRef
+                                    .RefPathTrm.RefPathType = ERefPathType.GlobalRef
+
+                                Case Else
+                                    Debug.Print("{0}", .TrmDot.RefPathTrm.RefPathType)
 
                             End Select
                         End If
@@ -1309,15 +1318,31 @@ Public Class TNaviSetRefPath
                     With CType(self, TReference)
                         Debug.Assert(.VarRef IsNot Nothing)
 
-                        Select Case .VarRef.RefPathVar.RefPathType
-                            Case ERefPathType.SelfField, ERefPathType.Parent, ERefPathType.Prev, ERefPathType.App
-                                .RefPathTrm = .VarRef.RefPathVar
+                        If TypeOf .VarRef Is TLocalVariable Then
 
-                            Case Else
-                        End Select
+                            Debug.Assert(.VarRef.RefPathVar.RefPathType <> ERefPathType.Unknown)
+                            .RefPathTrm = .VarRef.RefPathVar
+
+                        ElseIf TypeOf .VarRef Is TClass Then
+                            .RefPathTrm.RefPathType = ERefPathType.ClassRef
+
+                        ElseIf TypeOf .VarRef Is TFunction Then
+                            .RefPathTrm.RefPathType = ERefPathType.Apply
+
+                        ElseIf TypeOf .VarRef Is TField Then
+                            If CType(.VarRef, TField).ClaFld Is TProject.Prj.SystemType Then
+                                .RefPathTrm.RefPathType = ERefPathType.GlobalRef
+                            Else
+                                Debug.Assert(False)
+                            End If
+
+                        Else
+                            Debug.Assert(False)
+                        End If
                     End With
 
-                ElseIf TypeOf self Is TQuery Then
+                ElseIf TypeOf self Is TConstant Then
+                    .RefPathTrm.RefPathType = ERefPathType.Constant
 
                 ElseIf TypeOf self Is TFrom Then
                     With CType(self, TFrom)
@@ -1328,6 +1353,16 @@ Public Class TNaviSetRefPath
                     With CType(self, TAggregate)
 
                     End With
+
+                ElseIf TypeOf self Is TApply Then
+                    .RefPathTrm.RefPathType = ERefPathType.Apply
+
+                Else
+                    Debug.Print("")
+                End If
+
+                If .RefPathTrm.RefPathType = ERefPathType.Unknown Then
+                    Debug.Print("")
                 End If
 
             End With
@@ -1350,10 +1385,10 @@ Public Class TNaviSetRefPath
                             Dim k As Integer = fnc1.ArgFnc.IndexOf(CType(self, TVariable))
                             Select Case k
                                 Case 0
-                                    .RefPathVar.RefPathType = ERefPathType.App
+                                    .RefPathVar.RefPathType = ERefPathType.Self
 
                                 Case 1
-                                    .RefPathVar.RefPathType = ERefPathType.Self
+                                    .RefPathVar.RefPathType = ERefPathType.App
 
                                 Case Else
                                     Debug.Assert(False)

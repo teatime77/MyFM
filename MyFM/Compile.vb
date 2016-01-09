@@ -176,8 +176,9 @@ Partial Public Class TProject
             Dim vrule = (From fnc In MainClass.FncCla Where fnc.ModVar.isInvariant).ToList()
             For Each rule In vrule
                 ' 参照パスをセットする。
-                'Dim set_ref_path As New TNaviSetRefPath
-                'set_ref_path.NaviFunction(rule)
+                Dim set_ref_path As New TNaviSetRefPath
+                set_ref_path.NaviFunction(rule)
+
                 Dim use_parent_class_list As List(Of TClass) = RefPath(rule)
 
                 ' クラスの場合分けのIf文を探す。
@@ -349,16 +350,16 @@ Partial Public Class TProject
         fnc1.ModVar = New TModifier()
         fnc1.ModVar.isPublic = True
         fnc1.TypeFnc = EToken.eSub
-        fnc1.ThisFnc = New TVariable(ParsePrj.ThisName, cls1)
+        fnc1.ThisFnc = New TLocalVariable(ParsePrj.ThisName, cls1)
         fnc1.BlcFnc = New TBlock()
         fnc1.IsNew = False
         fnc1.IsTreeWalker = True
         fnc1.WithFnc = cls1
 
-        Dim self_var As New TVariable("self", ObjectType)
+        Dim self_var As New TLocalVariable("self", ObjectType)
         fnc1.ArgFnc.Add(self_var)
 
-        Dim parent_var As New TVariable("_Parent", ObjectType)
+        Dim parent_var As New TLocalVariable("_Parent", ObjectType)
         fnc1.ArgFnc.Add(parent_var)
 
         Return fnc1
@@ -477,13 +478,13 @@ Partial Public Class TProject
 
                                 ' 直前の値の作業変数(__prev)を宣言する。
                                 Dim var_decl As New TVariableDeclaration
-                                prev_var = New TVariable("__prev", element_type)
+                                prev_var = New TLocalVariable("__prev", element_type)
                                 var_decl.VarDecl.Add(prev_var)
                                 if1.IfBlc(0).BlcIf.AddStmtBlc(var_decl)
                             End If
 
                             Dim for1 As New TFor
-                            for1.InVarFor = New TVariable("x", element_type)
+                            for1.InVarFor = New TLocalVariable("x", element_type)
                             for1.InTrmFor = New TDot(Nothing, fld)
                             for1.BlcFor = New TBlock()
 
