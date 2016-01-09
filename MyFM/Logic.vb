@@ -284,6 +284,7 @@ Public Class TTerm
     <_Weak()> Public TypeTrm As TClass
     <_Weak()> Public ProjectTrm As TProject
     <_Weak()> Public RefPathTrm As TRefPath
+    <_Weak()> Public DependTrm As TDependency
     <_Weak()> Public CastType As TClass
 
     Public Sub New()
@@ -350,6 +351,7 @@ Public Class TVariable
     Public NoType As Boolean = False
     Public UsedVar As Boolean = False
     <_Weak()> Public RefPathVar As TRefPath
+    <_Weak()> Public DependVar As TDependency
     ' public List<TReference> UseVar = new List<TReference>();
     ' public List<TReference> DefVar = new List<TReference>();
 
@@ -1052,7 +1054,7 @@ Public Class TStatement
     Public TabStmt As Integer
     <_Weak()> Public FunctionStmt As TFunction
 
-    Public ClassifiedIf As Boolean
+    Public VirtualizableIf As Boolean
 
     Public Sub New()
         StmtIdx = StmtCnt

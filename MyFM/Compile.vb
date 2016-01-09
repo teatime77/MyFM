@@ -176,24 +176,24 @@ Partial Public Class TProject
             Dim vrule = (From fnc In MainClass.FncCla Where fnc.ModVar.isInvariant).ToList()
             For Each rule In vrule
                 ' 参照パスをセットする。
-                Dim set_ref_path As New TNaviSetRefPath
-                set_ref_path.NaviFunction(rule)
+                Dim set_dependency As New TNaviSetDependency
+                set_dependency.NaviFunction(rule)
 
                 Dim use_parent_class_list As List(Of TClass) = RefPath(rule)
 
                 ' クラスの場合分けのIf文を探す。
-                Dim set_classified_if As New TNaviSetClassifiedIf
-                set_classified_if.NaviFunction(rule)
+                Dim set_virtualizable_if As New TNaviSetVirtualizableIf
+                set_virtualizable_if.NaviFunction(rule)
 
                 ' クラスの場合分けのIf文からクラスごとのメソッドを作る。
-                Dim make_classified_if_method As New TNaviMakeClassifiedIfMethod
-                make_classified_if_method.NaviFunction(rule)
+                Dim make_virtualizable_if_method As New TNaviMakeVirtualizableIfMethod
+                make_virtualizable_if_method.NaviFunction(rule)
 
                 ' ナビゲート関数を作る。
                 Dim set_reachable_field As New TNaviMakeNavigateFunction
                 set_reachable_field.Prj = Me
                 set_reachable_field.UseParentClassList = use_parent_class_list
-                set_reachable_field.ClassifiedClassList = make_classified_if_method.ClassifiedClassList
+                set_reachable_field.VirtualizableClassList = make_virtualizable_if_method.VirtualizableClassList
                 set_reachable_field.NaviFunction(rule)
 
                 For Each fnc1 In set_reachable_field.NaviFunctionList
@@ -587,11 +587,11 @@ Partial Public Class TProject
     End Sub
 
 
-    ' -------------------------------------------------------------------------------- TNaviMakeClassifiedIfMethod
+    ' -------------------------------------------------------------------------------- TNaviMakeVirtualizableIfMethod
     ' クラスの場合分けのIf文からクラスごとのメソッドを作る。
-    Public Class TNaviMakeClassifiedIfMethod
+    Public Class TNaviMakeVirtualizableIfMethod
         Inherits TDeclarative
-        Public ClassifiedClassList As New List(Of TClass)
+        Public VirtualizableClassList As New List(Of TClass)
 
         Public Function CopyAncestorBlock(if1 As TIf, blc1 As TBlock, cpy As TCopy) As TBlock
             Dim up_blc As TBlock = TDataflow.UpBlock(if1)
@@ -624,7 +624,7 @@ Partial Public Class TProject
             If TypeOf self Is TIfBlock Then
                 With CType(self, TIfBlock)
                     Dim if1 As TIf = CType(.ParentStmt, TIf)
-                    If if1.ClassifiedIf Then
+                    If if1.VirtualizableIf Then
 
                         Dim fnc1 As New TFunction
                         Dim blc_if_copy As New TBlock
@@ -647,7 +647,7 @@ Partial Public Class TProject
                         Dim vvar2 = (From blc In TNaviUp.AncestorList(if1) Where TypeOf blc Is TBlock From var1 In CType(blc, TBlock).VarBlc Select Sys.CopyVar(var1, cpy)).ToList()
 
                         ' .BlcIfの子の文をblc_if_copyにコピーする。
-                        blc_if_copy.StmtBlc.AddRange(From x In .BlcIf.StmtBlc Where Not x.ClassifiedIf Select Sys.CopyStmt(x, cpy))
+                        blc_if_copy.StmtBlc.AddRange(From x In .BlcIf.StmtBlc Where Not x.VirtualizableIf Select Sys.CopyStmt(x, cpy))
 
                         ' このif文を囲むブロックをコピーする。
                         fnc1.BlcFnc = CopyAncestorBlock(if1, blc_if_copy, cpy)
@@ -655,17 +655,17 @@ Partial Public Class TProject
                         ' クラスにメソッドを追加する。
                         Dim app1 As TApply = CType(.CndIf, TApply)
                         Dim ref1 As TReference = CType(app1.ArgApp(1), TReference)
-                        Dim classified_class As TClass = CType(ref1.VarRef, TClass)
+                        Dim virtualizable_class As TClass = CType(ref1.VarRef, TClass)
 
                         fnc1.NameVar = .FunctionStmt.NameVar
                         fnc1.ModVar = New TModifier()
                         fnc1.ModVar.isInvariant = True
                         fnc1.TypeFnc = .FunctionStmt.TypeFnc
-                        fnc1.ClaFnc = classified_class
+                        fnc1.ClaFnc = virtualizable_class
                         fnc1.ClaFnc.FncCla.Add(fnc1)
-                        fnc1.WithFnc = classified_class
+                        fnc1.WithFnc = virtualizable_class
 
-                        Debug.Print("Make Rule {0}.{1}", classified_class.NameVar, fnc1.NameVar)
+                        Debug.Print("Make Rule {0}.{1}", virtualizable_class.NameVar, fnc1.NameVar)
 
                         fnc1.__SetParent(fnc1, fnc1.ClaFnc.FncCla)
                         Dim set_parent_stmt As New TNaviSetParentStmt
@@ -674,7 +674,7 @@ Partial Public Class TProject
                         Dim set_up_trm As New TNaviSetUpTrm
                         set_up_trm.NaviFunction(fnc1, Nothing)
 
-                        ClassifiedClassList.Add(classified_class)
+                        VirtualizableClassList.Add(virtualizable_class)
                     End If
                 End With
             End If

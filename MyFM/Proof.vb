@@ -1233,6 +1233,11 @@ Public Enum EBinomialInference
     Unknown
 End Enum
 
+' 依存関係
+Public Class TDependency
+
+End Class
+
 ' 参照パス
 Public Class TRefPath
     Public RefPathType As ERefPathType = ERefPathType.Unknown

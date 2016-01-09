@@ -1004,12 +1004,12 @@ Public Class TNaviSetLabel
     End Sub
 End Class
 
-' -------------------------------------------------------------------------------- TNaviSetClassifiedIf
+' -------------------------------------------------------------------------------- TNaviSetVirtualizableIf
 ' クラスの場合分けのIf文を探す。
-Public Class TNaviSetClassifiedIf
+Public Class TNaviSetVirtualizableIf
     Inherits TDeclarative
 
-    Public Function IsClassifiedIfBlock(if_blc As TIfBlock) As Boolean
+    Public Function IsVirtualizableIfBlock(if_blc As TIfBlock) As Boolean
         If TypeOf if_blc.CndIf Is TApply Then
             Dim app1 As TApply = CType(if_blc.CndIf, TApply)
 
@@ -1027,30 +1027,30 @@ Public Class TNaviSetClassifiedIf
     Public Overrides Sub StartCondition(self As Object)
         If TypeOf self Is TIf Then
             With CType(self, TIf)
-                Dim may_be_classified_if As Boolean = False
+                Dim may_be_virtualizable_if As Boolean = False
 
                 Dim up_stmt As TStatement = TDataflow.UpStmtProper(.ParentStmt)
 
                 If up_stmt Is Nothing Then
-                    may_be_classified_if = True
+                    may_be_virtualizable_if = True
                 Else
                     If TypeOf up_stmt Is TIfBlock Then
-                        may_be_classified_if = CType(CType(up_stmt, TIfBlock).ParentStmt, TIf).ClassifiedIf
+                        may_be_virtualizable_if = CType(CType(up_stmt, TIfBlock).ParentStmt, TIf).VirtualizableIf
                     Else
-                        may_be_classified_if = False
+                        may_be_virtualizable_if = False
                     End If
                 End If
 
-                If may_be_classified_if Then
-                    Dim classified_if_block_list = From x In .IfBlc Where IsClassifiedIfBlock(x)
+                If may_be_virtualizable_if Then
+                    Dim virtualizable_if_block_list = From x In .IfBlc Where IsVirtualizableIfBlock(x)
 
-                    If classified_if_block_list.Count() = .IfBlc.Count Then
-                        .ClassifiedIf = True
+                    If virtualizable_if_block_list.Count() = .IfBlc.Count Then
+                        .VirtualizableIf = True
                     Else
-                        .ClassifiedIf = False
+                        .VirtualizableIf = False
                     End If
                 Else
-                    .ClassifiedIf = False
+                    .VirtualizableIf = False
                 End If
             End With
         End If
@@ -1063,7 +1063,7 @@ Public Class TNaviMakeNavigateFunction
     Inherits TDeclarative
     Public Prj As TProject
     Public UseParentClassList As List(Of TClass)
-    Public ClassifiedClassList As List(Of TClass)
+    Public VirtualizableClassList As List(Of TClass)
     Public NaviFunctionList As New List(Of TFunction)
 
     Public Sub AddRuleCall(fnc1 As TFunction, cla1 As TClass)
@@ -1109,13 +1109,13 @@ Public Class TNaviMakeNavigateFunction
                 Dim reachable_from_top_pending As New List(Of TField)
                 Dim reachable_from_top_processed As New List(Of TField)
 
-                For Each classified_class In ClassifiedClassList
+                For Each virtualizable_class In VirtualizableClassList
 
-                    ' classified_classとそのスーパークラスのリスト
-                    Dim classified_super_class_list = Enumerable.Distinct(TNaviUp.ThisAncestorSuperClassList(classified_class))
+                    ' virtualizable_classとそのスーパークラスのリスト
+                    Dim virtualizable_super_class_list = Enumerable.Distinct(TNaviUp.ThisAncestorSuperClassList(virtualizable_class))
 
-                    ' 型がclassified_classかスーパークラスであるフィールドのリスト
-                    Dim parent_field_list = From parent_field In Prj.SimpleFieldList Where parent_field.ModVar.isStrong() AndAlso classified_super_class_list.Contains(CType(If(parent_field.TypeVar.OrgCla Is Nothing, parent_field.TypeVar, Prj.ElementType(parent_field.TypeVar)), TClass))
+                    ' 型がvirtualizable_classかスーパークラスであるフィールドのリスト
+                    Dim parent_field_list = From parent_field In Prj.SimpleFieldList Where parent_field.ModVar.isStrong() AndAlso virtualizable_super_class_list.Contains(CType(If(parent_field.TypeVar.OrgCla Is Nothing, parent_field.TypeVar, Prj.ElementType(parent_field.TypeVar)), TClass))
 
                     ' reachable_from_bottom_pendingに入っていないparent_fieldを追加する。
                     reachable_from_bottom_pending.AddRange((From parent_field In parent_field_list Where Not reachable_from_bottom_pending.Contains(parent_field)).ToList())
@@ -1266,6 +1266,121 @@ Public Class TNaviMakeNavigateFunction
                     Dim fnc1 As TFunction = InitNavigateFunction(function_name, cla1)
                     AddRuleCall(fnc1, cla1)
                 Next
+            End With
+        End If
+    End Sub
+End Class
+
+' -------------------------------------------------------------------------------- TNaviSetDependency
+' 依存関係をセットする。
+Public Class TNaviSetDependency
+    Inherits TDeclarative
+
+    Public Overrides Sub EndCondition(self As Object)
+        If TypeOf self Is TTerm Then
+            With CType(self, TTerm)
+                .DependTrm = New TDependency()
+
+                If TypeOf self Is TDot Then
+                    With CType(self, TDot)
+                        Debug.Assert(.VarRef IsNot Nothing)
+
+                        If .TrmDot Is Nothing Then
+                        Else
+                        End If
+                    End With
+
+                ElseIf TypeOf self Is TReference Then
+                    With CType(self, TReference)
+                        Debug.Assert(.VarRef IsNot Nothing)
+
+                        If TypeOf .VarRef Is TLocalVariable Then
+
+                        ElseIf TypeOf .VarRef Is TClass Then
+
+                        ElseIf TypeOf .VarRef Is TFunction Then
+
+                        ElseIf TypeOf .VarRef Is TField Then
+
+                        Else
+                            Debug.Assert(False)
+                        End If
+                    End With
+
+                ElseIf TypeOf self Is TConstant Then
+
+                ElseIf TypeOf self Is TFrom Then
+                    With CType(self, TFrom)
+
+                    End With
+
+                ElseIf TypeOf self Is TAggregate Then
+                    With CType(self, TAggregate)
+
+                    End With
+
+                ElseIf TypeOf self Is TApply Then
+
+                ElseIf TypeOf self Is TParenthesis Then
+
+                Else
+                    Debug.Print("")
+                End If
+
+            End With
+
+        ElseIf TypeOf self Is TVariable Then
+            With CType(self, TVariable)
+                .DependVar = New TDependency()
+
+                If TypeOf self Is TLocalVariable Then
+                    If TypeOf .UpVar Is TList(Of TVariable) Then
+                        Dim up_obj As Object = TNaviUp.UpObj(.UpVar)
+
+                        If TypeOf up_obj Is TFunction Then
+                            Dim fnc1 As TFunction = CType(up_obj, TFunction)
+
+                            Dim k As Integer = fnc1.ArgFnc.IndexOf(CType(self, TVariable))
+                            Select Case k
+                                Case 0
+
+                                Case 1
+
+                                Case Else
+                                    Debug.Assert(False)
+                            End Select
+
+                        ElseIf TypeOf up_obj Is TVariableDeclaration Then
+                            If .InitVar IsNot Nothing Then
+                            End If
+
+                        ElseIf TypeOf up_obj Is TTry Then
+                            Debug.Assert(False)
+
+                        Else
+                            Debug.Assert(False)
+                        End If
+
+                    ElseIf TypeOf .UpVar Is TFrom Then
+                        Dim from1 As TFrom = CType(.UpVar, TFrom)
+
+                    ElseIf TypeOf .UpVar Is TAggregate Then
+                        Dim aggr1 As TAggregate = CType(.UpVar, TAggregate)
+
+                    ElseIf TypeOf .UpVar Is TFor Then
+                        Debug.Assert(False)
+
+                    Else
+                        Debug.Assert(False)
+                    End If
+
+                ElseIf TypeOf self Is TFunction Then
+                    With CType(self, TFunction)
+                        Debug.Assert(.ModVar.isInvariant)
+                    End With
+                Else
+                    Debug.Assert(False)
+                End If
             End With
         End If
     End Sub
