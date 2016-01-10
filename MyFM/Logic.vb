@@ -511,7 +511,7 @@ Public Class TClass
         End If
 
         If cla1.GenericType = EGeneric.SpecializedClass Then
-            Dim vcla = From cla2 In AllSuperClassList Where cla2.GenericType = EGeneric.SpecializedClass AndAlso cla2.OrgCla Is cla1.OrgCla AndAlso Not (From idx In TNaviUp.IndexList(cla1.GenCla) Where Not cla2.GenCla(idx).IsSubcla(cla1.GenCla(idx))).Any()
+            Dim vcla = From cla2 In AllSuperClassList Where cla2.GenericType = EGeneric.SpecializedClass AndAlso cla2.OrgCla Is cla1.OrgCla AndAlso Not (From idx In Sys.IndexList(cla1.GenCla) Where Not cla2.GenCla(idx).IsSubcla(cla1.GenCla(idx))).Any()
             If vcla.Any() Then
                 Return True
             End If
@@ -519,7 +519,7 @@ Public Class TClass
             For Each cla2 In AllSuperClassList
                 If cla2.GenericType = EGeneric.SpecializedClass AndAlso cla2.OrgCla Is cla1.OrgCla Then
 
-                    If Not (From idx In TNaviUp.IndexList(cla1.GenCla) Where Not cla2.GenCla(idx).IsSubcla(cla1.GenCla(idx))).Any() Then
+                    If Not (From idx In Sys.IndexList(cla1.GenCla) Where Not cla2.GenCla(idx).IsSubcla(cla1.GenCla(idx))).Any() Then
                         Return True
                     End If
                 End If
@@ -1159,7 +1159,7 @@ Public Class TIfBlock
     Public Sub New(cnd As TTerm, blc As TBlock)
         TypeStmt = EToken.eIfBlock
         CndIf = cnd
-        Dim vidx = From i In TNaviUp.IndexList(blc.StmtBlc) Where TypeOf blc.StmtBlc(i) Is TWith
+        Dim vidx = From i In Sys.IndexList(blc.StmtBlc) Where TypeOf blc.StmtBlc(i) Is TWith
         If vidx.Any() Then
             Debug.Assert(vidx.Count() = 1)
             If blc.StmtBlc.Count <> 1 Then

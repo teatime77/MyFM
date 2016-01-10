@@ -85,7 +85,7 @@ Public Class TDataflow
         If J IsNot Nothing Then
 
             ' 余分な条件を取り除く
-            CleanCondition(J)
+            Sys.CleanCondition(J)
         End If
 
         Return J
@@ -289,12 +289,12 @@ Public Class TDataflow
                         ' 代入時の条件がある場合
 
                         ' 文を実行する前提条件を得る
-                        PreCondition = GetPreConditionClean(RefChangeableUpStmt)
+                        PreCondition = Sys.GetPreConditionClean(RefChangeableUpStmt)
                     End If
 
                     '-------------------------------------------------- 代入時の条件と、文の実行の条件の無矛盾の判定を表示する。
 
-                    If NormalizedCondition Is Nothing OrElse Consistent(NormalizedCondition, PreCondition) Then
+                    If NormalizedCondition Is Nothing OrElse Sys.Consistent(NormalizedCondition, PreCondition) Then
                         ' 代入時の条件と、文の実行の条件が矛盾しない場合
 
                         Dim afr As New TAffectedRef(Change, ref1, ref_type, RefChangeableUpStmt)
@@ -331,7 +331,7 @@ Public Class TDataflow
                                 ' 未処理の場合
 
                                 ' 未処理のリストに追加する。
-                                ChangePropagation = New TChange(asn1, ref_asn.VarRef, ref_asn, GetPreConditionClean(asn1))
+                                ChangePropagation = New TChange(asn1, ref_asn.VarRef, ref_asn, Sys.GetPreConditionClean(asn1))
                                 afr.DstChangeList.Add(ChangePropagation)
 
                                 Unprocessed.Add(ChangePropagation)
@@ -529,7 +529,7 @@ Public Class TDataflow
 
                     Dim fld1 As TField = CType(dot1.VarRef, TField)
 
-                    Dim if_blc = CType((From o In TNaviUp.AncestorList(x) Where TypeOf o Is TIfBlock AndAlso CType(o, TIfBlock).WithIf IsNot Nothing).First(), TIfBlock)
+                    Dim if_blc = CType((From o In Sys.AncestorList(x) Where TypeOf o Is TIfBlock AndAlso CType(o, TIfBlock).WithIf IsNot Nothing).First(), TIfBlock)
 
                     Dim with_cls As TClass = if_blc.WithIf.TypeTrm
                     Dim set_fnc As TFunction = TProject.FindFieldFunction(with_cls, "_Set_" + fld1.NameVar, New TList(Of TTerm)())
@@ -806,308 +806,6 @@ Public Class TDataflow
         End If
 
         Return ERefPathType.その他
-    End Function
-
-    ' 条件を追加する
-    Public Sub AddCondition(stmt1 As TStatement, up_stmt As TStatement, and1 As TApply)
-        Dim if_blc As TIfBlock, case1 As TCase, if1 As TIf, not1 As TApply, cnd1 As TTerm
-
-        If TypeOf up_stmt Is TIf Then
-            Debug.Assert(TypeOf stmt1 Is TIfBlock)
-            if_blc = CType(stmt1, TIfBlock)
-
-        ElseIf TypeOf up_stmt Is TIfBlock Then
-            if_blc = CType(up_stmt, TIfBlock)
-            if1 = CType(Sys.UpStmt(up_stmt.UpTrm), TIf)
-            For Each _child In if1.IfBlc
-                cnd1 = Sys.CopyTrm(_child.CndIf, Nothing)
-
-                If _child IsNot if_blc Then
-                    ' 手前のIfブロックの場合
-
-                    ' 否定の条件を追加する
-                    not1 = TApply.NewOpr(EToken.eNot)
-
-                    not1.AddInArg(cnd1)
-                Else
-                    ' 現在のIfブロックの場合
-
-                    ' 条件を追加する
-                    and1.AddInArg(cnd1)
-
-                    Exit For
-                End If
-            Next
-
-        ElseIf TypeOf up_stmt Is TSelect Then
-            Debug.Assert(TypeOf stmt1 Is TCase)
-            case1 = CType(stmt1, TCase)
-
-        ElseIf TypeOf up_stmt Is TCase Then
-        ElseIf TypeOf up_stmt Is TFor Then
-        End If
-    End Sub
-
-    ' 余分な条件を取り除いた前提条件を返す
-    Public Function GetPreConditionClean(stmt As TStatement) As TApply
-        Dim pre_cond As TApply
-
-        ' 文を実行する前提条件を返す
-        pre_cond = TApply.NewOpr(EToken.eAnd)
-        CalcPreCondition(stmt, pre_cond)
-
-        ' 余分な条件を取り除く
-        CleanCondition(pre_cond)
-
-        Return pre_cond
-    End Function
-
-    ' 文を実行する前提条件を返す
-    Public Sub CalcPreCondition(stmt1 As TStatement, and1 As TApply)
-        Dim up_stmt As TStatement, up_obj As Object
-
-        If TypeOf stmt1 Is TAssignment Then
-        ElseIf TypeOf stmt1 Is TCall Then
-        ElseIf TypeOf stmt1 Is TIf Then
-        ElseIf TypeOf stmt1 Is TIfBlock Then
-        ElseIf TypeOf stmt1 Is TSelect Then
-        ElseIf TypeOf stmt1 Is TCase Then
-        ElseIf TypeOf stmt1 Is TFor Then
-            Debug.Assert(False)
-        Else
-            Debug.Assert(False)
-        End If
-
-        If stmt1.TypeStmt = EToken.eProtected Then
-            Debug.Assert(False)
-        End If
-
-        up_obj = Sys.UpStmt(stmt1.UpTrm)
-        If TypeOf up_obj Is TStatement Then
-            up_stmt = CType(up_obj, TStatement)
-
-            '            Debug.WriteLine("前提条件 {0} > {1}", stmt1.TypeStmt, up_stmt.ToString())
-
-            AddCondition(stmt1, up_stmt, and1)
-
-            CalcPreCondition(up_stmt, and1)
-
-        ElseIf TypeOf up_obj Is TFunction Then
-
-        Else
-            Debug.Assert(False)
-        End If
-    End Sub
-
-    ' 2個の論理式から得られる推論の結果を得る
-    Public Function BinomialInference(P As TApply, Q As TApply) As EBinomialInference
-        Dim A As TClass, B As TClass, A_subset_B As Boolean, B_subset_A As Boolean, A_EQ_B As Boolean
-
-        Select Case P.TypeApp
-            Case EToken.eInstanceof
-                A = CType(P.ArgApp(1), TReference).VarRef
-                B = CType(Q.ArgApp(1), TReference).VarRef
-
-                A_subset_B = A.IsSubsetOf(B)
-                B_subset_A = B.IsSubsetOf(A)
-                If Not P.Negation Then
-                    If Not Q.Negation Then
-                        '     a ∊ A ,     a ∊ B		A=Bならa ∊ Bは不要、A ⋂ B = ∅ なら矛盾、A ⊆ B ならa ∊ Bは不要、B ⊆ A ならa ∊ Aは不要
-                        If A Is B Then
-                            Return EBinomialInference.SecondRedundant
-                        ElseIf A_subset_B Then
-                            Return EBinomialInference.SecondRedundant
-                        ElseIf B_subset_A Then
-                            Return EBinomialInference.FirstRedundant
-                        Else
-                            Return EBinomialInference.矛盾
-                        End If
-                    Else
-                        '     a ∊ A , Not a ∊ B		A ⊆ B なら矛盾、A ⋂ B = ∅ ならNot a ∊ Bは不要
-
-                        If A Is B OrElse A_subset_B Then
-                            Return EBinomialInference.矛盾
-                        ElseIf Not B_subset_A Then
-                            Return EBinomialInference.SecondRedundant
-                        Else
-                            Return EBinomialInference.Unknown
-                        End If
-                    End If
-                Else
-                    If Not Q.Negation Then
-                        ' Not a ∊ A ,     a ∊ B		B ⊆ A なら矛盾、A ⋂ B = ∅ ならNot a ∊ Aは不要
-
-                        If A Is B OrElse B_subset_A Then
-                            Return EBinomialInference.矛盾
-                        ElseIf Not A_subset_B Then
-                            Return EBinomialInference.FirstRedundant
-                        Else
-                            Return EBinomialInference.Unknown
-                        End If
-                    Else
-                        ' Not a ∊ A , Not a ∊ B		A ⊆ B ならNot a ∊ Aは不要、B ⊆ A ならNot a ∊ Bは不要
-
-                        If A Is B OrElse A_subset_B Then
-                            Return EBinomialInference.FirstRedundant
-                        ElseIf B_subset_A Then
-                            Return EBinomialInference.FirstRedundant
-                        Else
-                            Return EBinomialInference.Unknown
-                        End If
-                    End If
-                End If
-
-            Case EToken.eIs, EToken.eEq
-                Debug.WriteLine("is {0} {1} {2} {3}", P.Negation, P.ArgApp(1), Q.Negation, Q.ArgApp(1))
-                A_EQ_B = Sys.IsEqTrm(P.ArgApp(1), Q.ArgApp(1))
-                If Not P.Negation Then
-                    If Not Q.Negation Then
-                        '     a = A ,     a = B		A <> B なら矛盾、A=Bならa = Bは不要
-
-                        If A_EQ_B Then
-                            Return EBinomialInference.SecondRedundant
-                        Else
-                            Return EBinomialInference.Unknown
-                        End If
-                    Else
-                        '     a = A , Not a = B		A = B なら矛盾、A <> BならNot a = Bは不要
-
-                        If A_EQ_B Then
-                            Return EBinomialInference.矛盾
-                        Else
-                            Return EBinomialInference.Unknown
-                        End If
-                    End If
-                Else
-                    If Not Q.Negation Then
-                        ' Not a = A ,     a = B		A = B なら矛盾、A <> BならNot a = Aは不要
-
-                        If A_EQ_B Then
-                            Return EBinomialInference.矛盾
-                        Else
-                            Return EBinomialInference.Unknown
-                        End If
-                    Else
-                        ' Not a = A , Not a = B
-
-                        Return EBinomialInference.Unknown
-                    End If
-                End If
-
-            Case EToken.eLT
-                Debug.WriteLine("eq {0} {1} {2} {3}", P.Negation, P.ArgApp(1), Q.Negation, Q.ArgApp(1))
-                If Not P.Negation Then
-                    If Not Q.Negation Then
-                        '     a < A ,     a < B		A <= Bならa < Bは不要、B <= Aならa < Bは不要
-                    Else
-                        '     a < A , Not a < B		A <= B なら矛盾
-                    End If
-                Else
-                    If Not Q.Negation Then
-                        ' Not a < A , a < B			B <= A なら矛盾
-                    Else
-                        ' Not a < A ,     Not a < B	A <= Bなら Not a < Aは不要、B <= AならNot a < Bは不要
-                    End If
-                End If
-        End Select
-
-        Return EBinomialInference.Unknown
-    End Function
-
-    ' 余分な条件を取り除く
-    Public Sub CleanCondition(and1 As TApply)
-        Dim i1 As Integer, i2 As Integer, app1 As TApply, app2 As TApply, inf As EBinomialInference
-        Dim is_redundant As Boolean()
-
-        For Each trm In and1.ArgApp
-            If TypeOf trm Is TApply Then
-                app1 = CType(trm, TApply)
-                Select Case app1.TypeApp
-                    Case EToken.eIsNot
-                        app1.Negation = Not app1.Negation
-                        app1.TypeApp = EToken.eIs
-
-                    Case EToken.eNE
-                        app1.Negation = Not app1.Negation
-                        app1.TypeApp = EToken.eEq
-                End Select
-            End If
-        Next
-
-        ReDim is_redundant(and1.ArgApp.Count - 1)
-
-        For i1 = 0 To and1.ArgApp.Count - 1
-            If TypeOf and1.ArgApp(i1) Is TApply Then
-                app1 = CType(and1.ArgApp(i1), TApply)
-                Select Case app1.TypeApp
-                    Case EToken.eInstanceof, EToken.eIs, EToken.eEq
-
-                        For i2 = i1 + 1 To and1.ArgApp.Count - 1
-                            If TypeOf and1.ArgApp(i2) Is TApply Then
-                                app2 = CType(and1.ArgApp(i2), TApply)
-
-                                If app2.TypeApp = app1.TypeApp AndAlso Sys.IsEqTrm(app1.ArgApp(0), app2.ArgApp(0)) Then
-                                    ' 対象が同じ場合
-
-                                    ' 2個の論理式から得られる推論の結果を得る
-                                    inf = BinomialInference(app1, app2)
-                                    Select Case inf
-                                        Case EBinomialInference.矛盾
-                                        Case EBinomialInference.FirstRedundant
-                                            is_redundant(i1) = True
-                                        Case EBinomialInference.SecondRedundant
-                                            is_redundant(i2) = True
-                                    End Select
-                                End If
-                            End If
-                        Next
-                End Select
-            End If
-        Next
-
-        For i1 = and1.ArgApp.Count - 1 To 0 Step -1
-            If is_redundant(i1) Then
-                and1.ArgApp.RemoveAt(i1)
-            End If
-        Next
-
-    End Sub
-
-    ' P ∧ Q が無矛盾なら true を返す。
-    Public Function Consistent(P As TApply, Q As TApply) As Boolean
-        Dim i1 As Integer, i2 As Integer, app1 As TApply, app2 As TApply, inf As EBinomialInference
-
-        i1 = 0
-        Do While i1 < P.ArgApp.Count
-            If TypeOf P.ArgApp(i1) Is TApply Then
-                app1 = CType(P.ArgApp(i1), TApply)
-                Select Case app1.TypeApp
-                    Case EToken.eInstanceof, EToken.eIs, EToken.eEq
-
-                        i2 = 0
-                        Do While i2 < Q.ArgApp.Count
-                            If TypeOf Q.ArgApp(i2) Is TApply Then
-                                app2 = CType(Q.ArgApp(i2), TApply)
-
-                                If app2.TypeApp = app1.TypeApp AndAlso Sys.IsEqTrm(app1.ArgApp(0), app2.ArgApp(0)) Then
-                                    ' 対象が同じ場合
-
-                                    ' 2個の論理式から得られる推論の結果を得る
-                                    inf = BinomialInference(app1, app2)
-                                    If inf = EBinomialInference.矛盾 Then
-                                        Return False
-                                    End If
-                                End If
-                            End If
-                            i2 += 1
-                        Loop
-                End Select
-            End If
-
-            i1 += 1
-        Loop
-
-        Return True
     End Function
 
     Public Shared Function GetFieldBy相対位置(cls1 As TClass, rel_pos As E相対位置) As TField
@@ -1516,6 +1214,142 @@ Public Class TCopy
 End Class
 
 Public Class Sys
+    Public Shared Function UpObj(obj As Object) As Object
+        If TypeOf obj Is TFunction Then
+            Return CType(obj, TFunction).ClaFnc
+        ElseIf TypeOf obj Is TList(Of TField) Then
+            Return CType(obj, TList(Of TField)).UpList
+        ElseIf TypeOf obj Is TClass Then
+            Return CType(obj, TClass).ProjectCla
+        ElseIf TypeOf obj Is TProject Then
+            Return Nothing
+        ElseIf TypeOf obj Is TVariable Then
+            Return CType(obj, TVariable).UpVar
+        ElseIf TypeOf obj Is TStatement Then
+            Return CType(obj, TStatement).UpTrm
+        ElseIf TypeOf obj Is TTerm Then
+            Return CType(obj, TTerm).UpTrm
+        ElseIf TypeOf obj Is TList(Of TVariable) Then
+            Return CType(obj, TList(Of TVariable)).UpList
+        ElseIf TypeOf obj Is TList(Of TTerm) Then
+            Return CType(obj, TList(Of TTerm)).UpList
+        ElseIf TypeOf obj Is TList(Of TCase) Then
+            Return CType(obj, TList(Of TCase)).UpList
+        ElseIf TypeOf obj Is TList(Of TStatement) Then
+            Return CType(obj, TList(Of TStatement)).UpList
+        ElseIf TypeOf obj Is TList(Of TBlock) Then
+            Return CType(obj, TList(Of TBlock)).UpList
+        ElseIf TypeOf obj Is TList(Of TIfBlock) Then
+            Return CType(obj, TList(Of TIfBlock)).UpList
+        Else
+            Debug.Assert(False)
+            Return Nothing
+        End If
+    End Function
+
+    Public Function UpToFnc(obj1 As Object) As TFunction
+        Dim obj2 As Object
+
+        obj2 = obj1
+        Do While obj2 IsNot Nothing AndAlso Not TypeOf obj2 Is TFunction
+            obj2 = UpObj(obj2)
+        Loop
+
+        Debug.Assert(obj2 IsNot Nothing AndAlso TypeOf obj2 Is TFunction)
+
+        Return CType(obj2, TFunction)
+    End Function
+
+    Public Shared Function UpToStmt(obj1 As Object) As TStatement
+        Dim obj2 As Object
+
+        obj2 = obj1
+        Do While obj2 IsNot Nothing AndAlso Not TypeOf obj2 Is TStatement
+            obj2 = UpObj(obj2)
+        Loop
+
+        Debug.Assert(obj2 IsNot Nothing AndAlso TypeOf obj2 Is TStatement)
+
+        Dim stmt1 = From obj3 In AncestorList(obj1) Where TypeOf obj3 Is TStatement
+        Dim obj4 As Object = stmt1.First()
+        Debug.Assert(obj4 Is obj2)
+
+        Return CType(obj2, TStatement)
+    End Function
+
+    Public Shared Iterator Function AncestorList(obj1 As Object) As IEnumerable(Of Object)
+        Dim up_obj As Object
+
+        up_obj = UpObj(obj1)
+        Do While up_obj IsNot Nothing
+            Yield up_obj
+            up_obj = UpObj(up_obj)
+        Loop
+    End Function
+
+    Public Shared Function AncestorSuperClassList2(cla1 As TClass) As IEnumerable(Of TClass)
+        Return From x In (From y In cla1.SuperClassList Select AncestorSuperClassList2(y))
+    End Function
+
+    Public Shared Function AncestorInterfaceList2(cla1 As TClass) As IEnumerable(Of TClass)
+        Return From x In (From y In cla1.InterfaceList Select AncestorInterfaceList2(y))
+    End Function
+
+    Public Shared Iterator Function AncestorSuperClassList(cla1 As TClass) As IEnumerable(Of TClass)
+        For Each cla2 In cla1.SuperClassList
+            Yield cla2
+            For Each cla3 In AncestorSuperClassList(cla2)
+                Yield cla3
+            Next
+        Next
+    End Function
+
+    Public Shared Iterator Function DistinctThisAncestorSuperClassList(cla1 As TClass) As IEnumerable(Of TClass)
+        For Each cla2 In Enumerable.Distinct(ThisAncestorSuperClassList(cla1))
+            Yield cla2
+        Next
+    End Function
+
+    Public Shared Iterator Function ThisAncestorSuperClassList(cla1 As TClass) As IEnumerable(Of TClass)
+        Yield cla1
+        For Each cla2 In AncestorSuperClassList(cla1)
+            Yield cla2
+        Next
+    End Function
+
+    Public Shared Iterator Function ThisDescendantSubClassList(cla1 As TClass) As IEnumerable(Of TClass)
+        Yield cla1
+        For Each cla2 In DescendantSubClassList(cla1)
+            Yield cla2
+        Next
+    End Function
+
+    Public Shared Iterator Function DescendantSubClassList(cla1 As TClass) As IEnumerable(Of TClass)
+        For Each cla2 In cla1.SubClassList
+            Yield cla2
+            For Each cla3 In DescendantSubClassList(cla2)
+                Yield cla3
+            Next
+        Next
+    End Function
+
+    Public Shared Iterator Function AncestorInterfaceList(cla1 As TClass) As IEnumerable(Of TClass)
+        For Each cla2 In cla1.InterfaceList
+            Yield cla2
+            For Each cla3 In AncestorInterfaceList(cla2)
+                Yield cla3
+            Next
+        Next
+    End Function
+
+    Public Shared Iterator Function IndexList(v As IEnumerable(Of Object)) As IEnumerable(Of Integer)
+        Dim idx As Integer = 0
+        For Each x In v
+            Yield idx
+            idx = idx + 1
+        Next
+    End Function
+
     ' 最も内側のドットを返す。
     Public Shared Function OuterMostDot(dot1 As TDot) As TDot
         If TypeOf dot1.UpTrm Is TDot Then
@@ -2036,5 +1870,314 @@ Public Class Sys
         set_parent_stmt.NaviFunction(fnc2, Nothing)
 
         Return fnc2
+    End Function
+
+    ' 条件を追加する
+    Public Shared Sub AddCondition(stmt1 As TStatement, up_stmt As TStatement, and1 As TApply)
+        Dim if_blc As TIfBlock, case1 As TCase, if1 As TIf, not1 As TApply, cnd1 As TTerm
+
+        If TypeOf up_stmt Is TBlock Then
+            With CType(up_stmt, TBlock)
+                For Each x In .StmtBlc
+                    and1.ArgApp.Add(x)
+                Next
+            End With
+        ElseIf TypeOf up_stmt Is TIf Then
+            Debug.Assert(TypeOf stmt1 Is TIfBlock)
+            if_blc = CType(stmt1, TIfBlock)
+
+        ElseIf TypeOf up_stmt Is TIfBlock Then
+            if_blc = CType(up_stmt, TIfBlock)
+            if1 = CType(Sys.UpStmt(up_stmt.UpTrm), TIf)
+            For Each _child In if1.IfBlc
+                cnd1 = Sys.CopyTrm(_child.CndIf, Nothing)
+
+                If _child IsNot if_blc Then
+                    ' 手前のIfブロックの場合
+
+                    ' 否定の条件を追加する
+                    not1 = TApply.NewOpr(EToken.eNot)
+
+                    not1.AddInArg(cnd1)
+                Else
+                    ' 現在のIfブロックの場合
+
+                    ' 条件を追加する
+                    and1.AddInArg(cnd1)
+
+                    Exit For
+                End If
+            Next
+
+        ElseIf TypeOf up_stmt Is TSelect Then
+            Debug.Assert(TypeOf stmt1 Is TCase)
+            case1 = CType(stmt1, TCase)
+
+        ElseIf TypeOf up_stmt Is TCase Then
+        ElseIf TypeOf up_stmt Is TFor Then
+        End If
+    End Sub
+
+    ' 文を実行する前提条件を返す
+    Public Shared Sub CalcPreCondition(stmt1 As TStatement, and1 As TApply)
+        Dim up_stmt As TStatement, up_obj As Object
+
+        If TypeOf stmt1 Is TAssignment Then
+        ElseIf TypeOf stmt1 Is TCall Then
+        ElseIf TypeOf stmt1 Is TIf Then
+        ElseIf TypeOf stmt1 Is TIfBlock Then
+        ElseIf TypeOf stmt1 Is TSelect Then
+        ElseIf TypeOf stmt1 Is TCase Then
+        ElseIf TypeOf stmt1 Is TFor Then
+            Debug.Assert(False)
+        Else
+            Debug.Assert(False)
+        End If
+
+        If stmt1.TypeStmt = EToken.eProtected Then
+            Debug.Assert(False)
+        End If
+
+        up_obj = Sys.UpStmt(stmt1.UpTrm)
+        If TypeOf up_obj Is TStatement Then
+            up_stmt = CType(up_obj, TStatement)
+
+            '            Debug.WriteLine("前提条件 {0} > {1}", stmt1.TypeStmt, up_stmt.ToString())
+
+            AddCondition(stmt1, up_stmt, and1)
+
+            CalcPreCondition(up_stmt, and1)
+
+        ElseIf TypeOf up_obj Is TFunction Then
+
+        Else
+            Debug.Assert(False)
+        End If
+    End Sub
+
+
+    ' 2個の論理式から得られる推論の結果を得る
+    Public Shared Function BinomialInference(P As TApply, Q As TApply) As EBinomialInference
+        Dim A As TClass, B As TClass, A_subset_B As Boolean, B_subset_A As Boolean, A_EQ_B As Boolean
+
+        Select Case P.TypeApp
+            Case EToken.eInstanceof
+                A = CType(P.ArgApp(1), TReference).VarRef
+                B = CType(Q.ArgApp(1), TReference).VarRef
+
+                A_subset_B = A.IsSubsetOf(B)
+                B_subset_A = B.IsSubsetOf(A)
+                If Not P.Negation Then
+                    If Not Q.Negation Then
+                        '     a ∊ A ,     a ∊ B		A=Bならa ∊ Bは不要、A ⋂ B = ∅ なら矛盾、A ⊆ B ならa ∊ Bは不要、B ⊆ A ならa ∊ Aは不要
+                        If A Is B Then
+                            Return EBinomialInference.SecondRedundant
+                        ElseIf A_subset_B Then
+                            Return EBinomialInference.SecondRedundant
+                        ElseIf B_subset_A Then
+                            Return EBinomialInference.FirstRedundant
+                        Else
+                            Return EBinomialInference.矛盾
+                        End If
+                    Else
+                        '     a ∊ A , Not a ∊ B		A ⊆ B なら矛盾、A ⋂ B = ∅ ならNot a ∊ Bは不要
+
+                        If A Is B OrElse A_subset_B Then
+                            Return EBinomialInference.矛盾
+                        ElseIf Not B_subset_A Then
+                            Return EBinomialInference.SecondRedundant
+                        Else
+                            Return EBinomialInference.Unknown
+                        End If
+                    End If
+                Else
+                    If Not Q.Negation Then
+                        ' Not a ∊ A ,     a ∊ B		B ⊆ A なら矛盾、A ⋂ B = ∅ ならNot a ∊ Aは不要
+
+                        If A Is B OrElse B_subset_A Then
+                            Return EBinomialInference.矛盾
+                        ElseIf Not A_subset_B Then
+                            Return EBinomialInference.FirstRedundant
+                        Else
+                            Return EBinomialInference.Unknown
+                        End If
+                    Else
+                        ' Not a ∊ A , Not a ∊ B		A ⊆ B ならNot a ∊ Aは不要、B ⊆ A ならNot a ∊ Bは不要
+
+                        If A Is B OrElse A_subset_B Then
+                            Return EBinomialInference.FirstRedundant
+                        ElseIf B_subset_A Then
+                            Return EBinomialInference.FirstRedundant
+                        Else
+                            Return EBinomialInference.Unknown
+                        End If
+                    End If
+                End If
+
+            Case EToken.eIs, EToken.eEq
+                Debug.WriteLine("is {0} {1} {2} {3}", P.Negation, P.ArgApp(1), Q.Negation, Q.ArgApp(1))
+                A_EQ_B = Sys.IsEqTrm(P.ArgApp(1), Q.ArgApp(1))
+                If Not P.Negation Then
+                    If Not Q.Negation Then
+                        '     a = A ,     a = B		A <> B なら矛盾、A=Bならa = Bは不要
+
+                        If A_EQ_B Then
+                            Return EBinomialInference.SecondRedundant
+                        Else
+                            Return EBinomialInference.Unknown
+                        End If
+                    Else
+                        '     a = A , Not a = B		A = B なら矛盾、A <> BならNot a = Bは不要
+
+                        If A_EQ_B Then
+                            Return EBinomialInference.矛盾
+                        Else
+                            Return EBinomialInference.Unknown
+                        End If
+                    End If
+                Else
+                    If Not Q.Negation Then
+                        ' Not a = A ,     a = B		A = B なら矛盾、A <> BならNot a = Aは不要
+
+                        If A_EQ_B Then
+                            Return EBinomialInference.矛盾
+                        Else
+                            Return EBinomialInference.Unknown
+                        End If
+                    Else
+                        ' Not a = A , Not a = B
+
+                        Return EBinomialInference.Unknown
+                    End If
+                End If
+
+            Case EToken.eLT
+                Debug.WriteLine("eq {0} {1} {2} {3}", P.Negation, P.ArgApp(1), Q.Negation, Q.ArgApp(1))
+                If Not P.Negation Then
+                    If Not Q.Negation Then
+                        '     a < A ,     a < B		A <= Bならa < Bは不要、B <= Aならa < Bは不要
+                    Else
+                        '     a < A , Not a < B		A <= B なら矛盾
+                    End If
+                Else
+                    If Not Q.Negation Then
+                        ' Not a < A , a < B			B <= A なら矛盾
+                    Else
+                        ' Not a < A ,     Not a < B	A <= Bなら Not a < Aは不要、B <= AならNot a < Bは不要
+                    End If
+                End If
+        End Select
+
+        Return EBinomialInference.Unknown
+    End Function
+
+    ' 余分な条件を取り除く
+    Public Shared Sub CleanCondition(and1 As TApply)
+        Dim i1 As Integer, i2 As Integer, app1 As TApply, app2 As TApply, inf As EBinomialInference
+        Dim is_redundant As Boolean()
+
+        For Each trm In and1.ArgApp
+            If TypeOf trm Is TApply Then
+                app1 = CType(trm, TApply)
+                Select Case app1.TypeApp
+                    Case EToken.eIsNot
+                        app1.Negation = Not app1.Negation
+                        app1.TypeApp = EToken.eIs
+
+                    Case EToken.eNE
+                        app1.Negation = Not app1.Negation
+                        app1.TypeApp = EToken.eEq
+                End Select
+            End If
+        Next
+
+        ReDim is_redundant(and1.ArgApp.Count - 1)
+
+        For i1 = 0 To and1.ArgApp.Count - 1
+            If TypeOf and1.ArgApp(i1) Is TApply Then
+                app1 = CType(and1.ArgApp(i1), TApply)
+                Select Case app1.TypeApp
+                    Case EToken.eInstanceof, EToken.eIs, EToken.eEq
+
+                        For i2 = i1 + 1 To and1.ArgApp.Count - 1
+                            If TypeOf and1.ArgApp(i2) Is TApply Then
+                                app2 = CType(and1.ArgApp(i2), TApply)
+
+                                If app2.TypeApp = app1.TypeApp AndAlso Sys.IsEqTrm(app1.ArgApp(0), app2.ArgApp(0)) Then
+                                    ' 対象が同じ場合
+
+                                    ' 2個の論理式から得られる推論の結果を得る
+                                    inf = BinomialInference(app1, app2)
+                                    Select Case inf
+                                        Case EBinomialInference.矛盾
+                                        Case EBinomialInference.FirstRedundant
+                                            is_redundant(i1) = True
+                                        Case EBinomialInference.SecondRedundant
+                                            is_redundant(i2) = True
+                                    End Select
+                                End If
+                            End If
+                        Next
+                End Select
+            End If
+        Next
+
+        For i1 = and1.ArgApp.Count - 1 To 0 Step -1
+            If is_redundant(i1) Then
+                and1.ArgApp.RemoveAt(i1)
+            End If
+        Next
+
+    End Sub
+
+    ' 余分な条件を取り除いた前提条件を返す
+    Public Shared Function GetPreConditionClean(stmt As TStatement) As TApply
+        Dim pre_cond As TApply
+
+        ' 文を実行する前提条件を返す
+        pre_cond = TApply.NewOpr(EToken.eAnd)
+        CalcPreCondition(stmt, pre_cond)
+
+        ' 余分な条件を取り除く
+        CleanCondition(pre_cond)
+
+        Return pre_cond
+    End Function
+
+    ' P ∧ Q が無矛盾なら true を返す。
+    Public Shared Function Consistent(P As TApply, Q As TApply) As Boolean
+        Dim i1 As Integer, i2 As Integer, app1 As TApply, app2 As TApply, inf As EBinomialInference
+
+        i1 = 0
+        Do While i1 < P.ArgApp.Count
+            If TypeOf P.ArgApp(i1) Is TApply Then
+                app1 = CType(P.ArgApp(i1), TApply)
+                Select Case app1.TypeApp
+                    Case EToken.eInstanceof, EToken.eIs, EToken.eEq
+
+                        i2 = 0
+                        Do While i2 < Q.ArgApp.Count
+                            If TypeOf Q.ArgApp(i2) Is TApply Then
+                                app2 = CType(Q.ArgApp(i2), TApply)
+
+                                If app2.TypeApp = app1.TypeApp AndAlso Sys.IsEqTrm(app1.ArgApp(0), app2.ArgApp(0)) Then
+                                    ' 対象が同じ場合
+
+                                    ' 2個の論理式から得られる推論の結果を得る
+                                    inf = BinomialInference(app1, app2)
+                                    If inf = EBinomialInference.矛盾 Then
+                                        Return False
+                                    End If
+                                End If
+                            End If
+                            i2 += 1
+                        Loop
+                End Select
+            End If
+
+            i1 += 1
+        Loop
+
+        Return True
     End Function
 End Class

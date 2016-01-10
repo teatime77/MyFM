@@ -616,14 +616,14 @@ End Class
 ' -------------------------------------------------------------------------------- TNaviSetUpTrm
 Public Class TNaviSetUpTrm
     Inherits TNavi
-    Public NavUp As New TNaviUp
+    Public NavUp As New Sys
 
     Public Sub Test(ref1 As TReference)
         Dim stmt1 As TStatement
 
         NavUp.UpToFnc(ref1)
 
-        stmt1 = TNaviUp.UpToStmt(ref1)
+        stmt1 = Sys.UpToStmt(ref1)
     End Sub
 
     Public Overrides Function StartReference(ref1 As TReference, arg1 As Object) As Object
@@ -636,145 +636,6 @@ Public Class TNaviSetUpTrm
         Return arg1
     End Function
 
-End Class
-
-' -------------------------------------------------------------------------------- TNaviUp
-Public Class TNaviUp
-    Public Shared Function UpObj(obj As Object) As Object
-        If TypeOf obj Is TFunction Then
-            Return CType(obj, TFunction).ClaFnc
-        ElseIf TypeOf obj Is TList(Of TField) Then
-            Return CType(obj, TList(Of TField)).UpList
-        ElseIf TypeOf obj Is TClass Then
-            Return CType(obj, TClass).ProjectCla
-        ElseIf TypeOf obj Is TProject Then
-            Return Nothing
-        ElseIf TypeOf obj Is TVariable Then
-            Return CType(obj, TVariable).UpVar
-        ElseIf TypeOf obj Is TStatement Then
-            Return CType(obj, TStatement).UpTrm
-        ElseIf TypeOf obj Is TTerm Then
-            Return CType(obj, TTerm).UpTrm
-        ElseIf TypeOf obj Is TList(Of TVariable) Then
-            Return CType(obj, TList(Of TVariable)).UpList
-        ElseIf TypeOf obj Is TList(Of TTerm) Then
-            Return CType(obj, TList(Of TTerm)).UpList
-        ElseIf TypeOf obj Is TList(Of TCase) Then
-            Return CType(obj, TList(Of TCase)).UpList
-        ElseIf TypeOf obj Is TList(Of TStatement) Then
-            Return CType(obj, TList(Of TStatement)).UpList
-        ElseIf TypeOf obj Is TList(Of TBlock) Then
-            Return CType(obj, TList(Of TBlock)).UpList
-        ElseIf TypeOf obj Is TList(Of TIfBlock) Then
-            Return CType(obj, TList(Of TIfBlock)).UpList
-        Else
-            Debug.Assert(False)
-            Return Nothing
-        End If
-    End Function
-
-    Public Function UpToFnc(obj1 As Object) As TFunction
-        Dim obj2 As Object
-
-        obj2 = obj1
-        Do While obj2 IsNot Nothing AndAlso Not TypeOf obj2 Is TFunction
-            obj2 = UpObj(obj2)
-        Loop
-
-        Debug.Assert(obj2 IsNot Nothing AndAlso TypeOf obj2 Is TFunction)
-
-        Return CType(obj2, TFunction)
-    End Function
-
-    Public Shared Function UpToStmt(obj1 As Object) As TStatement
-        Dim obj2 As Object
-
-        obj2 = obj1
-        Do While obj2 IsNot Nothing AndAlso Not TypeOf obj2 Is TStatement
-            obj2 = UpObj(obj2)
-        Loop
-
-        Debug.Assert(obj2 IsNot Nothing AndAlso TypeOf obj2 Is TStatement)
-
-        Dim stmt1 = From obj3 In AncestorList(obj1) Where TypeOf obj3 Is TStatement
-        Dim obj4 As Object = stmt1.First()
-        Debug.Assert(obj4 Is obj2)
-
-        Return CType(obj2, TStatement)
-    End Function
-
-    Public Shared Iterator Function AncestorList(obj1 As Object) As IEnumerable(Of Object)
-        Dim up_obj As Object
-
-        up_obj = UpObj(obj1)
-        Do While up_obj IsNot Nothing
-            Yield up_obj
-            up_obj = UpObj(up_obj)
-        Loop
-    End Function
-
-    Public Shared Function AncestorSuperClassList2(cla1 As TClass) As IEnumerable(Of TClass)
-        Return From x In (From y In cla1.SuperClassList Select AncestorSuperClassList2(y))
-    End Function
-
-    Public Shared Function AncestorInterfaceList2(cla1 As TClass) As IEnumerable(Of TClass)
-        Return From x In (From y In cla1.InterfaceList Select AncestorInterfaceList2(y))
-    End Function
-
-    Public Shared Iterator Function AncestorSuperClassList(cla1 As TClass) As IEnumerable(Of TClass)
-        For Each cla2 In cla1.SuperClassList
-            Yield cla2
-            For Each cla3 In AncestorSuperClassList(cla2)
-                Yield cla3
-            Next
-        Next
-    End Function
-
-    Public Shared Iterator Function DistinctThisAncestorSuperClassList(cla1 As TClass) As IEnumerable(Of TClass)
-        For Each cla2 In Enumerable.Distinct(ThisAncestorSuperClassList(cla1))
-            Yield cla2
-        Next
-    End Function
-
-    Public Shared Iterator Function ThisAncestorSuperClassList(cla1 As TClass) As IEnumerable(Of TClass)
-        Yield cla1
-        For Each cla2 In AncestorSuperClassList(cla1)
-            Yield cla2
-        Next
-    End Function
-
-    Public Shared Iterator Function ThisDescendantSubClassList(cla1 As TClass) As IEnumerable(Of TClass)
-        Yield cla1
-        For Each cla2 In DescendantSubClassList(cla1)
-            Yield cla2
-        Next
-    End Function
-
-    Public Shared Iterator Function DescendantSubClassList(cla1 As TClass) As IEnumerable(Of TClass)
-        For Each cla2 In cla1.SubClassList
-            Yield cla2
-            For Each cla3 In DescendantSubClassList(cla2)
-                Yield cla3
-            Next
-        Next
-    End Function
-
-    Public Shared Iterator Function AncestorInterfaceList(cla1 As TClass) As IEnumerable(Of TClass)
-        For Each cla2 In cla1.InterfaceList
-            Yield cla2
-            For Each cla3 In AncestorInterfaceList(cla2)
-                Yield cla3
-            Next
-        Next
-    End Function
-
-    Public Shared Iterator Function IndexList(v As IEnumerable(Of Object)) As IEnumerable(Of Integer)
-        Dim idx As Integer = 0
-        For Each x In v
-            Yield idx
-            idx = idx + 1
-        Next
-    End Function
 End Class
 
 ' -------------------------------------------------------------------------------- TNaviClearUsedStmt

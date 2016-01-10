@@ -157,7 +157,7 @@ Public Class TProject
                 Debug.Assert(cla2.GenericType = EGeneric.SpecializedClass)
 
                 ' 一致しない引数があるか調べる。
-                Dim vidx = From idx In TNaviUp.IndexList(cla2.GenCla) Where cla2.GenCla(idx) IsNot vtp(idx)
+                Dim vidx = From idx In Sys.IndexList(cla2.GenCla) Where cla2.GenCla(idx) IsNot vtp(idx)
                 If Not vidx.Any() Then
                     ' すべて一致する場合
 
@@ -451,7 +451,7 @@ Public Class TProject
             Return vfld.First()
         End If
 
-        For Each obj In TNaviUp.AncestorList(term)
+        For Each obj In Sys.AncestorList(term)
             If TypeOf obj Is TFrom Then
                 With CType(obj, TFrom)
                     If .VarQry.NameVar = name1 Then
@@ -618,7 +618,7 @@ Public Class TProject
     End Function
 
     Public Shared Function FindFieldFunction(cla1 As TClass, name1 As String, varg As TList(Of TTerm)) As TVariable
-        Dim variable_list = From var1 In (From cla2 In Concatenate(Prj.SystemType, cla1, TNaviUp.AncestorSuperClassList(cla1), TNaviUp.AncestorInterfaceList(cla1)) Select FindFieldFunctionSub(CType(cla2, TClass), name1, varg)) Where var1 IsNot Nothing
+        Dim variable_list = From var1 In (From cla2 In Concatenate(Prj.SystemType, cla1, Sys.AncestorSuperClassList(cla1), Sys.AncestorInterfaceList(cla1)) Select FindFieldFunctionSub(CType(cla2, TClass), name1, varg)) Where var1 IsNot Nothing
 
         If variable_list.Any() _
             Then
@@ -686,7 +686,7 @@ Public Class TProject
     End Function
 
     Public Shared Function FindNew(cla1 As TClass, varg As TList(Of TTerm)) As TVariable
-        For Each cla2 In Concatenate(cla1, TNaviUp.AncestorSuperClassList(cla1))
+        For Each cla2 In Concatenate(cla1, Sys.AncestorSuperClassList(cla1))
             Dim vfnc = From fnc In CType(cla2, TClass).FncCla Where fnc.IsNew AndAlso Prj.MatchFncArg(fnc, varg)
             If vfnc.Any() Then
                 Return vfnc.First()

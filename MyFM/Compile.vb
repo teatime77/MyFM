@@ -230,6 +230,7 @@ Partial Public Class TProject
 
         ' すべての仮想メソッドに対し
         For Each fnc1 In make_virtualizable_if_method.VirtualizedMethodList
+            ' 仮想メソッド内のすべての参照のリストを得る。
             Dim ref_list As TList(Of TReference) = Sys.GetAllRefStmt(fnc1.BlcFnc)
 
             Dim use_ref_list = From r In ref_list Where Not r.DefRef
@@ -239,10 +240,41 @@ Partial Public Class TProject
                 Dim stmt1 As TStatement = Sys.UpStmtProper(ref1)
 
                 ' 文に対しAnd条件を得る。
+                Dim and1 As TApply = Sys.GetPreConditionClean(stmt1)
+
                 ' And条件に含まれ、参照パスが共通の定義参照を得る。
+                Dim all_ref_stmt As New TNaviAllRefStmt
+                all_ref_stmt.NaviTerm(and1)
+                '                Return all_ref_stmt.RefStmtList
+
+
+
                 ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾するなら、その使用参照は除外する。
             Next
         Next
+    End Sub
+
+    ' 親や子のフィールドの使用参照と定義参照の依存関係を求める。
+    Public Sub VirtualizedMethodParentChildDefUseDependency(make_virtualizable_if_method As TNaviMakeVirtualizableIfMethod)
+
+        ' すべての仮想メソッドに対し
+        For Each fnc1 In make_virtualizable_if_method.VirtualizedMethodList
+            ' 仮想メソッド内のすべての参照のリストを得る。
+            Dim ref_list As TList(Of TReference) = Sys.GetAllRefStmt(fnc1.BlcFnc)
+
+        Next
+
+
+
+
+        ' IfBlockで仮想化されるクラスに対し
+        ' クラス内のすべてのフィールドに対し
+        ' フィールドの型が仮想化可能クラスかスーパークラスの場合
+        ' 仮想化クラスに対応する各仮想メソッドに対し
+        ' 親のフィールドの使用参照のリストを求める。
+        ' 元の仮想メソッドで参照パスが共通の定義参照のリストを得る。
+        ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾するなら、その使用参照は除外する。
+
     End Sub
 
     ' ドットの参照パスが重なるならTrueを返す。
@@ -295,10 +327,10 @@ Partial Public Class TProject
                     ' 親の不変条件を適用してから、子の不変条件を適用する必要がある。
 
                     ' 親のフィールドをメンバーとして持つクラスのリスト
-                    Dim parent_field_class_list = TNaviUp.ThisDescendantSubClassList(CType(parent_dot.VarRef, TField).ClaFld).Distinct()
+                    Dim parent_field_class_list = Sys.ThisDescendantSubClassList(CType(parent_dot.VarRef, TField).ClaFld).Distinct()
 
                     ' 親のフィールドを参照するドットの処理対象クラスとそのスーパークラスのリスト
-                    Dim super_class_list = TNaviUp.ThisAncestorSuperClassList(dot1.TypeDot).Distinct()
+                    Dim super_class_list = Sys.ThisAncestorSuperClassList(dot1.TypeDot).Distinct()
 
                     ' 上記のスーパークラスの型のフィールドのリスト
                     Dim parent_field_list = From parent_field In Prj.SimpleFieldList Where parent_field.ModVar.isStrong() AndAlso super_class_list.Contains(Prj.FieldElementType(parent_field))
@@ -416,7 +448,7 @@ Partial Public Class TProject
 
             processed_class_list.Add(cls1)
 
-            Dim super_class_list = From c In TNaviUp.DistinctThisAncestorSuperClassList(cls1) Where c IsNot ObjectType
+            Dim super_class_list = From c In Sys.DistinctThisAncestorSuperClassList(cls1) Where c IsNot ObjectType
 
             Dim fnc1 As TFunction = MakeSetParentSub(set_parent_name, cls1)
             Dim self_var As TVariable = fnc1.ArgFnc(0)
@@ -443,10 +475,10 @@ Partial Public Class TProject
                 If ApplicationClassList.Contains(fld.TypeVar) Then
                     ' フィールドの型が単純クラスの場合
 
-                    If (From c In TNaviUp.ThisAncestorSuperClassList(fld.TypeVar) From f In c.FldCla Where f.ModVar.isParent Select f).Any() Then
+                    If (From c In Sys.ThisAncestorSuperClassList(fld.TypeVar) From f In c.FldCla Where f.ModVar.isParent Select f).Any() Then
 
                         ' このフィールドの型およびその子孫のサブクラスで未処理のものを得る。
-                        Dim pending_this_descendant_sub_class_list = From c In TNaviUp.ThisDescendantSubClassList(fld.TypeVar) Where ApplicationClassList.Contains(c) AndAlso Not pending_class_list.Contains(c) AndAlso Not processed_class_list.Contains(c)
+                        Dim pending_this_descendant_sub_class_list = From c In Sys.ThisDescendantSubClassList(fld.TypeVar) Where ApplicationClassList.Contains(c) AndAlso Not pending_class_list.Contains(c) AndAlso Not processed_class_list.Contains(c)
 
                         ' 未処理のクラスのリストに追加する。
                         pending_class_list.AddRange(pending_this_descendant_sub_class_list)
@@ -477,10 +509,10 @@ Partial Public Class TProject
 
                     If ApplicationClassList.Contains(element_type) Then
 
-                        If (From c In TNaviUp.ThisAncestorSuperClassList(element_type) From f In c.FldCla Where f.ModVar.isParent Select f).Any() Then
+                        If (From c In Sys.ThisAncestorSuperClassList(element_type) From f In c.FldCla Where f.ModVar.isParent Select f).Any() Then
 
                             ' このフィールドの型およびその子孫のサブクラスで未処理のものを得る。
-                            Dim pending_this_descendant_sub_class_list = From c In TNaviUp.ThisDescendantSubClassList(element_type) Where ApplicationClassList.Contains(c) AndAlso Not pending_class_list.Contains(c) AndAlso Not processed_class_list.Contains(c)
+                            Dim pending_this_descendant_sub_class_list = From c In Sys.ThisDescendantSubClassList(element_type) Where ApplicationClassList.Contains(c) AndAlso Not pending_class_list.Contains(c) AndAlso Not processed_class_list.Contains(c)
 
                             ' 未処理のクラスのリストに追加する。
                             pending_class_list.AddRange(pending_this_descendant_sub_class_list)
@@ -570,7 +602,7 @@ Partial Public Class TProject
         Dim i As Integer
         For i = function_list.Count - 1 To 0 Step -1
             Dim fnc1 As TFunction = function_list(i)
-            If TNaviUp.AncestorSuperClassList(fnc1.ClaFnc).Intersect(implemented_class_list_2).Any() Then
+            If Sys.AncestorSuperClassList(fnc1.ClaFnc).Intersect(implemented_class_list_2).Any() Then
                 ' 先祖のクラスで実装されている場合
 
                 If fnc1.BlcFnc.StmtBlc.Count = 0 Then
@@ -666,7 +698,7 @@ Partial Public Class TProject
                         blc_if_copy.VarBlc.AddRange(vvar1)
 
                         ' このif文を囲むブロックの変数をコピーする。
-                        Dim vvar2 = (From blc In TNaviUp.AncestorList(if1) Where TypeOf blc Is TBlock From var1 In CType(blc, TBlock).VarBlc Select Sys.CopyVar(var1, cpy)).ToList()
+                        Dim vvar2 = (From blc In Sys.AncestorList(if1) Where TypeOf blc Is TBlock From var1 In CType(blc, TBlock).VarBlc Select Sys.CopyVar(var1, cpy)).ToList()
 
                         ' .BlcIfの子の文をblc_if_copyにコピーする。
                         blc_if_copy.StmtBlc.AddRange(From x In .BlcIf.StmtBlc Where Not x.VirtualizableIf Select Sys.CopyStmt(x, cpy))

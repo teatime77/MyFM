@@ -432,7 +432,7 @@ Public Class TSetRefDeclarative
                             .TypeTrm = .VarRef.TypeVar
                             Debug.Assert(.TypeTrm IsNot Nothing)
 
-                            Dim v = From o In TNaviUp.AncestorList(trm1) Where InstanceOfIfBlock(.VarRef, o)
+                            Dim v = From o In Sys.AncestorList(trm1) Where InstanceOfIfBlock(.VarRef, o)
                             If v.Any() Then
                                 Dim if_blc As TIfBlock = v.First()
                                 Dim tp1 As TClass = CType(CType(CType(if_blc.CndIf, TApply).ArgApp(1), TReference).VarRef, TClass)
@@ -465,7 +465,7 @@ Public Class TSetRefDeclarative
                                     If fnc1.RetType IsNot Nothing AndAlso fnc1.RetType.ContainsArgumentClass Then
 
                                         Dim dic As New Dictionary(Of String, TClass)
-                                        Dim vidx = From idx In TNaviUp.IndexList(fnc1.ArgFnc) Where fnc1.ArgFnc(idx).TypeVar.ContainsArgumentClass
+                                        Dim vidx = From idx In Sys.IndexList(fnc1.ArgFnc) Where fnc1.ArgFnc(idx).TypeVar.ContainsArgumentClass
                                         Debug.Assert(vidx.Any())
                                         Dim i1 As Integer = vidx.First()
                                         Dim tp1 As TClass = fnc1.ArgFnc(i1).TypeVar
@@ -576,7 +576,7 @@ Public Class TSetRefDeclarative
     End Sub
 
     Public Function GetWithClass(self As TDot) As TClass
-        Dim if_blc = From o In TNaviUp.AncestorList(self) Where TypeOf o Is TIfBlock AndAlso CType(o, TIfBlock).WithIf IsNot Nothing
+        Dim if_blc = From o In Sys.AncestorList(self) Where TypeOf o Is TIfBlock AndAlso CType(o, TIfBlock).WithIf IsNot Nothing
 
         If if_blc.Any() Then
             Return CType(if_blc.First(), TIfBlock).WithIf.TypeTrm
@@ -614,7 +614,7 @@ Public Class TSetRefDeclarative
                         Debug.Assert(.NameRef = "Invoke")
                     End If
 
-                    Dim obj As Object = TNaviUp.UpObj(self)
+                    Dim obj As Object = Sys.UpObj(self)
                     Dim dot_is_fncapp As Boolean = (TypeOf obj Is TApply AndAlso self Is CType(obj, TApply).FncApp)
                     If dot_is_fncapp Then
                         Dim app1 As TApply = CType(obj, TApply)
@@ -654,7 +654,7 @@ Public Class TSetRefDeclarative
                 With CType(self, TReference)
                     Dim ref1 As TReference = CType(self, TReference)
                     IncRefCnt(ref1)
-                    Dim obj As Object = TNaviUp.UpObj(ref1)
+                    Dim obj As Object = Sys.UpObj(ref1)
                     If TypeOf obj Is TApply Then
                         Dim app1 As TApply = CType(obj, TApply)
 
@@ -831,7 +831,7 @@ Public Class TSetRefDeclarative
 
         ElseIf TypeOf self Is TVariable Then
             With CType(self, TVariable)
-                Dim obj As Object = TNaviUp.UpObj(self)
+                Dim obj As Object = Sys.UpObj(self)
 
                 If TypeOf obj Is TFrom Then
                     Dim frm1 As TFrom = CType(obj, TFrom)
@@ -859,7 +859,7 @@ Public Class TSetRefDeclarative
 
                 Else
 
-                    Dim vstmt = From up_self In TNaviUp.AncestorList(self) Where TypeOf up_self Is TVariableDeclaration
+                    Dim vstmt = From up_self In Sys.AncestorList(self) Where TypeOf up_self Is TVariableDeclaration
 
                     If vstmt.Any() Then
                         If .InitVar IsNot Nothing Then
@@ -885,7 +885,7 @@ Public Class TNaviSetDefRef2
 
             With CType(self, TReference)
 
-                Dim up_stmt As TStatement = TNaviUp.UpToStmt(self)
+                Dim up_stmt As TStatement = Sys.UpToStmt(self)
                 If TypeOf up_stmt Is TAssignment Then
                     Dim asn1 As TAssignment = CType(up_stmt, TAssignment)
 
@@ -949,7 +949,7 @@ Public Class TNaviSetProjectTrm
 
         ElseIf TypeOf self Is TTerm Then
             With CType(self, TTerm)
-                Dim prj = From obj In TNaviUp.AncestorList(self) Where TypeOf obj Is TProject
+                Dim prj = From obj In Sys.AncestorList(self) Where TypeOf obj Is TProject
                 .ProjectTrm = CType(prj.First(), TProject)
             End With
         End If
@@ -967,14 +967,14 @@ Public Class TNaviSetLabel
                 If .TypeStmt = EToken.eExitDo OrElse .TypeStmt = EToken.eExitFor Then
                     Dim for_do As TFor = Nothing
 
-                    Dim for_select As Object = (From obj In TNaviUp.AncestorList(self) Where TypeOf (obj) Is TFor OrElse TypeOf obj Is TSelect).First()
+                    Dim for_select As Object = (From obj In Sys.AncestorList(self) Where TypeOf (obj) Is TFor OrElse TypeOf obj Is TSelect).First()
                     Select Case .TypeStmt
                         Case EToken.eExitDo
                             If Not (TypeOf for_select Is TFor AndAlso CType(for_select, TFor).IsDo) Then
                                 ' 直近のSelectまたはループがDoでない場合
 
                                 ' 直近のDoを探す。
-                                for_do = CType((From obj In TNaviUp.AncestorList(self) Where TypeOf (obj) Is TFor AndAlso CType(obj, TFor).IsDo).First(), TFor)
+                                for_do = CType((From obj In Sys.AncestorList(self) Where TypeOf (obj) Is TFor AndAlso CType(obj, TFor).IsDo).First(), TFor)
                             End If
 
                         Case EToken.eExitFor
@@ -982,7 +982,7 @@ Public Class TNaviSetLabel
                                 ' 直近のSelectまたはループがForでない場合
 
                                 ' 直近のForを探す。
-                                for_do = CType((From obj In TNaviUp.AncestorList(self) Where TypeOf (obj) Is TFor AndAlso Not CType(obj, TFor).IsDo).First(), TFor)
+                                for_do = CType((From obj In Sys.AncestorList(self) Where TypeOf (obj) Is TFor AndAlso Not CType(obj, TFor).IsDo).First(), TFor)
                             End If
                     End Select
 
@@ -1145,7 +1145,7 @@ Public Class TNaviMakeNavigateFunction
 
     Public Sub AddRuleCall(fnc1 As TFunction, cla1 As TClass)
         ' RuleのCall文を作る。
-        Dim rule_fnc_list = From c In TNaviUp.ThisAncestorSuperClassList(cla1).Distinct() From f In c.FncCla Where f.ModVar.isInvariant Select f
+        Dim rule_fnc_list = From c In Sys.ThisAncestorSuperClassList(cla1).Distinct() From f In c.FncCla Where f.ModVar.isInvariant Select f
         If rule_fnc_list.Any() Then
 
             Dim rule_fnc As TFunction = rule_fnc_list.First()
@@ -1189,7 +1189,7 @@ Public Class TNaviMakeNavigateFunction
                 For Each virtualizable_class In VirtualizableClassList
 
                     ' virtualizable_classとそのスーパークラスのリスト
-                    Dim virtualizable_super_class_list = Enumerable.Distinct(TNaviUp.ThisAncestorSuperClassList(virtualizable_class))
+                    Dim virtualizable_super_class_list = Enumerable.Distinct(Sys.ThisAncestorSuperClassList(virtualizable_class))
 
                     ' 型がvirtualizable_classかスーパークラスであるフィールドのリスト
                     Dim parent_field_list = From parent_field In Prj.SimpleFieldList Where parent_field.ModVar.isStrong() AndAlso virtualizable_super_class_list.Contains(Prj.FieldElementType(parent_field))
@@ -1204,7 +1204,7 @@ Public Class TNaviMakeNavigateFunction
                     Dim current_field = reachable_from_bottom_pending.Pop()
                     reachable_from_bottom_processed.Add(current_field)
 
-                    If TNaviUp.ThisAncestorSuperClassList(Prj.MainClass).Contains(current_field.ClaFld) Then
+                    If Sys.ThisAncestorSuperClassList(Prj.MainClass).Contains(current_field.ClaFld) Then
                         ' current_fieldが属するクラスが、メインクラスかそのスーパークラスの場合
 
                         ' メインクラスからアクセス可能
@@ -1212,7 +1212,7 @@ Public Class TNaviMakeNavigateFunction
                     End If
 
                     ' current_fieldが属するクラスとそのスーパークラスのリスト
-                    Dim current_field_super_class_list = Enumerable.Distinct(TNaviUp.ThisAncestorSuperClassList(current_field.ClaFld))
+                    Dim current_field_super_class_list = Enumerable.Distinct(Sys.ThisAncestorSuperClassList(current_field.ClaFld))
 
                     ' 型がcurrent_fieldが属するクラスかスーパークラスであるフィールドのリスト
                     Dim parent_field_list = From parent_field In Prj.SimpleFieldList Where parent_field.ModVar.isStrong() AndAlso current_field_super_class_list.Contains(Prj.FieldElementType(parent_field))
@@ -1405,7 +1405,7 @@ Public Class TNaviSetDependency
 
                 If TypeOf self Is TLocalVariable Then
                     If TypeOf .UpVar Is TList(Of TVariable) Then
-                        Dim up_obj As Object = TNaviUp.UpObj(.UpVar)
+                        Dim up_obj As Object = Sys.UpObj(.UpVar)
 
                         If TypeOf up_obj Is TFunction Then
                             Dim fnc1 As TFunction = CType(up_obj, TFunction)
@@ -1564,7 +1564,7 @@ Public Class TNaviSetRefPath
                     End With
                 Else
                     If TypeOf .UpVar Is TList(Of TVariable) Then
-                        Dim up_obj As Object = TNaviUp.UpObj(.UpVar)
+                        Dim up_obj As Object = Sys.UpObj(.UpVar)
 
                         If TypeOf up_obj Is TFunction Then
                             Dim fnc1 As TFunction = CType(up_obj, TFunction)
