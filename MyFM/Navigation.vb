@@ -651,10 +651,10 @@ Public Class TNaviUp
             Return Nothing
         ElseIf TypeOf obj Is TVariable Then
             Return CType(obj, TVariable).UpVar
-        ElseIf TypeOf obj Is TTerm Then
-            Return CType(obj, TTerm).UpTrm
         ElseIf TypeOf obj Is TStatement Then
             Return CType(obj, TStatement).ParentStmt
+        ElseIf TypeOf obj Is TTerm Then
+            Return CType(obj, TTerm).UpTrm
         ElseIf TypeOf obj Is TList(Of TVariable) Then
             Return CType(obj, TList(Of TVariable)).UpList
         ElseIf TypeOf obj Is TList(Of TTerm) Then

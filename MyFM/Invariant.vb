@@ -561,7 +561,320 @@ Public Class TNaviMakeSourceCode
             End With
         End If
 
-        If TypeOf self Is TTerm Then
+        If TypeOf self Is TStatement Then
+            With CType(self, TStatement)
+
+                If .BeforeSrc IsNot Nothing Then
+                    Dim v = .BeforeSrc.Replace(vbCr, "").Split(New Char() {vbLf(0)})
+                    For Each s In v
+                        tw.Fmt(s, EToken.eNL)
+                    Next
+                End If
+
+                If .ComStmt IsNot Nothing Then
+                    For Each tkn_f In .ComStmt
+                        tw.TAB(.TabStmt)
+                        tw.Fmt(tkn_f.StrTkn, EToken.eNL)
+                    Next
+                End If
+                If .IsGenerated Then
+
+                ElseIf TypeOf self Is TAssignment OrElse TypeOf self Is TCall OrElse TypeOf self Is TVariableDeclaration Then
+                    tw.TAB(.TabStmt)
+                    If TypeOf self Is TAssignment Then
+                        With CType(self, TAssignment)
+                            Dim asn_op As EToken
+
+                            If ParserMK.LanguageSP <> ELanguage.Basic AndAlso .RelAsn.TypeApp = EToken.eEq Then
+                                asn_op = EToken.eASN
+                            Else
+                                asn_op = .RelAsn.TypeApp
+                            End If
+
+                            tw.Fmt(.RelAsn.ArgApp(0).TokenList, asn_op, .RelAsn.ArgApp(1).TokenList)
+                        End With
+
+                    ElseIf TypeOf self Is TCall Then
+                        With CType(self, TCall)
+                            tw.Fmt(.AppCall.TokenList)
+                        End With
+
+                    ElseIf TypeOf self Is TVariableDeclaration Then
+                        With CType(self, TVariableDeclaration)
+
+                            tw.Fmt(.ModDecl.TokenListMod)
+                            If .ModDecl Is Nothing OrElse Not .ModDecl.isPublic AndAlso Not .ModDecl.isShared Then
+                                tw.Fmt(EToken.eVar)
+                            End If
+
+                            tw.Fmt(Laminate((From var1 In .VarDecl Select var1.TokenListVar), New TToken(EToken.eComma, self)))
+
+                        End With
+                    End If
+
+                    If .TailCom <> "" Then
+
+                        tw.Fmt(New TToken(EToken.eComment, .TailCom))
+                    End If
+                    tw.Fmt(EToken.eEOL)
+
+                ElseIf TypeOf self Is TIfBlock Then
+                    With CType(self, TIfBlock)
+                        Dim if1 As TIf, i1 As Integer
+
+                        if1 = CType(.ParentStmt, TIf)
+                        i1 = if1.IfBlc.IndexOf(CType(self, TIfBlock))
+                        Debug.Assert(i1 <> -1)
+
+                        Select Case ParserMK.LanguageSP
+                            Case ELanguage.Basic
+                                If i1 = 0 Then
+                                    tw.Fmt(EToken.eIf, .CndIf.TokenList, EToken.eThen, EToken.eNL)
+                                Else
+                                    If .CndIf IsNot Nothing Then
+                                        tw.Fmt(EToken.eElseIf, .CndIf.TokenList, EToken.eThen, EToken.eNL)
+                                    Else
+                                        tw.Fmt(EToken.eElse, EToken.eNL)
+                                    End If
+                                End If
+
+                            Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
+                                If i1 = 0 Then
+                                    tw.Fmt(EToken.eIf, EToken.eLP, .CndIf.TokenList, EToken.eRP, EToken.eLC, EToken.eNL)
+                                Else
+                                    If .CndIf IsNot Nothing Then
+                                        tw.Fmt(EToken.eElse, EToken.eIf, EToken.eLP, .CndIf.TokenList, EToken.eRP, EToken.eLC, EToken.eNL)
+                                    Else
+                                        tw.Fmt(EToken.eElse, EToken.eLC, EToken.eNL)
+                                    End If
+                                End If
+                        End Select
+
+                        If ParserMK.LanguageSP = ELanguage.Basic AndAlso .WithIf IsNot Nothing Then
+                            tw.Fmt(EToken.eWith, .WithIf.TokenList, EToken.eNL)
+                            tw.Fmt(.BlcIf.TokenListStmt)
+                            tw.Fmt(EToken.eEndWith, EToken.eNL)
+                        Else
+                            tw.Fmt(.BlcIf.TokenListStmt)
+                        End If
+
+
+                        If ParserMK.LanguageSP <> ELanguage.Basic Then
+                            tw.Fmt(EToken.eRC, EToken.eNL)
+                        End If
+
+                    End With
+
+                ElseIf TypeOf self Is TIf Then
+                    With CType(self, TIf)
+                        For Each if_blc In .IfBlc
+                            tw.Fmt(if_blc.TokenListStmt)
+                        Next
+
+                        If ParserMK.LanguageSP = ELanguage.Basic Then
+                            tw.Fmt(EToken.eEndIf, EToken.eNL)
+                        End If
+                    End With
+
+                ElseIf TypeOf self Is TCase Then
+                    With CType(self, TCase)
+                        Select Case ParserMK.LanguageSP
+                            Case ELanguage.Basic
+                                If Not .DefaultCase Then
+                                    tw.Fmt(EToken.eCase, Laminate((From trm In .TrmCase Select trm.TokenList), New TToken(EToken.eComma, self)), EToken.eNL)
+                                Else
+                                    tw.Fmt(EToken.eCase, EToken.eElse, EToken.eNL)
+                                End If
+
+                                tw.Fmt(.BlcCase.TokenListStmt)
+
+                            Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
+                                If Not .DefaultCase Then
+                                    tw.Fmt(EToken.eCase, Laminate((From trm In .TrmCase Select trm.TokenList), New TToken(EToken.eComma, self)), EToken.eMMB, EToken.eNL)
+                                Else
+                                    tw.Fmt(EToken.eDefault, EToken.eNL)
+                                End If
+
+                                tw.Fmt(.BlcCase.TokenListStmt)
+
+                                tw.Fmt(EToken.eBreak, EToken.eEOL)
+                        End Select
+
+                    End With
+
+                ElseIf TypeOf self Is TSelect Then
+                    With CType(self, TSelect)
+                        Select Case ParserMK.LanguageSP
+                            Case ELanguage.Basic
+                                tw.Fmt(EToken.eSelect, EToken.eCase, .TrmSel.TokenList, EToken.eNL)
+
+                            Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
+                                tw.Fmt(EToken.eSwitch, EToken.eLP, .TrmSel.TokenList, EToken.eRP, EToken.eLC, EToken.eNL)
+                        End Select
+
+
+                        For Each cas1 In .CaseSel
+                            tw.Fmt(cas1.TokenListStmt)
+                        Next
+
+                        Select Case ParserMK.LanguageSP
+                            Case ELanguage.Basic
+                                tw.Fmt(EToken.eEndSelect, EToken.eNL)
+                            Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
+                                tw.Fmt(EToken.eRC, EToken.eNL)
+                        End Select
+                    End With
+
+                ElseIf TypeOf self Is TTry Then
+                    With CType(self, TTry)
+
+                        Select Case ParserMK.LanguageSP
+                            Case ELanguage.Basic
+                                tw.Fmt(EToken.eTry, EToken.eNL)
+                                tw.Fmt(.BlcTry.TokenListStmt)
+                                tw.Fmt(EToken.eCatch, Laminate((From var1 In .VarCatch Select var1.TokenListVar), New TToken(EToken.eComma, self)), EToken.eNL)
+                                tw.Fmt(.BlcCatch.TokenListStmt)
+                                tw.Fmt(EToken.eEndTry, EToken.eNL)
+
+                            Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
+                                tw.Fmt(EToken.eTry, EToken.eLC, EToken.eNL)
+                                tw.Fmt(.BlcTry.TokenListStmt)
+                                tw.Fmt(EToken.eRC, EToken.eNL)
+                                tw.Fmt(EToken.eCatch, EToken.eLP, Laminate((From var1 In .VarCatch Select var1.TokenListVar), New TToken(EToken.eComma, self)), EToken.eRP, EToken.eLC, EToken.eNL)
+                                tw.Fmt(.BlcCatch.TokenListStmt)
+                                tw.Fmt(EToken.eRC, EToken.eNL)
+                        End Select
+
+                    End With
+
+                ElseIf TypeOf self Is TFor Then
+                    With CType(self, TFor)
+                        If .IsDo Then
+
+                            If ParserMK.LanguageSP = ELanguage.Basic Then
+                                tw.Fmt(EToken.eDo, EToken.eWhile, .CndFor.TokenList, EToken.eNL)
+                                tw.Fmt(.BlcFor.TokenListStmt)
+                                tw.Fmt(EToken.eLoop, EToken.eNL)
+                            Else
+                                tw.Fmt(EToken.eWhile, EToken.eLP, .CndFor.TokenList, EToken.eRP, EToken.eLC, EToken.eNL)
+                                tw.Fmt(.BlcFor.TokenListStmt)
+                                tw.Fmt(EToken.eRC, EToken.eNL)
+                            End If
+
+
+                        ElseIf .InVarFor IsNot Nothing Then
+                            Select Case ParserMK.LanguageSP
+                                Case ELanguage.Basic
+                                    tw.Fmt(EToken.eFor, EToken.eEach, .InVarFor.NameVar, EToken.eIn, .InTrmFor.TokenList, EToken.eNL)
+                                    tw.Fmt(.BlcFor.TokenListStmt)
+                                    tw.Fmt(EToken.eNext, EToken.eNL)
+
+                                Case ELanguage.TypeScript, ELanguage.CSharp, ELanguage.Java
+                                    tw.Fmt(EToken.eFor, EToken.eLP, EToken.eVar, .InVarFor.NameVar, EToken.eIn, .InTrmFor.TokenList, EToken.eRP, EToken.eLC, EToken.eNL)
+                                    tw.Fmt(.BlcFor.TokenListStmt)
+                                    tw.Fmt(EToken.eRC, EToken.eNL)
+
+                                Case ELanguage.JavaScript
+                                    ' for(var $i = 0; $i < v.length; $i++)
+                                    ' var x = v[$i];
+                                    tw.Fmt(EToken.eFor, EToken.eLP, EToken.eVar, "$i", EToken.eASN, 0, EToken.eSM, "$i", EToken.eLT, .InTrmFor.TokenList, EToken.eDot, "length", EToken.eSM, "$i++", EToken.eRP, EToken.eLC, EToken.eNL)
+                                    tw.Fmt(EToken.eVar, .InVarFor.NameVar, EToken.eASN, .InTrmFor.TokenList, EToken.eLB, "$i", EToken.eRB, EToken.eEOL)
+                                    tw.Fmt(.BlcFor.TokenListStmt)
+                                    tw.Fmt(EToken.eRC, EToken.eNL)
+                            End Select
+
+                        ElseIf .IdxVarFor IsNot Nothing Then
+                            Select Case ParserMK.LanguageSP
+                                Case ELanguage.Basic
+
+                                Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
+                                    tw.Fmt(EToken.eFor, EToken.eLP, EToken.eVar, .IdxVarFor, EToken.eSM, .CndFor.TokenList, EToken.eSM, .StepStmtFor.TokenListStmt, EToken.eRP, EToken.eLC, EToken.eNL)
+                                    tw.Fmt(.BlcFor.TokenListStmt)
+                                    tw.Fmt(EToken.eRC, EToken.eNL)
+                            End Select
+
+                        ElseIf .FromFor IsNot Nothing Then
+                            tw.Fmt(EToken.eFor, .IdxFor.TokenList, EToken.eEq, .FromFor.TokenList, EToken.eTo, .ToFor.TokenList)
+
+                            If .StepFor IsNot Nothing Then
+                                tw.Fmt(EToken.eStep, .StepFor.TokenList)
+                            End If
+                            tw.Fmt(EToken.eNL)
+
+                            tw.Fmt(.BlcFor.TokenListStmt)
+                            tw.Fmt(EToken.eNext, EToken.eNL)
+                        Else
+                            Debug.Assert(False, "For Src Bas")
+                        End If
+                    End With
+
+                ElseIf TypeOf self Is TReDim Then
+                    With CType(self, TReDim)
+                        tw.Fmt(EToken.eReDim, .TrmReDim.TokenList, EToken.eLP, Laminate((From trm In .DimReDim Select trm.TokenList), New TToken(EToken.eComma, self)), EToken.eRP, EToken.eNL)
+                    End With
+
+                ElseIf TypeOf self Is TBlock Then
+                    With CType(self, TBlock)
+                        For Each stmt In .StmtBlc
+                            tw.Fmt(stmt.TokenListStmt)
+                        Next
+                    End With
+
+                ElseIf TypeOf self Is TReturn Then
+                    With CType(self, TReturn)
+                        If .YieldRet Then
+                            tw.Fmt(EToken.eYield)
+                        Else
+                            tw.Fmt(EToken.eReturn)
+                        End If
+                        If .TrmRet IsNot Nothing Then
+                            tw.Fmt(.TrmRet.TokenList)
+                        End If
+                        tw.Fmt(EToken.eEOL)
+
+                    End With
+
+                ElseIf TypeOf self Is TThrow Then
+                    With CType(self, TThrow)
+                        tw.Fmt(EToken.eThrow, .TrmThrow.TokenList, EToken.eEOL)
+                    End With
+
+                ElseIf TypeOf self Is TComment Then
+                    With CType(self, TComment)
+                        ComSrc(CType(self, TComment), 0, tw)
+                    End With
+
+                Else
+                    Select Case .TypeStmt
+                        Case EToken.eExitDo, EToken.eExitFor, EToken.eExitSub
+                            Select Case .TypeStmt
+                                Case EToken.eExitDo
+                                    tw.Fmt(EToken.eExitDo, EToken.eNL)
+                                Case EToken.eExitFor
+                                    tw.Fmt(EToken.eExitFor, EToken.eNL)
+                                Case EToken.eExitSub
+                                    tw.Fmt(EToken.eExitSub, EToken.eNL)
+                                Case Else
+                                    Debug.Assert(False)
+                            End Select
+
+                        Case Else
+                            Debug.WriteLine("Err Stmt Src:{0}", self)
+                            Debug.Assert(False)
+                    End Select
+                End If
+
+                If .AfterSrc <> "" Then
+                    Dim v = .AfterSrc.Trim().Replace(vbCr, "").Split(New Char() {vbLf(0)})
+                    For Each s In v
+                        tw.Fmt(s, EToken.eNL)
+                    Next
+                End If
+
+                .TokenListStmt = tw.TokenListTW
+            End With
+
+        ElseIf TypeOf self Is TTerm Then
             With CType(self, TTerm)
 
                 If .CastType IsNot Nothing AndAlso ParserMK.LanguageSP <> ELanguage.JavaScript Then
@@ -904,319 +1217,6 @@ Public Class TNaviMakeSourceCode
                 End If
 
                 .TokenList = tw.GetTokenList()
-            End With
-
-        ElseIf TypeOf self Is TStatement Then
-            With CType(self, TStatement)
-
-                If .BeforeSrc IsNot Nothing Then
-                    Dim v = .BeforeSrc.Replace(vbCr, "").Split(New Char() {vbLf(0)})
-                    For Each s In v
-                        tw.Fmt(s, EToken.eNL)
-                    Next
-                End If
-
-                If .ComStmt IsNot Nothing Then
-                    For Each tkn_f In .ComStmt
-                        tw.TAB(.TabStmt)
-                        tw.Fmt(tkn_f.StrTkn, EToken.eNL)
-                    Next
-                End If
-                If .IsGenerated Then
-
-                ElseIf TypeOf self Is TAssignment OrElse TypeOf self Is TCall OrElse TypeOf self Is TVariableDeclaration Then
-                    tw.TAB(.TabStmt)
-                    If TypeOf self Is TAssignment Then
-                        With CType(self, TAssignment)
-                            Dim asn_op As EToken
-
-                            If ParserMK.LanguageSP <> ELanguage.Basic AndAlso .RelAsn.TypeApp = EToken.eEq Then
-                                asn_op = EToken.eASN
-                            Else
-                                asn_op = .RelAsn.TypeApp
-                            End If
-
-                            tw.Fmt(.RelAsn.ArgApp(0).TokenList, asn_op, .RelAsn.ArgApp(1).TokenList)
-                        End With
-
-                    ElseIf TypeOf self Is TCall Then
-                        With CType(self, TCall)
-                            tw.Fmt(.AppCall.TokenList)
-                        End With
-
-                    ElseIf TypeOf self Is TVariableDeclaration Then
-                        With CType(self, TVariableDeclaration)
-
-                            tw.Fmt(.ModDecl.TokenListMod)
-                            If .ModDecl Is Nothing OrElse Not .ModDecl.isPublic AndAlso Not .ModDecl.isShared Then
-                                tw.Fmt(EToken.eVar)
-                            End If
-
-                            tw.Fmt(Laminate((From var1 In .VarDecl Select var1.TokenListVar), New TToken(EToken.eComma, self)))
-
-                        End With
-                    End If
-
-                    If .TailCom <> "" Then
-
-                        tw.Fmt(New TToken(EToken.eComment, .TailCom))
-                    End If
-                    tw.Fmt(EToken.eEOL)
-
-                ElseIf TypeOf self Is TIfBlock Then
-                    With CType(self, TIfBlock)
-                        Dim if1 As TIf, i1 As Integer
-
-                        if1 = CType(.ParentStmt, TIf)
-                        i1 = if1.IfBlc.IndexOf(CType(self, TIfBlock))
-                        Debug.Assert(i1 <> -1)
-
-                        Select Case ParserMK.LanguageSP
-                            Case ELanguage.Basic
-                                If i1 = 0 Then
-                                    tw.Fmt(EToken.eIf, .CndIf.TokenList, EToken.eThen, EToken.eNL)
-                                Else
-                                    If .CndIf IsNot Nothing Then
-                                        tw.Fmt(EToken.eElseIf, .CndIf.TokenList, EToken.eThen, EToken.eNL)
-                                    Else
-                                        tw.Fmt(EToken.eElse, EToken.eNL)
-                                    End If
-                                End If
-
-                            Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
-                                If i1 = 0 Then
-                                    tw.Fmt(EToken.eIf, EToken.eLP, .CndIf.TokenList, EToken.eRP, EToken.eLC, EToken.eNL)
-                                Else
-                                    If .CndIf IsNot Nothing Then
-                                        tw.Fmt(EToken.eElse, EToken.eIf, EToken.eLP, .CndIf.TokenList, EToken.eRP, EToken.eLC, EToken.eNL)
-                                    Else
-                                        tw.Fmt(EToken.eElse, EToken.eLC, EToken.eNL)
-                                    End If
-                                End If
-                        End Select
-
-                        If ParserMK.LanguageSP = ELanguage.Basic AndAlso .WithIf IsNot Nothing Then
-                            tw.Fmt(EToken.eWith, .WithIf.TokenList, EToken.eNL)
-                            tw.Fmt(.BlcIf.TokenListStmt)
-                            tw.Fmt(EToken.eEndWith, EToken.eNL)
-                        Else
-                            tw.Fmt(.BlcIf.TokenListStmt)
-                        End If
-
-
-                        If ParserMK.LanguageSP <> ELanguage.Basic Then
-                            tw.Fmt(EToken.eRC, EToken.eNL)
-                        End If
-
-                    End With
-
-                ElseIf TypeOf self Is TIf Then
-                    With CType(self, TIf)
-                        For Each if_blc In .IfBlc
-                            tw.Fmt(if_blc.TokenListStmt)
-                        Next
-
-                        If ParserMK.LanguageSP = ELanguage.Basic Then
-                            tw.Fmt(EToken.eEndIf, EToken.eNL)
-                        End If
-                    End With
-
-                ElseIf TypeOf self Is TCase Then
-                    With CType(self, TCase)
-                        Select Case ParserMK.LanguageSP
-                            Case ELanguage.Basic
-                                If Not .DefaultCase Then
-                                    tw.Fmt(EToken.eCase, Laminate((From trm In .TrmCase Select trm.TokenList), New TToken(EToken.eComma, self)), EToken.eNL)
-                                Else
-                                    tw.Fmt(EToken.eCase, EToken.eElse, EToken.eNL)
-                                End If
-
-                                tw.Fmt(.BlcCase.TokenListStmt)
-
-                            Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
-                                If Not .DefaultCase Then
-                                    tw.Fmt(EToken.eCase, Laminate((From trm In .TrmCase Select trm.TokenList), New TToken(EToken.eComma, self)), EToken.eMMB, EToken.eNL)
-                                Else
-                                    tw.Fmt(EToken.eDefault, EToken.eNL)
-                                End If
-
-                                tw.Fmt(.BlcCase.TokenListStmt)
-
-                                tw.Fmt(EToken.eBreak, EToken.eEOL)
-                        End Select
-
-                    End With
-
-                ElseIf TypeOf self Is TSelect Then
-                    With CType(self, TSelect)
-                        Select Case ParserMK.LanguageSP
-                            Case ELanguage.Basic
-                                tw.Fmt(EToken.eSelect, EToken.eCase, .TrmSel.TokenList, EToken.eNL)
-
-                            Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
-                                tw.Fmt(EToken.eSwitch, EToken.eLP, .TrmSel.TokenList, EToken.eRP, EToken.eLC, EToken.eNL)
-                        End Select
-
-
-                        For Each cas1 In .CaseSel
-                            tw.Fmt(cas1.TokenListStmt)
-                        Next
-
-                        Select Case ParserMK.LanguageSP
-                            Case ELanguage.Basic
-                                tw.Fmt(EToken.eEndSelect, EToken.eNL)
-                            Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
-                                tw.Fmt(EToken.eRC, EToken.eNL)
-                        End Select
-                    End With
-
-                ElseIf TypeOf self Is TTry Then
-                    With CType(self, TTry)
-
-                        Select Case ParserMK.LanguageSP
-                            Case ELanguage.Basic
-                                tw.Fmt(EToken.eTry, EToken.eNL)
-                                tw.Fmt(.BlcTry.TokenListStmt)
-                                tw.Fmt(EToken.eCatch, Laminate((From var1 In .VarCatch Select var1.TokenListVar), New TToken(EToken.eComma, self)), EToken.eNL)
-                                tw.Fmt(.BlcCatch.TokenListStmt)
-                                tw.Fmt(EToken.eEndTry, EToken.eNL)
-
-                            Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
-                                tw.Fmt(EToken.eTry, EToken.eLC, EToken.eNL)
-                                tw.Fmt(.BlcTry.TokenListStmt)
-                                tw.Fmt(EToken.eRC, EToken.eNL)
-                                tw.Fmt(EToken.eCatch, EToken.eLP, Laminate((From var1 In .VarCatch Select var1.TokenListVar), New TToken(EToken.eComma, self)), EToken.eRP, EToken.eLC, EToken.eNL)
-                                tw.Fmt(.BlcCatch.TokenListStmt)
-                                tw.Fmt(EToken.eRC, EToken.eNL)
-                        End Select
-
-                    End With
-
-                ElseIf TypeOf self Is TFor Then
-                    With CType(self, TFor)
-                        If .IsDo Then
-
-                            If ParserMK.LanguageSP = ELanguage.Basic Then
-                                tw.Fmt(EToken.eDo, EToken.eWhile, .CndFor.TokenList, EToken.eNL)
-                                tw.Fmt(.BlcFor.TokenListStmt)
-                                tw.Fmt(EToken.eLoop, EToken.eNL)
-                            Else
-                                tw.Fmt(EToken.eWhile, EToken.eLP, .CndFor.TokenList, EToken.eRP, EToken.eLC, EToken.eNL)
-                                tw.Fmt(.BlcFor.TokenListStmt)
-                                tw.Fmt(EToken.eRC, EToken.eNL)
-                            End If
-
-
-                        ElseIf .InVarFor IsNot Nothing Then
-                            Select Case ParserMK.LanguageSP
-                                Case ELanguage.Basic
-                                    tw.Fmt(EToken.eFor, EToken.eEach, .InVarFor.NameVar, EToken.eIn, .InTrmFor.TokenList, EToken.eNL)
-                                    tw.Fmt(.BlcFor.TokenListStmt)
-                                    tw.Fmt(EToken.eNext, EToken.eNL)
-
-                                Case ELanguage.TypeScript, ELanguage.CSharp, ELanguage.Java
-                                    tw.Fmt(EToken.eFor, EToken.eLP, EToken.eVar, .InVarFor.NameVar, EToken.eIn, .InTrmFor.TokenList, EToken.eRP, EToken.eLC, EToken.eNL)
-                                    tw.Fmt(.BlcFor.TokenListStmt)
-                                    tw.Fmt(EToken.eRC, EToken.eNL)
-
-                                Case ELanguage.JavaScript
-                                    ' for(var $i = 0; $i < v.length; $i++)
-                                    ' var x = v[$i];
-                                    tw.Fmt(EToken.eFor, EToken.eLP, EToken.eVar, "$i", EToken.eASN, 0, EToken.eSM, "$i", EToken.eLT, .InTrmFor.TokenList, EToken.eDot, "length", EToken.eSM, "$i++", EToken.eRP, EToken.eLC, EToken.eNL)
-                                    tw.Fmt(EToken.eVar, .InVarFor.NameVar, EToken.eASN, .InTrmFor.TokenList, EToken.eLB, "$i", EToken.eRB, EToken.eEOL)
-                                    tw.Fmt(.BlcFor.TokenListStmt)
-                                    tw.Fmt(EToken.eRC, EToken.eNL)
-                            End Select
-
-                        ElseIf .IdxVarFor IsNot Nothing Then
-                            Select Case ParserMK.LanguageSP
-                                Case ELanguage.Basic
-
-                                Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
-                                    tw.Fmt(EToken.eFor, EToken.eLP, EToken.eVar, .IdxVarFor, EToken.eSM, .CndFor.TokenList, EToken.eSM, .StepStmtFor.TokenListStmt, EToken.eRP, EToken.eLC, EToken.eNL)
-                                    tw.Fmt(.BlcFor.TokenListStmt)
-                                    tw.Fmt(EToken.eRC, EToken.eNL)
-                            End Select
-
-                        ElseIf .FromFor IsNot Nothing Then
-                            tw.Fmt(EToken.eFor, .IdxFor.TokenList, EToken.eEq, .FromFor.TokenList, EToken.eTo, .ToFor.TokenList)
-
-                            If .StepFor IsNot Nothing Then
-                                tw.Fmt(EToken.eStep, .StepFor.TokenList)
-                            End If
-                            tw.Fmt(EToken.eNL)
-
-                            tw.Fmt(.BlcFor.TokenListStmt)
-                            tw.Fmt(EToken.eNext, EToken.eNL)
-                        Else
-                            Debug.Assert(False, "For Src Bas")
-                        End If
-                    End With
-
-                ElseIf TypeOf self Is TReDim Then
-                    With CType(self, TReDim)
-                        tw.Fmt(EToken.eReDim, .TrmReDim.TokenList, EToken.eLP, Laminate((From trm In .DimReDim Select trm.TokenList), New TToken(EToken.eComma, self)), EToken.eRP, EToken.eNL)
-                    End With
-
-                ElseIf TypeOf self Is TBlock Then
-                    With CType(self, TBlock)
-                        For Each stmt In .StmtBlc
-                            tw.Fmt(stmt.TokenListStmt)
-                        Next
-                    End With
-
-                ElseIf TypeOf self Is TReturn Then
-                    With CType(self, TReturn)
-                        If .YieldRet Then
-                            tw.Fmt(EToken.eYield)
-                        Else
-                            tw.Fmt(EToken.eReturn)
-                        End If
-                        If .TrmRet IsNot Nothing Then
-                            tw.Fmt(.TrmRet.TokenList)
-                        End If
-                        tw.Fmt(EToken.eEOL)
-
-                    End With
-
-                ElseIf TypeOf self Is TThrow Then
-                    With CType(self, TThrow)
-                        tw.Fmt(EToken.eThrow, .TrmThrow.TokenList, EToken.eEOL)
-                    End With
-
-                ElseIf TypeOf self Is TComment Then
-                    With CType(self, TComment)
-                        ComSrc(CType(self, TComment), 0, tw)
-                    End With
-
-                Else
-                    Select Case .TypeStmt
-                        Case EToken.eExitDo, EToken.eExitFor, EToken.eExitSub
-                            Select Case .TypeStmt
-                                Case EToken.eExitDo
-                                    tw.Fmt(EToken.eExitDo, EToken.eNL)
-                                Case EToken.eExitFor
-                                    tw.Fmt(EToken.eExitFor, EToken.eNL)
-                                Case EToken.eExitSub
-                                    tw.Fmt(EToken.eExitSub, EToken.eNL)
-                                Case Else
-                                    Debug.Assert(False)
-                            End Select
-
-                        Case Else
-                            Debug.WriteLine("Err Stmt Src:{0}", self)
-                            Debug.Assert(False)
-                    End Select
-                End If
-
-                If .AfterSrc <> "" Then
-                    Dim v = .AfterSrc.Trim().Replace(vbCr, "").Split(New Char() {vbLf(0)})
-                    For Each s In v
-                        tw.Fmt(s, EToken.eNL)
-                    Next
-                End If
-
-                .TokenListStmt = tw.TokenListTW
             End With
 
         ElseIf TypeOf self Is TModifier Then

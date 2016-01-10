@@ -964,21 +964,6 @@ Public Class TApply
     End Function
 End Class
 
-' -------------------------------------------------------------------------------- TIfTerm
-Public Class TIfTerm
-    Inherits TTerm
-    Public CndIfTerm As TTerm
-    Public TermIfTerm As TTerm
-End Class
-
-' -------------------------------------------------------------------------------- TSelectTerm
-Public Class TCaseTerm
-    Inherits TTerm
-    Public TrmCaseTerm As New TList(Of TTerm)
-    Public DefaultCaseTerm As Boolean
-    Public BlcCaseTerm As TTerm
-End Class
-
 ' -------------------------------------------------------------------------------- TDot
 Public Class TDot
     Inherits TReference
@@ -1051,6 +1036,7 @@ End Class
 
 ' -------------------------------------------------------------------------------- TStatement
 Public Class TStatement
+    Inherits TTerm
     Shared StmtCnt As Integer
     <_Parent()> Public ParentStmt As Object
     <_Weak()> Public ComStmt As TList(Of TToken)
@@ -1106,13 +1092,6 @@ Public Class TVariableDeclaration
         VarDecl = vvar1
     End Sub
 
-End Class
-
-' -------------------------------------------------------------------------------- TVariableDeclarationTerm
-Public Class TVariableDeclarationTerm
-    Inherits TTerm
-    <_Weak()> Public TypeDeclTerm As TClass
-    Public VarDeclTerm As TList(Of TVariable)
 End Class
 
 ' -------------------------------------------------------------------------------- TBlock
@@ -1225,13 +1204,6 @@ Public Class TSelect
     Public Sub New()
         TypeStmt = EToken.eSwitch
     End Sub
-End Class
-
-' -------------------------------------------------------------------------------- TSelectTerm
-Public Class TSelectTerm
-    Inherits TTerm
-    Public TrmSelTerm As TTerm
-    Public CaseSelTerm As New TList(Of TCaseTerm)
 End Class
 
 ' -------------------------------------------------------------------------------- TTry

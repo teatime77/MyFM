@@ -388,7 +388,7 @@ Partial Public Class TArray
 End Class
 
 Partial Public Class TStatement
-    Public Overridable Sub __SetParent(self As Object, _Parent As Object)
+    Public Overrides Sub __SetParent(self As Object, _Parent As Object)
         With CType(self, TStatement)
             .ParentStmt = _Parent
         End With

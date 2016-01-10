@@ -586,7 +586,9 @@ Public Class TSetRefDeclarative
     End Function
 
     Public Overrides Sub EndCondition(self As Object)
-        If TypeOf self Is TTerm Then
+        If TypeOf self Is TStatement Then
+
+        ElseIf TypeOf self Is TTerm Then
             Dim trm1 As TTerm = CType(self, TTerm)
 
             If TypeOf self Is TConstant Then
