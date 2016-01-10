@@ -228,7 +228,6 @@ Partial Public Class TProject
     ' 使用参照と定義参照の依存関係を求める。
     Public Sub VirtualizedMethodDefUseDependency(make_virtualizable_if_method As TNaviMakeVirtualizableIfMethod)
 
-
         ' すべての仮想メソッドに対し
         For Each fnc1 In make_virtualizable_if_method.VirtualizedMethodList
             Dim ref_list As TList(Of TReference) = Sys.GetAllRefStmt(fnc1.BlcFnc)
@@ -236,17 +235,14 @@ Partial Public Class TProject
             Dim use_ref_list = From r In ref_list Where Not r.DefRef
             ' 仮想メソッド内のすべての使用参照に対し
             For Each ref1 In use_ref_list
+                ' 使用参照を直接含む文を得る。
+                Dim stmt1 As TStatement = Sys.UpStmtProper(ref1)
 
+                ' 文に対しAnd条件を得る。
+                ' And条件に含まれ、参照パスが共通の定義参照を得る。
+                ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾するなら、その使用参照は除外する。
             Next
-
-            ' 使用参照を直接含む文を得る。
-            ' 文に対しAnd条件を得る。
-            ' And条件に含まれ、参照パスが共通の定義参照を得る。
-            ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾するなら、その使用参照は除外する。
         Next
-
-
-
     End Sub
 
     ' ドットの参照パスが重なるならTrueを返す。

@@ -1516,6 +1516,83 @@ Public Class TCopy
 End Class
 
 Public Class Sys
+    ' 文を項に変換する。
+    Public Shared Function StatementToTerm(stmt1 As TStatement) As TTerm
+        If TypeOf stmt1 Is TAssignment Then
+            With CType(stmt1, TAssignment)
+                Return .RelAsn
+            End With
+
+        ElseIf TypeOf stmt1 Is TIf Then
+            With CType(stmt1, TIf)
+                Dim if1 As TApply = TApply.NewOpr(EToken.eIf)
+                For Each if_block In .IfBlc
+                    if1.ArgApp.Add(StatementToTerm(if_block))
+                Next
+
+                Return if1
+            End With
+
+        ElseIf TypeOf stmt1 Is TIfBlock Then
+            With CType(stmt1, TIfBlock)
+                Dim if_term As New TIfTerm
+                if_term.CndIfTerm = .CndIf
+                if_term.TermIfTerm = StatementToTerm(.BlcIf)
+
+                Return if_term
+            End With
+
+        ElseIf TypeOf stmt1 Is TVariableDeclaration Then
+            With CType(stmt1, TVariableDeclaration)
+                Dim decl As New TVariableDeclarationTerm
+
+                decl.TypeDeclTerm = .TypeDecl
+                decl.VarDeclTerm = New TList(Of TVariable)(.VarDecl)
+
+                Return decl
+            End With
+
+        ElseIf TypeOf stmt1 Is TSelect Then
+            With CType(stmt1, TSelect)
+                Dim sel1 As New TSelectTerm
+                sel1.TrmSelTerm = .TrmSel
+                For Each case1 In .CaseSel
+                    Dim case2 As New TCaseTerm
+                    case2.TrmCaseTerm = case1.TrmCase
+                    case2.DefaultCaseTerm = case1.DefaultCase
+                    case2.BlcCaseTerm = StatementToTerm(case1.BlcCase)
+
+                    sel1.CaseSelTerm.Add(case2)
+                Next
+
+                Return sel1
+            End With
+
+        ElseIf TypeOf stmt1 Is TCall Then
+            With CType(stmt1, TCall)
+                Return .AppCall
+            End With
+
+        ElseIf TypeOf stmt1 Is TComment Then
+            With CType(stmt1, TComment)
+            End With
+
+        ElseIf TypeOf stmt1 Is TBlock Then
+            With CType(stmt1, TBlock)
+                If .StmtBlc.Count = 1 Then
+
+                End If
+            End With
+
+
+        ElseIf TypeOf stmt1 Is TReturn OrElse TypeOf stmt1 Is TFor OrElse TypeOf stmt1 Is TReDim OrElse TypeOf stmt1 Is TExit OrElse TypeOf stmt1 Is TThrow OrElse TypeOf stmt1 Is TTry Then
+            Debug.Assert(False)
+        Else
+            Debug.Assert(False)
+        End If
+
+        Return Nothing
+    End Function
 
     ' 最も内側のドットを返す。
     Public Shared Function OuterMostDot(dot1 As TDot) As TDot

@@ -943,7 +943,9 @@ Public Class TNaviSetProjectTrm
     Inherits TDeclarative
 
     Public Overrides Sub StartCondition(self As Object)
-        If TypeOf self Is TTerm Then
+        If TypeOf self Is TStatement Then
+
+        ElseIf TypeOf self Is TTerm Then
             With CType(self, TTerm)
                 Dim prj = From obj In TNaviUp.AncestorList(self) Where TypeOf obj Is TProject
                 .ProjectTrm = CType(prj.First(), TProject)
@@ -1340,7 +1342,9 @@ Public Class TNaviSetDependency
     Inherits TDeclarative
 
     Public Overrides Sub EndCondition(self As Object)
-        If TypeOf self Is TTerm Then
+        If TypeOf self Is TStatement Then
+
+        ElseIf TypeOf self Is TTerm Then
             With CType(self, TTerm)
                 .DependTrm = New TDependency()
 
@@ -1456,7 +1460,9 @@ Public Class TNaviSetRefPath
     Inherits TDeclarative
 
     Public Overrides Sub EndCondition(self As Object)
-        If TypeOf self Is TTerm Then
+        If TypeOf self Is TStatement Then
+
+        ElseIf TypeOf self Is TTerm Then
             With CType(self, TTerm)
                 .RefPathTrm = New TRefPath()
 
