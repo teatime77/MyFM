@@ -128,6 +128,9 @@ Partial Public Class TProject
         Dim navi_set_label = New TNaviSetLabel()
         navi_set_label.NaviProject(Me)
 
+        Dim navi_set_ref_stmt As New TNaviSetRefStmt
+        navi_set_ref_stmt.NaviProject(Me)
+
         ' DefRefをセットする。
         Dim set_def_ref = New TNaviSetDefRef()
         set_def_ref.NaviProject(Me, Nothing)
@@ -175,6 +178,7 @@ Partial Public Class TProject
         If MainClass IsNot Nothing Then
             Dim vrule = (From fnc In MainClass.FncCla Where fnc.ModVar.isInvariant).ToList()
             For Each rule In vrule
+
                 ' 参照パスをセットする。
                 Dim set_dependency As New TNaviSetDependency
                 set_dependency.NaviFunction(rule)
@@ -184,6 +188,13 @@ Partial Public Class TProject
                 ' クラスの場合分けのIf文を探す。
                 Dim set_virtualizable_if As New TNaviSetVirtualizableIf
                 set_virtualizable_if.NaviFunction(rule)
+                For Each c In set_virtualizable_if.VirtualizableClassList
+                    Debug.Print("仮想化可能 {0}", c.NameVar)
+                Next
+
+                'Dim set_ref_path As New TNaviSetRefPath
+                'set_ref_path.NaviFunction(rule)
+
 
                 ' クラスの場合分けのIf文からクラスごとのメソッドを作る。
                 Dim make_virtualizable_if_method As New TNaviMakeVirtualizableIfMethod
@@ -193,7 +204,7 @@ Partial Public Class TProject
                 Dim set_reachable_field As New TNaviMakeNavigateFunction
                 set_reachable_field.Prj = Me
                 set_reachable_field.UseParentClassList = use_parent_class_list
-                set_reachable_field.VirtualizableClassList = make_virtualizable_if_method.VirtualizableClassList
+                set_reachable_field.VirtualizableClassList = set_virtualizable_if.VirtualizableClassList
                 set_reachable_field.NaviFunction(rule)
 
                 For Each fnc1 In set_reachable_field.NaviFunctionList
@@ -214,14 +225,29 @@ Partial Public Class TProject
         End If
     End Sub
 
-    ' 最も内側のドットを返す。
-    Public Function InnerMostDot(dot1 As TDot) As TDot
-        If TypeOf dot1.TrmDot Is TDot Then
-            Return InnerMostDot(CType(dot1.TrmDot, TDot))
-        End If
+    ' 使用参照と定義参照の依存関係を求める。
+    Public Sub VirtualizedMethodDefUseDependency(make_virtualizable_if_method As TNaviMakeVirtualizableIfMethod)
 
-        Return dot1
-    End Function
+
+        ' すべての仮想メソッドに対し
+        For Each fnc1 In make_virtualizable_if_method.VirtualizedMethodList
+            Dim ref_list As TList(Of TReference) = Sys.GetAllRefStmt(fnc1.BlcFnc)
+
+            Dim use_ref_list = From r In ref_list Where Not r.DefRef
+            ' 仮想メソッド内のすべての使用参照に対し
+            For Each ref1 In use_ref_list
+
+            Next
+
+            ' 使用参照を直接含む文を得る。
+            ' 文に対しAnd条件を得る。
+            ' And条件に含まれ、参照パスが共通の定義参照を得る。
+            ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾するなら、その使用参照は除外する。
+        Next
+
+
+
+    End Sub
 
     ' ドットの参照パスが重なるならTrueを返す。
     Public Function OverlapDotPath(dot1 As TDot, dot2 As TDot) As Boolean
@@ -251,10 +277,10 @@ Partial Public Class TProject
         Dim dot_list = From d In rule.RefFnc Where TypeOf d.VarRef Is TField AndAlso TypeOf d Is TDot Select CType(d, TDot)
 
         ' 関数内の代入のフィールド参照の最も内側のドットのリスト
-        Dim def_inner_most_dot_list = From d In dot_list Where d.DefRef Select InnerMostDot(d)
+        Dim def_inner_most_dot_list = From d In dot_list Where d.DefRef Select Sys.InnerMostDot(d)
 
         ' 関数内の値使用のフィールド参照の最も内側のドットのリスト
-        Dim use_inner_most_dot_list = From d In dot_list Where Not d.DefRef Select InnerMostDot(d)
+        Dim use_inner_most_dot_list = From d In dot_list Where Not d.DefRef Select Sys.InnerMostDot(d)
 
         ' 関数内の値使用のフィールド参照の最も内側のドットに対し
         For Each dot1 In use_inner_most_dot_list
@@ -591,10 +617,10 @@ Partial Public Class TProject
     ' クラスの場合分けのIf文からクラスごとのメソッドを作る。
     Public Class TNaviMakeVirtualizableIfMethod
         Inherits TDeclarative
-        Public VirtualizableClassList As New List(Of TClass)
+        Public VirtualizedMethodList As New TList(Of TFunction)
 
         Public Function CopyAncestorBlock(if1 As TIf, blc1 As TBlock, cpy As TCopy) As TBlock
-            Dim up_blc As TBlock = TDataflow.UpBlock(if1)
+            Dim up_blc As TBlock = Sys.UpBlock(if1)
             Dim up_blc_copy As New TBlock
 
             ' up_blcの変数をup_blc_copyにコピーする。
@@ -612,7 +638,7 @@ Partial Public Class TProject
                 ' メソッドの直下のブロックでない場合
 
                 ' １つ上のIf文を得る。
-                Dim if_blc As TIfBlock = CType(TDataflow.UpStmtProper(up_blc.ParentStmt), TIfBlock)
+                Dim if_blc As TIfBlock = CType(Sys.UpStmtProper(up_blc.ParentStmt), TIfBlock)
                 Dim if2 As TIf = CType(if_blc.ParentStmt, TIf)
 
                 ' １つ上のif文を囲むブロックをコピーする。
@@ -674,7 +700,7 @@ Partial Public Class TProject
                         Dim set_up_trm As New TNaviSetUpTrm
                         set_up_trm.NaviFunction(fnc1, Nothing)
 
-                        VirtualizableClassList.Add(virtualizable_class)
+                        VirtualizedMethodList.Add(fnc1)
                     End If
                 End With
             End If

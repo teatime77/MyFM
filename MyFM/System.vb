@@ -150,6 +150,26 @@ Public Class TList(Of T)
     Public Function GetUpList() As Object Implements IUpList.GetUpList
         Return UpList
     End Function
+
+    Public Function Pop() As T
+        Dim x As T = Item(Count - 1)
+        RemoveAt(Count - 1)
+        Return x
+    End Function
+
+    Public Sub DistinctAdd(x As T)
+        If Not Contains(x) Then
+            Add(x)
+        End If
+    End Sub
+
+    Public Sub DistinctAddRange(v As IEnumerable(Of T))
+        For Each x In v.Distinct()
+            If Not Contains(x) Then
+                Add(x)
+            End If
+        Next
+    End Sub
 End Class
 
 ' -------------------------------------------------------------------------------- TSys

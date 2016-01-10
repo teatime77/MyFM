@@ -392,10 +392,6 @@ Public Class TNaviTest
 
     Public Overrides Sub NaviReference(ref1 As TReference, arg1 As Object)
         IncRefCnt(ref1)
-        If arg1 IsNot Nothing Then
-
-            CType(arg1, TStatement).RefStmt.Add(ref1)
-        End If
     End Sub
 End Class
 
@@ -813,7 +809,7 @@ Public Class TNaviSetValidStmt
     Public Overrides Function StartStatement(stmt1 As TStatement, arg1 As Object) As Object
         If stmt1 IsNot Nothing Then
 
-            Dim up_stmt As TStatement = TDataflow.UpStmtProper(stmt1.ParentStmt)
+            Dim up_stmt As TStatement = Sys.UpStmtProper(stmt1.ParentStmt)
 
             If up_stmt IsNot Nothing AndAlso Not up_stmt.ValidStmt Then
                 ' 親の文が無効の場合

@@ -48,59 +48,6 @@ Public Class TDataflow
         ProjectDtf = prj1
     End Sub
 
-    Public Shared Function UpStmt(obj1 As Object) As Object
-        If obj1 Is Nothing Then
-            '            Debug.WriteLine("")
-            Return Nothing
-        End If
-
-        If TypeOf obj1 Is TTerm Then
-            Return UpStmt(CType(obj1, TTerm).UpTrm)
-        ElseIf TypeOf obj1 Is IUpList Then
-            Return UpStmt(CType(obj1, IUpList).GetUpList())
-        ElseIf TypeOf obj1 Is TBlock Then
-            Return UpStmt(CType(obj1, TBlock).ParentStmt)
-        ElseIf TypeOf obj1 Is TStatement Then
-            Return CType(obj1, TStatement)
-        ElseIf TypeOf obj1 Is TFunction Then
-            Return obj1
-        ElseIf TypeOf obj1 Is TVariable Then
-            Return UpStmt(CType(obj1, TVariable).UpVar)
-        Else
-            Debug.WriteLine("@i")
-            Return Nothing
-        End If
-    End Function
-
-    Public Shared Function UpBlock(stmt1 As TStatement) As TBlock
-        Return CType(CType(stmt1.ParentStmt, IUpList).GetUpList(), TBlock)
-    End Function
-
-    Public Shared Function UpStmtProper(obj1 As Object) As TStatement
-        Dim up_obj As Object
-
-        up_obj = UpStmt(obj1)
-        If TypeOf up_obj Is TStatement Then
-            Return CType(up_obj, TStatement)
-        Else
-            Return Nothing
-        End If
-    End Function
-
-    Public Shared Function UpFor(obj1 As Object) As TFor
-        Dim stmt1 As TStatement
-
-        stmt1 = UpStmtProper(obj1)
-        Do While stmt1 IsNot Nothing
-            If TypeOf stmt1 Is TFor Then
-                Return CType(stmt1, TFor)
-            End If
-            stmt1 = UpStmtProper(stmt1.ParentStmt)
-        Loop
-
-        Return Nothing
-    End Function
-
     ' 値が変化したときの条件を正規化する。
     Public Function NormalizeValueChangedCondition(change As TChange, ref1 As TReference, ref_type As ERefPathType) As TApply
         Dim J As TApply
@@ -171,7 +118,7 @@ Public Class TDataflow
             Dim up_if As TIf, eq_after As Boolean = False
 
             ' Ifブロックを含むIf文を得る
-            up_if = CType(UpStmt(stmt.ParentStmt), TIf)
+            up_if = CType(Sys.UpStmt(stmt.ParentStmt), TIf)
 
             ' If文は影響され得る
             may_be_affected_stmt.Add(up_if)
@@ -227,7 +174,7 @@ Public Class TDataflow
             vwork_stmt.RemoveAt(0)
 
             ' 有効な文を囲む条件文,For文は有効とする。
-            up_stmt = UpStmtProper(wk_stmt.ParentStmt)
+            up_stmt = Sys.UpStmtProper(wk_stmt.ParentStmt)
             Do While up_stmt IsNot Nothing
 
                 If Not valid_stmt.ContainsKey(up_stmt) Then
@@ -240,7 +187,7 @@ Public Class TDataflow
                     'Yield EAnalyzeChangeableFld.ValidStmt
                 End If
 
-                up_stmt = UpStmtProper(up_stmt.ParentStmt)
+                up_stmt = Sys.UpStmtProper(up_stmt.ParentStmt)
             Loop
 
             ' 局所変数の参照を列挙する
@@ -251,7 +198,7 @@ Public Class TDataflow
                         ' 代入の場合
 
                         ' 有効な文が局所変数の値を参照する場合、局所変数への代入文も有効とする。
-                        asn_stmt = CType(UpStmt(ref_f), TAssignment)
+                        asn_stmt = CType(Sys.UpStmt(ref_f), TAssignment)
                         If Not valid_stmt.ContainsKey(asn_stmt) Then
                             ' 未処理の場合
 
@@ -259,7 +206,7 @@ Public Class TDataflow
                             vwork_stmt.Add(asn_stmt)
 
                             ' 局所変数の宣言文も有効とする。
-                            Dim decl_stmt = UpStmt(var_f)
+                            Dim decl_stmt = Sys.UpStmt(var_f)
                             Debug.Assert(decl_stmt IsNot Nothing AndAlso TypeOf decl_stmt Is TVariableDeclaration)
                             If Not valid_stmt.ContainsKey(CType(decl_stmt, TVariableDeclaration)) Then
 
@@ -331,7 +278,7 @@ Public Class TDataflow
                     NormalizedCondition = NormalizeValueChangedCondition(Change, ref1, ref_type)
 
                     ' 変数参照を含む文
-                    RefChangeableUpStmt = UpStmt(ref1)
+                    RefChangeableUpStmt = Sys.UpStmt(ref1)
 
                     If NormalizedCondition Is Nothing Then
                         ' 代入時の条件がない場合
@@ -496,7 +443,7 @@ Public Class TDataflow
                             ' この代入から影響され得るすべての参照に対し
                             For Each afr2 In change2.AffectedRefList
 
-                                If UpFor(afr2.StmtAfr) Is Nothing Then
+                                If Sys.UpFor(afr2.StmtAfr) Is Nothing Then
                                     ' For文の中にある場合
 
                                     dst_level = cur_level - 1 + RelLevelByRefType(afr2.RefTypeAfr)
@@ -668,7 +615,7 @@ Public Class TDataflow
 
             For Each ref1 In sync_fld.RefVar
                 If ref1.FunctionTrm Is RuleCp Then
-                    Dim stmt1 As TStatement = UpStmt(ref1)
+                    Dim stmt1 As TStatement = Sys.UpStmt(ref1)
                     If ref1.DefRef Then
                         Debug.Assert(TypeOf stmt1 Is TAssignment)
 
@@ -682,7 +629,7 @@ Public Class TDataflow
 
                             Dim stmt2 As TStatement = stmt1, up_stmt As TStatement
 
-                            up_stmt = UpStmtProper(stmt2.ParentStmt)
+                            up_stmt = Sys.UpStmtProper(stmt2.ParentStmt)
                             Do While up_stmt IsNot Nothing
 
                                 If up_stmt.ValidStmt Then
@@ -698,7 +645,7 @@ Public Class TDataflow
                                     End If
                                     Exit Do
                                 End If
-                                up_stmt = UpStmtProper(up_stmt.ParentStmt)
+                                up_stmt = Sys.UpStmtProper(up_stmt.ParentStmt)
                             Loop
                         End If
                     Else
@@ -871,7 +818,7 @@ Public Class TDataflow
 
         ElseIf TypeOf up_stmt Is TIfBlock Then
             if_blc = CType(up_stmt, TIfBlock)
-            if1 = CType(UpStmt(up_stmt.ParentStmt), TIf)
+            if1 = CType(Sys.UpStmt(up_stmt.ParentStmt), TIf)
             For Each _child In if1.IfBlc
                 cnd1 = Sys.CopyTrm(_child.CndIf, Nothing)
 
@@ -935,7 +882,7 @@ Public Class TDataflow
             Debug.Assert(False)
         End If
 
-        up_obj = UpStmt(stmt1.ParentStmt)
+        up_obj = Sys.UpStmt(stmt1.ParentStmt)
         If TypeOf up_obj Is TStatement Then
             up_stmt = CType(up_obj, TStatement)
 
@@ -1233,9 +1180,26 @@ Public Enum EBinomialInference
     Unknown
 End Enum
 
+Public Enum EDependency
+    Self
+    Parent
+    Child
+    ChildElement
+    PropertyDep
+    Unknown
+End Enum
+
 ' 依存関係
 Public Class TDependency
+    Public TypeDep As EDependency = EDependency.Unknown
+    Public SourceList As New TList(Of TDependency)
 
+    Public Sub New()
+    End Sub
+
+    Public Sub New(type_dep As EDependency)
+        TypeDep = type_dep
+    End Sub
 End Class
 
 ' 参照パス
@@ -1487,7 +1451,7 @@ Public Class TFindSyncField
     Public Overrides Function StartDot(dot1 As TDot, arg1 As Object) As Object
         Dim stmt1 As TStatement, ref_type As ERefPathType, fld1 As TField
 
-        stmt1 = TDataflow.UpStmt(dot1)
+        stmt1 = Sys.UpStmt(dot1)
         If ValidStmt.ContainsKey(stmt1) Then
             ' 有効な文の中の場合
 
@@ -1552,6 +1516,84 @@ Public Class TCopy
 End Class
 
 Public Class Sys
+
+    ' 最も内側のドットを返す。
+    Public Shared Function OuterMostDot(dot1 As TDot) As TDot
+        If TypeOf dot1.UpTrm Is TDot Then
+            Return OuterMostDot(CType(dot1.UpTrm, TDot))
+        End If
+
+        Return dot1
+    End Function
+
+    ' 最も内側のドットを返す。
+    Public Shared Function InnerMostDot(dot1 As TDot) As TDot
+        If TypeOf dot1.TrmDot Is TDot Then
+            Return InnerMostDot(CType(dot1.TrmDot, TDot))
+        End If
+
+        Return dot1
+    End Function
+
+    Public Shared Function GetAllRefStmt(stmt1 As TStatement) As TList(Of TReference)
+        Dim all_ref_stmt As New TNaviAllRefStmt
+        all_ref_stmt.NaviStatement(stmt1)
+        Return all_ref_stmt.RefStmtList
+    End Function
+
+    Public Shared Function UpStmt(obj1 As Object) As Object
+        If obj1 Is Nothing Then
+            '            Debug.WriteLine("")
+            Return Nothing
+        End If
+
+        If TypeOf obj1 Is TTerm Then
+            Return UpStmt(CType(obj1, TTerm).UpTrm)
+        ElseIf TypeOf obj1 Is IUpList Then
+            Return UpStmt(CType(obj1, IUpList).GetUpList())
+        ElseIf TypeOf obj1 Is TBlock Then
+            Return UpStmt(CType(obj1, TBlock).ParentStmt)
+        ElseIf TypeOf obj1 Is TStatement Then
+            Return CType(obj1, TStatement)
+        ElseIf TypeOf obj1 Is TFunction Then
+            Return obj1
+        ElseIf TypeOf obj1 Is TVariable Then
+            Return UpStmt(CType(obj1, TVariable).UpVar)
+        Else
+            Debug.WriteLine("@i")
+            Return Nothing
+        End If
+    End Function
+
+    Public Shared Function UpBlock(stmt1 As TStatement) As TBlock
+        Return CType(CType(stmt1.ParentStmt, IUpList).GetUpList(), TBlock)
+    End Function
+
+    Public Shared Function UpStmtProper(obj1 As Object) As TStatement
+        Dim up_obj As Object
+
+        up_obj = UpStmt(obj1)
+        If TypeOf up_obj Is TStatement Then
+            Return CType(up_obj, TStatement)
+        Else
+            Return Nothing
+        End If
+    End Function
+
+    Public Shared Function UpFor(obj1 As Object) As TFor
+        Dim stmt1 As TStatement
+
+        stmt1 = UpStmtProper(obj1)
+        Do While stmt1 IsNot Nothing
+            If TypeOf stmt1 Is TFor Then
+                Return CType(stmt1, TFor)
+            End If
+            stmt1 = UpStmtProper(stmt1.ParentStmt)
+        Loop
+
+        Return Nothing
+    End Function
+
     Public Shared Function IsEqTrm(trm1 As TTerm, trm2 As TTerm) As Boolean
         Dim cns1 As TConstant, arr1 As TArray, dot1 As TDot, ref1 As TReference, app1 As TApply, opr1 As TApply, par1 As TParenthesis
         Dim cns2 As TConstant, arr2 As TArray, dot2 As TDot, ref2 As TReference, app2 As TApply, opr2 As TApply, par2 As TParenthesis
