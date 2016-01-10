@@ -367,7 +367,7 @@ Public Class TNaviMakeSourceCode
                         If Not .IsInitializer() OrElse ParserMK.LanguageSP = ELanguage.JavaScript Then
                             If .ComVar IsNot Nothing Then
 
-                                tw.Fmt(.ComVar.TokenListStmt)
+                                tw.Fmt(.ComVar.TokenList)
                             End If
 
                             If ParserMK.LanguageSP <> ELanguage.JavaScript Then
@@ -450,10 +450,10 @@ Public Class TNaviMakeSourceCode
                                         Else
                                             tw.Fmt(EToken.eWith, EToken.eCType, EToken.eLP, .ArgFnc(0).NameVar, EToken.eComma, .WithFnc.TokenListVar, EToken.eRP, EToken.eNL)
                                         End If
-                                        tw.Fmt(.BlcFnc.TokenListStmt)
+                                        tw.Fmt(.BlcFnc.TokenList)
                                         tw.Fmt(EToken.eEndWith, EToken.eNL)
                                     Else
-                                        tw.Fmt(.BlcFnc.TokenListStmt)
+                                        tw.Fmt(.BlcFnc.TokenList)
                                     End If
 
                                     Select Case .TypeFnc
@@ -481,7 +481,7 @@ Public Class TNaviMakeSourceCode
                                         tw.Fmt("CallInstanceInitializer", EToken.eLP, ParserMK.ThisName, EToken.eComma, ParserMK.ThisName, EToken.eRP, EToken.eEOL)
                                     End If
 
-                                    tw.Fmt(.BlcFnc.TokenListStmt)
+                                    tw.Fmt(.BlcFnc.TokenList)
 
                                     tw.Fmt(EToken.eRC, EToken.eNL)
                                 End If
@@ -507,7 +507,7 @@ Public Class TNaviMakeSourceCode
                     With CType(self, TField)
 
                         If .ComVar IsNot Nothing Then
-                            tw.Fmt(.ComVar.TokenListStmt)
+                            tw.Fmt(.ComVar.TokenList)
                         End If
 
                         Select Case ParserMK.LanguageSP
@@ -622,7 +622,7 @@ Public Class TNaviMakeSourceCode
                     With CType(self, TIfBlock)
                         Dim if1 As TIf, i1 As Integer
 
-                        if1 = CType(.ParentStmt, TIf)
+                        if1 = CType(.UpTrm, TIf)
                         i1 = if1.IfBlc.IndexOf(CType(self, TIfBlock))
                         Debug.Assert(i1 <> -1)
 
@@ -652,10 +652,10 @@ Public Class TNaviMakeSourceCode
 
                         If ParserMK.LanguageSP = ELanguage.Basic AndAlso .WithIf IsNot Nothing Then
                             tw.Fmt(EToken.eWith, .WithIf.TokenList, EToken.eNL)
-                            tw.Fmt(.BlcIf.TokenListStmt)
+                            tw.Fmt(.BlcIf.TokenList)
                             tw.Fmt(EToken.eEndWith, EToken.eNL)
                         Else
-                            tw.Fmt(.BlcIf.TokenListStmt)
+                            tw.Fmt(.BlcIf.TokenList)
                         End If
 
 
@@ -668,7 +668,7 @@ Public Class TNaviMakeSourceCode
                 ElseIf TypeOf self Is TIf Then
                     With CType(self, TIf)
                         For Each if_blc In .IfBlc
-                            tw.Fmt(if_blc.TokenListStmt)
+                            tw.Fmt(if_blc.TokenList)
                         Next
 
                         If ParserMK.LanguageSP = ELanguage.Basic Then
@@ -686,7 +686,7 @@ Public Class TNaviMakeSourceCode
                                     tw.Fmt(EToken.eCase, EToken.eElse, EToken.eNL)
                                 End If
 
-                                tw.Fmt(.BlcCase.TokenListStmt)
+                                tw.Fmt(.BlcCase.TokenList)
 
                             Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
                                 If Not .DefaultCase Then
@@ -695,7 +695,7 @@ Public Class TNaviMakeSourceCode
                                     tw.Fmt(EToken.eDefault, EToken.eNL)
                                 End If
 
-                                tw.Fmt(.BlcCase.TokenListStmt)
+                                tw.Fmt(.BlcCase.TokenList)
 
                                 tw.Fmt(EToken.eBreak, EToken.eEOL)
                         End Select
@@ -714,7 +714,7 @@ Public Class TNaviMakeSourceCode
 
 
                         For Each cas1 In .CaseSel
-                            tw.Fmt(cas1.TokenListStmt)
+                            tw.Fmt(cas1.TokenList)
                         Next
 
                         Select Case ParserMK.LanguageSP
@@ -731,17 +731,17 @@ Public Class TNaviMakeSourceCode
                         Select Case ParserMK.LanguageSP
                             Case ELanguage.Basic
                                 tw.Fmt(EToken.eTry, EToken.eNL)
-                                tw.Fmt(.BlcTry.TokenListStmt)
+                                tw.Fmt(.BlcTry.TokenList)
                                 tw.Fmt(EToken.eCatch, Laminate((From var1 In .VarCatch Select var1.TokenListVar), New TToken(EToken.eComma, self)), EToken.eNL)
-                                tw.Fmt(.BlcCatch.TokenListStmt)
+                                tw.Fmt(.BlcCatch.TokenList)
                                 tw.Fmt(EToken.eEndTry, EToken.eNL)
 
                             Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
                                 tw.Fmt(EToken.eTry, EToken.eLC, EToken.eNL)
-                                tw.Fmt(.BlcTry.TokenListStmt)
+                                tw.Fmt(.BlcTry.TokenList)
                                 tw.Fmt(EToken.eRC, EToken.eNL)
                                 tw.Fmt(EToken.eCatch, EToken.eLP, Laminate((From var1 In .VarCatch Select var1.TokenListVar), New TToken(EToken.eComma, self)), EToken.eRP, EToken.eLC, EToken.eNL)
-                                tw.Fmt(.BlcCatch.TokenListStmt)
+                                tw.Fmt(.BlcCatch.TokenList)
                                 tw.Fmt(EToken.eRC, EToken.eNL)
                         End Select
 
@@ -753,11 +753,11 @@ Public Class TNaviMakeSourceCode
 
                             If ParserMK.LanguageSP = ELanguage.Basic Then
                                 tw.Fmt(EToken.eDo, EToken.eWhile, .CndFor.TokenList, EToken.eNL)
-                                tw.Fmt(.BlcFor.TokenListStmt)
+                                tw.Fmt(.BlcFor.TokenList)
                                 tw.Fmt(EToken.eLoop, EToken.eNL)
                             Else
                                 tw.Fmt(EToken.eWhile, EToken.eLP, .CndFor.TokenList, EToken.eRP, EToken.eLC, EToken.eNL)
-                                tw.Fmt(.BlcFor.TokenListStmt)
+                                tw.Fmt(.BlcFor.TokenList)
                                 tw.Fmt(EToken.eRC, EToken.eNL)
                             End If
 
@@ -766,12 +766,12 @@ Public Class TNaviMakeSourceCode
                             Select Case ParserMK.LanguageSP
                                 Case ELanguage.Basic
                                     tw.Fmt(EToken.eFor, EToken.eEach, .InVarFor.NameVar, EToken.eIn, .InTrmFor.TokenList, EToken.eNL)
-                                    tw.Fmt(.BlcFor.TokenListStmt)
+                                    tw.Fmt(.BlcFor.TokenList)
                                     tw.Fmt(EToken.eNext, EToken.eNL)
 
                                 Case ELanguage.TypeScript, ELanguage.CSharp, ELanguage.Java
                                     tw.Fmt(EToken.eFor, EToken.eLP, EToken.eVar, .InVarFor.NameVar, EToken.eIn, .InTrmFor.TokenList, EToken.eRP, EToken.eLC, EToken.eNL)
-                                    tw.Fmt(.BlcFor.TokenListStmt)
+                                    tw.Fmt(.BlcFor.TokenList)
                                     tw.Fmt(EToken.eRC, EToken.eNL)
 
                                 Case ELanguage.JavaScript
@@ -779,7 +779,7 @@ Public Class TNaviMakeSourceCode
                                     ' var x = v[$i];
                                     tw.Fmt(EToken.eFor, EToken.eLP, EToken.eVar, "$i", EToken.eASN, 0, EToken.eSM, "$i", EToken.eLT, .InTrmFor.TokenList, EToken.eDot, "length", EToken.eSM, "$i++", EToken.eRP, EToken.eLC, EToken.eNL)
                                     tw.Fmt(EToken.eVar, .InVarFor.NameVar, EToken.eASN, .InTrmFor.TokenList, EToken.eLB, "$i", EToken.eRB, EToken.eEOL)
-                                    tw.Fmt(.BlcFor.TokenListStmt)
+                                    tw.Fmt(.BlcFor.TokenList)
                                     tw.Fmt(EToken.eRC, EToken.eNL)
                             End Select
 
@@ -788,8 +788,8 @@ Public Class TNaviMakeSourceCode
                                 Case ELanguage.Basic
 
                                 Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
-                                    tw.Fmt(EToken.eFor, EToken.eLP, EToken.eVar, .IdxVarFor, EToken.eSM, .CndFor.TokenList, EToken.eSM, .StepStmtFor.TokenListStmt, EToken.eRP, EToken.eLC, EToken.eNL)
-                                    tw.Fmt(.BlcFor.TokenListStmt)
+                                    tw.Fmt(EToken.eFor, EToken.eLP, EToken.eVar, .IdxVarFor, EToken.eSM, .CndFor.TokenList, EToken.eSM, .StepStmtFor.TokenList, EToken.eRP, EToken.eLC, EToken.eNL)
+                                    tw.Fmt(.BlcFor.TokenList)
                                     tw.Fmt(EToken.eRC, EToken.eNL)
                             End Select
 
@@ -801,7 +801,7 @@ Public Class TNaviMakeSourceCode
                             End If
                             tw.Fmt(EToken.eNL)
 
-                            tw.Fmt(.BlcFor.TokenListStmt)
+                            tw.Fmt(.BlcFor.TokenList)
                             tw.Fmt(EToken.eNext, EToken.eNL)
                         Else
                             Debug.Assert(False, "For Src Bas")
@@ -816,7 +816,7 @@ Public Class TNaviMakeSourceCode
                 ElseIf TypeOf self Is TBlock Then
                     With CType(self, TBlock)
                         For Each stmt In .StmtBlc
-                            tw.Fmt(stmt.TokenListStmt)
+                            tw.Fmt(stmt.TokenList)
                         Next
                     End With
 
@@ -871,7 +871,7 @@ Public Class TNaviMakeSourceCode
                     Next
                 End If
 
-                .TokenListStmt = tw.TokenListTW
+                .TokenList = tw.TokenListTW
             End With
 
         ElseIf TypeOf self Is TTerm Then

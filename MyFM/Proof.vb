@@ -118,7 +118,7 @@ Public Class TDataflow
             Dim up_if As TIf, eq_after As Boolean = False
 
             ' Ifブロックを含むIf文を得る
-            up_if = CType(Sys.UpStmt(stmt.ParentStmt), TIf)
+            up_if = CType(Sys.UpStmt(stmt.UpTrm), TIf)
 
             ' If文は影響され得る
             may_be_affected_stmt.Add(up_if)
@@ -174,7 +174,7 @@ Public Class TDataflow
             vwork_stmt.RemoveAt(0)
 
             ' 有効な文を囲む条件文,For文は有効とする。
-            up_stmt = Sys.UpStmtProper(wk_stmt.ParentStmt)
+            up_stmt = Sys.UpStmtProper(wk_stmt.UpTrm)
             Do While up_stmt IsNot Nothing
 
                 If Not valid_stmt.ContainsKey(up_stmt) Then
@@ -187,7 +187,7 @@ Public Class TDataflow
                     'Yield EAnalyzeChangeableFld.ValidStmt
                 End If
 
-                up_stmt = Sys.UpStmtProper(up_stmt.ParentStmt)
+                up_stmt = Sys.UpStmtProper(up_stmt.UpTrm)
             Loop
 
             ' 局所変数の参照を列挙する
@@ -629,7 +629,7 @@ Public Class TDataflow
 
                             Dim stmt2 As TStatement = stmt1, up_stmt As TStatement
 
-                            up_stmt = Sys.UpStmtProper(stmt2.ParentStmt)
+                            up_stmt = Sys.UpStmtProper(stmt2.UpTrm)
                             Do While up_stmt IsNot Nothing
 
                                 If up_stmt.ValidStmt Then
@@ -645,7 +645,7 @@ Public Class TDataflow
                                     End If
                                     Exit Do
                                 End If
-                                up_stmt = Sys.UpStmtProper(up_stmt.ParentStmt)
+                                up_stmt = Sys.UpStmtProper(up_stmt.UpTrm)
                             Loop
                         End If
                     Else
@@ -818,7 +818,7 @@ Public Class TDataflow
 
         ElseIf TypeOf up_stmt Is TIfBlock Then
             if_blc = CType(up_stmt, TIfBlock)
-            if1 = CType(Sys.UpStmt(up_stmt.ParentStmt), TIf)
+            if1 = CType(Sys.UpStmt(up_stmt.UpTrm), TIf)
             For Each _child In if1.IfBlc
                 cnd1 = Sys.CopyTrm(_child.CndIf, Nothing)
 
@@ -882,7 +882,7 @@ Public Class TDataflow
             Debug.Assert(False)
         End If
 
-        up_obj = Sys.UpStmt(stmt1.ParentStmt)
+        up_obj = Sys.UpStmt(stmt1.UpTrm)
         If TypeOf up_obj Is TStatement Then
             up_stmt = CType(up_obj, TStatement)
 
@@ -1547,7 +1547,7 @@ Public Class Sys
         End If
 
         If TypeOf obj1 Is TBlock Then
-            Return UpStmt(CType(obj1, TBlock).ParentStmt)
+            Return UpStmt(CType(obj1, TBlock).UpTrm)
         ElseIf TypeOf obj1 Is TStatement Then
             Return CType(obj1, TStatement)
         ElseIf TypeOf obj1 Is TTerm Then
@@ -1565,7 +1565,7 @@ Public Class Sys
     End Function
 
     Public Shared Function UpBlock(stmt1 As TStatement) As TBlock
-        Return CType(CType(stmt1.ParentStmt, IUpList).GetUpList(), TBlock)
+        Return CType(CType(stmt1.UpTrm, IUpList).GetUpList(), TBlock)
     End Function
 
     Public Shared Function UpStmtProper(obj1 As Object) As TStatement
@@ -1587,7 +1587,7 @@ Public Class Sys
             If TypeOf stmt1 Is TFor Then
                 Return CType(stmt1, TFor)
             End If
-            stmt1 = UpStmtProper(stmt1.ParentStmt)
+            stmt1 = UpStmtProper(stmt1.UpTrm)
         Loop
 
         Return Nothing

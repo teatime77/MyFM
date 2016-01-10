@@ -505,7 +505,7 @@ Public Class TNaviSetFunction
 
     Public Overrides Function StartStatement(stmt1 As TStatement, arg1 As Object) As Object
         If stmt1 IsNot Nothing Then
-            stmt1.FunctionStmt = FunctionNavi
+            stmt1.FunctionTrm = FunctionNavi
         End If
 
         Return arg1
@@ -543,11 +543,11 @@ Public Class TNaviSetParentStmt
     Public Overrides Function StartStatement(stmt1 As TStatement, arg1 As Object) As Object
         If stmt1 IsNot Nothing Then
             If TypeOf stmt1 Is TIfBlock Then
-                'Debug.Assert(stmt1.ParentStmt Is CType(arg1, TIf).IfBlc)
+                'Debug.Assert(stmt1.UpTrm Is CType(arg1, TIf).IfBlc)
             Else
-                'Debug.Assert(stmt1.ParentStmt Is arg1)
+                'Debug.Assert(stmt1.UpTrm Is arg1)
             End If
-            stmt1.ParentStmt = arg1
+            stmt1.UpTrm = arg1
         End If
 
         Return stmt1
@@ -652,7 +652,7 @@ Public Class TNaviUp
         ElseIf TypeOf obj Is TVariable Then
             Return CType(obj, TVariable).UpVar
         ElseIf TypeOf obj Is TStatement Then
-            Return CType(obj, TStatement).ParentStmt
+            Return CType(obj, TStatement).UpTrm
         ElseIf TypeOf obj Is TTerm Then
             Return CType(obj, TTerm).UpTrm
         ElseIf TypeOf obj Is TList(Of TVariable) Then
@@ -809,7 +809,7 @@ Public Class TNaviSetValidStmt
     Public Overrides Function StartStatement(stmt1 As TStatement, arg1 As Object) As Object
         If stmt1 IsNot Nothing Then
 
-            Dim up_stmt As TStatement = Sys.UpStmtProper(stmt1.ParentStmt)
+            Dim up_stmt As TStatement = Sys.UpStmtProper(stmt1.UpTrm)
 
             If up_stmt IsNot Nothing AndAlso Not up_stmt.ValidStmt Then
                 ' 親の文が無効の場合

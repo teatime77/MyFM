@@ -390,7 +390,7 @@ End Class
 Partial Public Class TStatement
     Public Overrides Sub __SetParent(self As Object, _Parent As Object)
         With CType(self, TStatement)
-            .ParentStmt = _Parent
+            .UpTrm = _Parent
         End With
     End Sub
 

@@ -1038,7 +1038,6 @@ End Class
 Public Class TStatement
     Inherits TTerm
     Shared StmtCnt As Integer
-    <_Parent()> Public ParentStmt As Object
     <_Weak()> Public ComStmt As TList(Of TToken)
     <_Weak()> Public TailCom As String
     <_Weak()> Public vTknStmt As TList(Of TToken)
@@ -1051,9 +1050,7 @@ Public Class TStatement
     Public BeforeSrc As String
     Public AfterSrc As String = ""
 
-    <_Weak()> Public TokenListStmt As List(Of TToken)
     Public TabStmt As Integer
-    <_Weak()> Public FunctionStmt As TFunction
 
     Public VirtualizableIf As Boolean
 
@@ -1074,7 +1071,7 @@ Public Class TStatement
     End Function
 
     Public Function ProjectStmt() As TProject
-        Return FunctionStmt.ClaFnc.ProjectCla
+        Return FunctionTrm.ClaFnc.ProjectCla
     End Function
 End Class
 

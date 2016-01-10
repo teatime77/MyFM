@@ -626,7 +626,7 @@ Partial Public Class TProject
             ' up_blcの子の文をup_blc_copyにコピーする。
             up_blc_copy.StmtBlc.AddRange(From x In up_blc.StmtBlc Select CType(If(x Is if1, blc1, Sys.CopyStmt(x, cpy)), TStatement))
 
-            If up_blc.ParentStmt Is if1.FunctionStmt Then
+            If up_blc.UpTrm Is if1.FunctionTrm Then
                 ' メソッドの直下のブロックの場合
 
                 Return up_blc_copy
@@ -634,8 +634,8 @@ Partial Public Class TProject
                 ' メソッドの直下のブロックでない場合
 
                 ' １つ上のIf文を得る。
-                Dim if_blc As TIfBlock = CType(Sys.UpStmtProper(up_blc.ParentStmt), TIfBlock)
-                Dim if2 As TIf = CType(if_blc.ParentStmt, TIf)
+                Dim if_blc As TIfBlock = CType(Sys.UpStmtProper(up_blc.UpTrm), TIfBlock)
+                Dim if2 As TIf = CType(if_blc.UpTrm, TIf)
 
                 ' １つ上のif文を囲むブロックをコピーする。
                 Return CopyAncestorBlock(if2, up_blc_copy, cpy)
@@ -645,7 +645,7 @@ Partial Public Class TProject
         Public Overrides Sub StartCondition(self As Object)
             If TypeOf self Is TIfBlock Then
                 With CType(self, TIfBlock)
-                    Dim if1 As TIf = CType(.ParentStmt, TIf)
+                    Dim if1 As TIf = CType(.UpTrm, TIf)
                     If if1.VirtualizableIf Then
 
                         Dim fnc1 As New TFunction
@@ -655,10 +655,10 @@ Partial Public Class TProject
                         cpy.CurFncCpy = fnc1
 
                         ' 関数のthisをコピーする。
-                        fnc1.ThisFnc = Sys.CopyVar(.FunctionStmt.ThisFnc, cpy)
+                        fnc1.ThisFnc = Sys.CopyVar(.FunctionTrm.ThisFnc, cpy)
 
                         ' 関数の引数をコピーする。
-                        Dim varg_var = From var1 In .FunctionStmt.ArgFnc Select Sys.CopyVar(var1, cpy)
+                        Dim varg_var = From var1 In .FunctionTrm.ArgFnc Select Sys.CopyVar(var1, cpy)
                         fnc1.ArgFnc.AddRange(varg_var)
 
                         ' .BlcIfの変数をblc_if_copyにコピーする。
@@ -679,10 +679,10 @@ Partial Public Class TProject
                         Dim ref1 As TReference = CType(app1.ArgApp(1), TReference)
                         Dim virtualizable_class As TClass = CType(ref1.VarRef, TClass)
 
-                        fnc1.NameVar = .FunctionStmt.NameVar
+                        fnc1.NameVar = .FunctionTrm.NameVar
                         fnc1.ModVar = New TModifier()
                         fnc1.ModVar.isInvariant = True
-                        fnc1.TypeFnc = .FunctionStmt.TypeFnc
+                        fnc1.TypeFnc = .FunctionTrm.TypeFnc
                         fnc1.ClaFnc = virtualizable_class
                         fnc1.ClaFnc.FncCla.Add(fnc1)
                         fnc1.WithFnc = virtualizable_class

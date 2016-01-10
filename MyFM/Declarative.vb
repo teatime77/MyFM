@@ -993,10 +993,10 @@ Public Class TNaviSetLabel
                             ' ForまたはDoにラベル番号をつけていない場合
 
                             ' 関数ごとのラベル番号をカウントアップする。
-                            .FunctionStmt.LabelCount = .FunctionStmt.LabelCount + 1
+                            .FunctionTrm.LabelCount = .FunctionTrm.LabelCount + 1
 
                             ' ForまたはDoにラベル番号をつける。
-                            for_do.LabelFor = .FunctionStmt.LabelCount
+                            for_do.LabelFor = .FunctionTrm.LabelCount
                         End If
 
                         ' Exit文にラベル番号を指定する。
@@ -1090,7 +1090,7 @@ Public Class TNaviSetVirtualizableIf
             If TypeOf app1.ArgApp(0) Is TReference AndAlso app1.TypeApp = EToken.eInstanceof Then
                 Dim ref1 As TReference = CType(app1.ArgApp(0), TReference)
 
-                If ref1.VarRef Is if_blc.FunctionStmt.ArgFnc(0) Then
+                If ref1.VarRef Is if_blc.FunctionTrm.ArgFnc(0) Then
                     Return True
                 End If
             End If
@@ -1103,13 +1103,13 @@ Public Class TNaviSetVirtualizableIf
             With CType(self, TIf)
                 Dim may_be_virtualizable_if As Boolean = False
 
-                Dim up_stmt As TStatement = Sys.UpStmtProper(.ParentStmt)
+                Dim up_stmt As TStatement = Sys.UpStmtProper(.UpTrm)
 
                 If up_stmt Is Nothing Then
                     may_be_virtualizable_if = True
                 Else
                     If TypeOf up_stmt Is TIfBlock Then
-                        may_be_virtualizable_if = CType(CType(up_stmt, TIfBlock).ParentStmt, TIf).VirtualizableIf
+                        may_be_virtualizable_if = CType(CType(up_stmt, TIfBlock).UpTrm, TIf).VirtualizableIf
                     Else
                         may_be_virtualizable_if = False
                     End If
