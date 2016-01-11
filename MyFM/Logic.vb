@@ -981,6 +981,14 @@ Public Class TDot
         TrmDot = trm1
     End Sub
 
+    Public Function IsSelfField() As Boolean
+        Return TrmDot Is Nothing
+    End Function
+
+    Public Function IsParentField() As Boolean
+        Return TrmDot Is Nothing AndAlso VarRef.ModVar.isParent AndAlso TypeOf UpTrm Is TDot
+    End Function
+
     Public Function IsEnumDot() As Boolean
         Dim fld As TField, fnc As TFunction
 

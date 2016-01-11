@@ -1317,6 +1317,10 @@ Public Class Sys
         Next
     End Function
 
+    Public Shared Iterator Function AllFieldList(cla1 As TClass) As IEnumerable(Of TField)
+        Yield From c In DistinctThisAncestorSuperClassList(cla1) From f In c.FldCla Select f
+    End Function
+
     Public Shared Iterator Function ThisDescendantSubClassList(cla1 As TClass) As IEnumerable(Of TClass)
         Yield cla1
         For Each cla2 In DescendantSubClassList(cla1)
@@ -1366,6 +1370,45 @@ Public Class Sys
         End If
 
         Return dot1
+    End Function
+
+    ' 参照パスが重なるならTrueを返す。
+    Public Shared Function OverlapRefPath(ref1 As TDot, ref2 As TDot) As Boolean
+        If ref1.VarRef IsNot ref2.VarRef Then
+            ' 同じ変数を指していない場合
+
+            Return False
+        End If
+
+        If TypeOf ref1.UpTrm Is TDot AndAlso TypeOf ref2.UpTrm Is TDot Then
+            ' 両方の親がドットの場合
+
+            ' 再帰的に判断する。
+            Return OverlapRefPath(CType(ref1.UpTrm, TDot), CType(ref2.UpTrm, TDot))
+        Else
+            ' 両方または片方の親がドットでない場合
+
+            ' ドットの参照パスは重なっている。
+            Return True
+        End If
+    End Function
+
+    ' 指定したフィールドのリストの要素を参照するドットならtrue
+    Public Shared Function ChildElementDot(dot1 As TDot, fld1 As TField) As Boolean
+        If TypeOf dot1.TrmDot Is TReference Then
+            Dim var1 As TVariable = CType(dot1.TrmDot, TReference).VarRef
+            If TypeOf var1.UpVar Is TQuery Then
+                Dim qry As TQuery = CType(var1.UpVar, TQuery)
+                If qry.VarQry Is var1 AndAlso TypeOf qry.SeqQry Is TDot Then
+                    Dim seq_dot As TDot = CType(qry.SeqQry, TDot)
+                    If seq_dot.TrmDot Is Nothing AndAlso seq_dot.VarRef Is fld1 Then
+                        Return True
+                    End If
+                End If
+            End If
+        End If
+
+        Return False
     End Function
 
     Public Shared Function GetAllRefStmt(stmt1 As TStatement) As TList(Of TReference)
@@ -1872,6 +1915,197 @@ Public Class Sys
         Return fnc2
     End Function
 
+    ' 子のtrm1をtrm2に置き換える。
+    Public Shared Sub ReplaceChildTerm(self As Object, trm1 As TTerm, trm2 As TTerm)
+        If TypeOf self Is TDot Then
+            With CType(self, TDot)
+                Debug.Assert(.TrmDot Is trm1)
+                .TrmDot = trm2
+            End With
+
+        ElseIf TypeOf self Is TParenthesis Then
+            With CType(self, TParenthesis)
+                Debug.Assert(.TrmPar Is trm1)
+                .TrmPar = trm2
+            End With
+
+        ElseIf TypeOf self Is IList Then
+            With CType(self, IList)
+                Dim idx As Integer = .IndexOf(trm1)
+                Debug.Assert(idx <> -1)
+                '.Item(idx) = trm2
+            End With
+
+        ElseIf TypeOf self Is TApply Then
+            With CType(self, TApply)
+                If .FncApp Is trm1 Then
+                    .FncApp = trm2
+                ElseIf .IniApp Is trm1 Then
+                    .IniApp = CType(trm2, TArray)
+                Else
+                    Debug.Assert(False)
+                End If
+            End With
+
+        ElseIf TypeOf self Is TFrom Then
+            With CType(self, TFrom)
+                If .SeqQry Is trm1 Then
+                    .SeqQry = trm2
+                ElseIf .CndQry Is trm1 Then
+                    .CndQry = trm2
+                ElseIf .SelFrom Is trm1 Then
+                    .SelFrom = trm2
+                ElseIf .TakeFrom Is trm1 Then
+                    .TakeFrom = trm2
+                ElseIf .InnerFrom Is trm1 Then
+                    .InnerFrom = trm2
+                Else
+                    Debug.Assert(False)
+                End If
+            End With
+
+        ElseIf TypeOf self Is TAggregate Then
+            With CType(self, TAggregate)
+                If .SeqQry Is trm1 Then
+                    .SeqQry = trm2
+                ElseIf .CndQry Is trm1 Then
+                    .CndQry = trm2
+                ElseIf .IntoAggr Is trm1 Then
+                    .IntoAggr = trm2
+                Else
+                    Debug.Assert(False)
+                End If
+            End With
+
+        ElseIf TypeOf self Is TFor Then
+            With CType(self, TFor)
+                If .IdxFor Is trm1 Then
+                    .IdxFor = CType(trm2, TReference)
+                ElseIf .InTrmFor Is trm1 Then
+                    .InTrmFor = trm2
+                ElseIf .FromFor Is trm1 Then
+                    .FromFor = trm2
+                ElseIf .ToFor Is trm1 Then
+                    .ToFor = trm2
+                ElseIf .StepFor Is trm1 Then
+                    .StepFor = trm2
+                ElseIf .IniFor Is trm1 Then
+                    .IniFor = CType(trm2, TStatement)
+                ElseIf .CndFor Is trm1 Then
+                    .CndFor = trm2
+                ElseIf .StepStmtFor Is trm1 Then
+                    .StepStmtFor = CType(trm2, TStatement)
+                ElseIf .BlcFor Is trm1 Then
+                    .BlcFor = CType(trm2, TBlock)
+                Else
+                    Debug.Assert(False)
+                End If
+            End With
+
+        ElseIf TypeOf self Is TCase Then
+            With CType(self, TCase)
+                Debug.Assert(.BlcCase Is trm1)
+                .BlcCase = CType(trm2, TBlock)
+            End With
+
+        ElseIf TypeOf self Is TSelect Then
+            With CType(self, TSelect)
+                Debug.Assert(.TrmSel Is trm1)
+                .TrmSel = trm2
+            End With
+
+        ElseIf TypeOf self Is TAssignment Then
+            With CType(self, TAssignment)
+                Debug.Assert(.RelAsn Is trm1)
+                .RelAsn = CType(trm2, TApply)
+            End With
+
+        ElseIf TypeOf self Is TCall Then
+            With CType(self, TCall)
+                Debug.Assert(.AppCall Is trm1)
+                .AppCall = CType(trm2, TApply)
+            End With
+
+        ElseIf TypeOf self Is TReDim Then
+            With CType(self, TReDim)
+                Debug.Assert(.TrmReDim Is trm1)
+                .TrmReDim = trm2
+            End With
+
+        ElseIf TypeOf self Is TIfBlock Then
+            With CType(self, TIfBlock)
+                If .CndIf Is trm1 Then
+                    .CndIf = trm2
+                ElseIf .WithIf Is trm1 Then
+                    .WithIf = trm2
+                ElseIf .BlcIf Is trm1 Then
+                    .BlcIf = CType(trm2, TBlock)
+                Else
+                    Debug.Assert(False)
+                End If
+            End With
+
+        ElseIf TypeOf self Is TTry Then
+            With CType(self, TTry)
+                If .BlcTry Is trm1 Then
+                    .BlcTry = CType(trm2, TBlock)
+                ElseIf .BlcCatch Is trm1 Then
+                    .BlcCatch = CType(trm2, TBlock)
+                Else
+                    Debug.Assert(False)
+                End If
+            End With
+
+        ElseIf TypeOf self Is TReturn Then
+            With CType(self, TReturn)
+                Debug.Assert(.TrmRet Is trm1)
+                .TrmRet = trm2
+            End With
+
+        ElseIf TypeOf self Is TThrow Then
+            With CType(self, TThrow)
+                Debug.Assert(.TrmThrow Is trm1)
+                .TrmThrow = trm2
+            End With
+
+        ElseIf TypeOf self Is TFunction Then
+            With CType(self, TFunction)
+                If .ComVar Is trm1 Then
+                    .ComVar = CType(trm2, TComment)
+                ElseIf .BlcFnc Is trm1 Then
+                    .BlcFnc = CType(trm2, TBlock)
+                Else
+                    Debug.Assert(False)
+                End If
+            End With
+
+        ElseIf TypeOf self Is TField Then
+            With CType(self, TField)
+                If .ComVar Is trm1 Then
+                    .ComVar = CType(trm2, TComment)
+                Else
+                    Debug.Assert(False)
+                End If
+            End With
+
+        ElseIf TypeOf self Is TVariable Then
+            With CType(self, TVariable)
+                Debug.Assert(.InitVar Is trm1)
+                .InitVar = trm2
+            End With
+
+        Else
+            Debug.Assert(False)
+        End If
+
+        trm2.UpTrm = self
+    End Sub
+
+    ' trm1をtrm2に置き換える。
+    Public Shared Sub ReplaceTerm(trm1 As TTerm, trm2 As TTerm)
+        ReplaceChildTerm(trm1.UpTrm, trm1, trm2)
+    End Sub
+
     ' 条件を追加する
     Public Shared Sub AddCondition(stmt1 As TStatement, up_stmt As TStatement, and1 As TApply)
         Dim if_blc As TIfBlock, case1 As TCase, if1 As TIf, not1 As TApply, cnd1 As TTerm
@@ -2129,6 +2363,11 @@ Public Class Sys
         Next
 
     End Sub
+
+    ' 項を含む文の余分な条件を取り除いた前提条件を返す
+    Public Shared Function GetTermPreConditionClean(trm1 As TTerm) As TApply
+        Return GetPreConditionClean(UpStmtProper(trm1))
+    End Function
 
     ' 余分な条件を取り除いた前提条件を返す
     Public Shared Function GetPreConditionClean(stmt As TStatement) As TApply

@@ -113,6 +113,9 @@ Partial Public Class TProject
         'set_parent_stmt.NaviProject(Me, Nothing)
         __SetParent(Me, Nothing)
 
+        Dim test_replace_term As New TNaviTestReplaceTerm
+        test_replace_term.NaviProject(Me)
+
         ' 関数内の参照をセットする
         Dim set_function As New TNaviSetFunction
         set_function.NaviProject(Me, Nothing)
@@ -230,73 +233,121 @@ Partial Public Class TProject
 
         ' すべての仮想メソッドに対し
         For Each fnc1 In make_virtualizable_if_method.VirtualizedMethodList
-            ' 仮想メソッド内のすべての参照のリストを得る。
-            Dim ref_list As TList(Of TReference) = Sys.GetAllRefStmt(fnc1.BlcFnc)
+            ' メソッド内の定義参照のリスト
+            Dim def_list = From r In Sys.GetAllRefStmt(fnc1.BlcFnc) Where r.DefRef
 
-            Dim use_ref_list = From r In ref_list Where Not r.DefRef
-            ' 仮想メソッド内のすべての使用参照に対し
-            For Each ref1 In use_ref_list
-                ' 使用参照を直接含む文を得る。
-                Dim stmt1 As TStatement = Sys.UpStmtProper(ref1)
+            ' メソッド内の定義参照に対し
+            For Each ref1 In def_list
 
-                ' 文に対しAnd条件を得る。
-                Dim and1 As TApply = Sys.GetPreConditionClean(stmt1)
+                ' ref1を含む文の余分な条件を取り除いた前提条件
+                Dim cnd1 As TApply = Sys.GetTermPreConditionClean(ref1)
 
-                ' And条件に含まれ、参照パスが共通の定義参照を得る。
-                Dim all_ref_stmt As New TNaviAllRefStmt
-                all_ref_stmt.NaviTerm(and1)
-                '                Return all_ref_stmt.RefStmtList
+                ' メソッド内でref11と同じ変数に対する局所変数か自身のフィールドの定義参照のリスト
+                Dim use_list = From r In Sys.GetAllRefStmt(fnc1.BlcFnc) Where Sys.OverlapRefPath(ref1, r) AndAlso Not r.DefRef AndAlso (Not TypeOf r Is TDot OrElse CType(r, TDot).IsSelfField())
 
+                For Each ref2 In use_list
+                    ' ref2を含む文の余分な条件を取り除いた前提条件
+                    Dim cnd2 As TApply = Sys.GetTermPreConditionClean(ref2)
 
-
-                ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾するなら、その使用参照は除外する。
+                    ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾するなら、その使用参照は除外する。
+                Next
             Next
         Next
     End Sub
 
     ' 親や子のフィールドの使用参照と定義参照の依存関係を求める。
-    Public Sub VirtualizedMethodParentChildDefUseDependency(make_virtualizable_if_method As TNaviMakeVirtualizableIfMethod)
+    Public Sub VirtualizedMethodParentChildDefUseDependency(virtualized_method_list As TList(Of TFunction))
+        ' 仮想化メソッドのクラスのリスト
+        Dim virtualized_all_class_list = From f In virtualized_method_list Select f.ClaFnc
 
         ' すべての仮想メソッドに対し
-        For Each fnc1 In make_virtualizable_if_method.VirtualizedMethodList
+        For Each fnc1 In virtualized_method_list
             ' 仮想メソッド内のすべての参照のリストを得る。
-            Dim ref_list As TList(Of TReference) = Sys.GetAllRefStmt(fnc1.BlcFnc)
+            Dim parent_dot_list = From d In Sys.GetAllRefStmt(fnc1.BlcFnc) Where TypeOf d Is TDot Select CType(d, TDot)
 
+            ' クラス内のすべてのフィールドに対し
+            For Each fld1 In Sys.AllFieldList(fnc1.ClaFnc)
+                Dim element_type As TClass = FieldElementType(fld1)
+                Dim virtualizable_this_super_class_list = From c In virtualized_all_class_list Where Sys.DistinctThisAncestorSuperClassList(c).Contains(element_type)
+                If virtualizable_this_super_class_list.Any() Then
+                    ' スーパークラスで仮想化されている場合
+                    ' フィールドの型が仮想化可能クラスかスーパークラスの場合
+
+                    Dim virtualized_sub_class_list = Sys.DescendantSubClassList(element_type).Intersect(virtualized_all_class_list)
+
+                    ' this, super, subの仮想化クラスのリスト
+                    Dim virtualized_class_list As New TList(Of TClass)(virtualizable_this_super_class_list)
+                    virtualized_class_list.AddRange(virtualized_sub_class_list)
+
+                    ' 仮想化クラスに対応する各仮想メソッドに対し
+                    For Each cls1 In virtualized_class_list
+                        ' 子の仮想メソッド
+                        Dim fnc2 As TFunction = (From f In virtualized_method_list Where f.ClaFnc Is cls1).First()
+
+                        ' 子の仮想メソッド内のすべての参照のリストを得る。
+                        Dim child_dot_list = From d In Sys.GetAllRefStmt(fnc2.BlcFnc) Where TypeOf d Is TDot Select CType(d, TDot)
+
+                        '-------------------------------------------------- 親のメソッドで定義した値を子のメソッドで使用する場合
+                        ' 子のメソッド内で親のフィールドの使用参照のリストを求める。
+                        Dim child_parent_dot_list = From d In child_dot_list Where d.IsParentField()
+
+                        For Each dot1 In From d In parent_dot_list Where d.TrmDot Is Nothing AndAlso d.DefRef
+                            ' dot1を含む文の余分な条件を取り除いた前提条件
+                            Dim cnd1 As TApply = Sys.GetTermPreConditionClean(dot1)
+
+                            ' 元の仮想メソッドで参照パスが共通の定義参照のリストを得る。
+                            Dim parent_def_dot_list = From d In child_parent_dot_list Where Sys.OverlapRefPath(dot1, CType(d.UpTrm, TDot))
+                            For Each dot2 In parent_def_dot_list
+                                ' dot2を含む文の余分な条件を取り除いた前提条件
+                                Dim cnd2 As TApply = Sys.GetTermPreConditionClean(dot2)
+
+                                ' 前提条件cnd2で親のフィールド参照を自身のフィールド参照に変換する。
+
+                                ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾するなら、その使用参照は除外する。
+                            Next
+                        Next
+
+                        '-------------------------------------------------- 子のメソッドで定義した値を親のメソッドで使用する場合
+                        ' 子のメソッド内で定義参照のリストを求める。
+                        Dim child_def_dot_list = From d In child_dot_list Where d.DefRef AndAlso d.TrmDot Is Nothing
+
+                        For Each dot1 In child_def_dot_list
+                            ' dot1を含む文の余分な条件を取り除いた前提条件
+                            Dim cnd1 As TApply = Sys.GetTermPreConditionClean(dot1)
+
+                            ' 親のメソッド内でfld1の使用参照のリスト
+                            Dim parent_use_dot_list As List(Of TDot)
+
+                            If fld1.TypeVar.OrgCla Is Nothing Then
+                                ' フィールドがリストでない場合
+
+                                ' 親のメソッド内でfld1の使用参照のリストを求める。
+                                parent_use_dot_list = (From d In parent_dot_list Where d.TrmDot Is Nothing AndAlso d.VarRef Is fld1).ToList()
+                            Else
+                                ' フィールドがリストの場合
+
+                                ' 親のメソッド内でfld1の使用参照のリストを求める。
+                                parent_use_dot_list = (From d In parent_dot_list Where Sys.ChildElementDot(d, fld1)).ToList()
+                            End If
+
+                            For Each dot2 In parent_use_dot_list
+                                ' dot2を含む文の余分な条件を取り除いた前提条件
+                                Dim cnd2 As TApply = Sys.GetTermPreConditionClean(dot2)
+
+                                ' 前提条件cnd2で子のフィールド参照を自身のフィールド参照に変換する。
+
+                                ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾するなら、その使用参照は除外する。
+                            Next
+                        Next
+                    Next
+                End If
+            Next
         Next
-
-
-
-
-        ' IfBlockで仮想化されるクラスに対し
-        ' クラス内のすべてのフィールドに対し
-        ' フィールドの型が仮想化可能クラスかスーパークラスの場合
-        ' 仮想化クラスに対応する各仮想メソッドに対し
-        ' 親のフィールドの使用参照のリストを求める。
-        ' 元の仮想メソッドで参照パスが共通の定義参照のリストを得る。
-        ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾するなら、その使用参照は除外する。
-
     End Sub
 
-    ' ドットの参照パスが重なるならTrueを返す。
-    Public Function OverlapDotPath(dot1 As TDot, dot2 As TDot) As Boolean
-        If dot1.VarRef IsNot dot2.VarRef Then
-            ' 同じフィールドを指していない場合
+    Public Sub Propagate()
 
-            Return False
-        End If
-
-        If TypeOf dot1.UpTrm Is TDot AndAlso TypeOf dot2.UpTrm Is TDot Then
-            ' 両方の親がドットの場合
-
-            ' 再帰的に判断する。
-            Return OverlapDotPath(CType(dot1.UpTrm, TDot), CType(dot2.UpTrm, TDot))
-        Else
-            ' 両方または片方の親がドットでない場合
-
-            ' ドットの参照パスは重なっている。
-            Return True
-        End If
-    End Function
+    End Sub
 
     Public Function RefPath(rule As TFunction) As List(Of TClass)
         Dim result_class_list As New List(Of TClass)
@@ -319,7 +370,7 @@ Partial Public Class TProject
                 Dim parent_dot As TDot = CType(dot1.UpTrm, TDot)
 
                 ' パスが一致する代入のフィールド参照の最も内側のドットのリスト
-                Dim equal_def_inner_most_dot_list = From d In def_inner_most_dot_list Where d.TrmDot Is Nothing AndAlso OverlapDotPath(d, parent_dot)
+                Dim equal_def_inner_most_dot_list = From d In def_inner_most_dot_list Where d.TrmDot Is Nothing AndAlso Sys.OverlapRefPath(d, parent_dot)
 
                 If equal_def_inner_most_dot_list.Any() Then
                     ' 代入されるフィールドに対し、親のフィールドとして参照している場合

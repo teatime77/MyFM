@@ -152,7 +152,7 @@ Public Class TList(Of T)
     End Function
 
     Public Function Pop() As T
-        Dim x As T = Item(Count - 1)
+        Dim x As T = CType(Item(Count - 1), T)
         RemoveAt(Count - 1)
         Return x
     End Function

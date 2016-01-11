@@ -1077,6 +1077,19 @@ Public Class TNaviAllRefStmt
     End Sub
 End Class
 
+' -------------------------------------------------------------------------------- TNaviTestReplaceTerm
+' ReplaceTermのテスト
+Public Class TNaviTestReplaceTerm
+    Inherits TDeclarative
+    Public RefStmtList As New TList(Of TReference)
+
+    Public Overrides Sub StartCondition(self As Object)
+        If TypeOf self Is TTerm Then
+            Sys.ReplaceTerm(CType(self, TTerm), CType(self, TTerm))
+        End If
+    End Sub
+End Class
+
 ' -------------------------------------------------------------------------------- TNaviSetVirtualizableIf
 ' クラスの場合分けのIf文を探す。
 Public Class TNaviSetVirtualizableIf
