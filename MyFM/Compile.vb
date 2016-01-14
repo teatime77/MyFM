@@ -234,7 +234,7 @@ Partial Public Class TProject
         ' すべての仮想メソッドに対し
         For Each fnc1 In make_virtualizable_if_method.VirtualizedMethodList
             ' メソッド内の定義参照のリスト
-            Dim def_list = From r In Sys.GetAllRefStmt(fnc1.BlcFnc) Where r.DefRef
+            Dim def_list = From r In Sys.GetAllReference(fnc1.BlcFnc) Where r.DefRef
 
             ' メソッド内の定義参照に対し
             For Each ref1 In def_list
@@ -243,7 +243,7 @@ Partial Public Class TProject
                 Dim cnd1 As TApply = Sys.GetTermPreConditionClean(ref1)
 
                 ' メソッド内でref11と同じ変数に対する局所変数か自身のフィールドの定義参照のリスト
-                Dim use_list = From r In Sys.GetAllRefStmt(fnc1.BlcFnc) Where Sys.OverlapRefPath(ref1, r) AndAlso Not r.DefRef AndAlso (Not TypeOf r Is TDot OrElse CType(r, TDot).IsSelfField())
+                Dim use_list = From r In Sys.GetAllReference(fnc1.BlcFnc) Where Sys.OverlapRefPath(ref1, r) AndAlso Not r.DefRef AndAlso (Not TypeOf r Is TDot OrElse CType(r, TDot).IsSelfField())
 
                 For Each ref2 In use_list
                     ' ref2を含む文の余分な条件を取り除いた前提条件
@@ -263,7 +263,7 @@ Partial Public Class TProject
         ' すべての仮想メソッドに対し
         For Each fnc1 In virtualized_method_list
             ' 仮想メソッド内のすべての参照のリストを得る。
-            Dim parent_dot_list = From d In Sys.GetAllRefStmt(fnc1.BlcFnc) Where TypeOf d Is TDot Select CType(d, TDot)
+            Dim parent_dot_list = From d In Sys.GetAllReference(fnc1.BlcFnc) Where TypeOf d Is TDot Select CType(d, TDot)
 
             ' クラス内のすべてのフィールドに対し
             For Each fld1 In Sys.AllFieldList(fnc1.ClaFnc)
@@ -285,7 +285,7 @@ Partial Public Class TProject
                         Dim fnc2 As TFunction = (From f In virtualized_method_list Where f.ClaFnc Is cls1).First()
 
                         ' 子の仮想メソッド内のすべての参照のリストを得る。
-                        Dim child_dot_list = From d In Sys.GetAllRefStmt(fnc2.BlcFnc) Where TypeOf d Is TDot Select CType(d, TDot)
+                        Dim child_dot_list = From d In Sys.GetAllReference(fnc2.BlcFnc) Where TypeOf d Is TDot Select CType(d, TDot)
 
                         '-------------------------------------------------- 親のメソッドで定義した値を子のメソッドで使用する場合
                         ' 子のメソッド内で親のフィールドの使用参照のリストを求める。
@@ -295,13 +295,16 @@ Partial Public Class TProject
                             ' dot1を含む文の余分な条件を取り除いた前提条件
                             Dim cnd1 As TApply = Sys.GetTermPreConditionClean(dot1)
 
+
+
                             ' 元の仮想メソッドで参照パスが共通の定義参照のリストを得る。
-                            Dim parent_def_dot_list = From d In child_parent_dot_list Where Sys.OverlapRefPath(dot1, CType(d.UpTrm, TDot))
-                            For Each dot2 In parent_def_dot_list
+                            Dim child_parent_overlap_dot_list = From d In child_parent_dot_list Where Sys.OverlapRefPath(dot1, CType(d.UpTrm, TDot))
+                            For Each dot2 In child_parent_overlap_dot_list
                                 ' dot2を含む文の余分な条件を取り除いた前提条件
                                 Dim cnd2 As TApply = Sys.GetTermPreConditionClean(dot2)
 
                                 ' 前提条件cnd2で親のフィールド参照を自身のフィールド参照に変換する。
+                                Dim nrm_cnd As TApply = Sys.NormalizeReference(Me, cnd2, fld1)
 
                                 ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾するなら、その使用参照は除外する。
                             Next
@@ -314,6 +317,9 @@ Partial Public Class TProject
                         For Each dot1 In child_def_dot_list
                             ' dot1を含む文の余分な条件を取り除いた前提条件
                             Dim cnd1 As TApply = Sys.GetTermPreConditionClean(dot1)
+
+                            ' 前提条件cnd1で親のフィールド参照を自身のフィールド参照に変換する。
+                            Dim nrm_cnd As TApply = Sys.NormalizeReference(Me, cnd1, fld1)
 
                             ' 親のメソッド内でfld1の使用参照のリスト
                             Dim parent_use_dot_list As List(Of TDot)
@@ -333,8 +339,6 @@ Partial Public Class TProject
                             For Each dot2 In parent_use_dot_list
                                 ' dot2を含む文の余分な条件を取り除いた前提条件
                                 Dim cnd2 As TApply = Sys.GetTermPreConditionClean(dot2)
-
-                                ' 前提条件cnd2で子のフィールド参照を自身のフィールド参照に変換する。
 
                                 ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾するなら、その使用参照は除外する。
                             Next
@@ -707,7 +711,7 @@ Partial Public Class TProject
             up_blc_copy.VarBlc.AddRange(vvar1)
 
             ' up_blcの子の文をup_blc_copyにコピーする。
-            up_blc_copy.StmtBlc.AddRange(From x In up_blc.StmtBlc Select CType(If(x Is if1, blc1, Sys.CopyStmt(x, cpy)), TStatement))
+            up_blc_copy.StmtBlc.AddRange(From x In up_blc.StmtBlc Select CType(If(x Is if1, blc1, Sys.CopyStatement(x, cpy)), TStatement))
 
             If up_blc.UpTrm Is if1.FunctionTrm Then
                 ' メソッドの直下のブロックの場合
@@ -752,7 +756,7 @@ Partial Public Class TProject
                         Dim vvar2 = (From blc In Sys.AncestorList(if1) Where TypeOf blc Is TBlock From var1 In CType(blc, TBlock).VarBlc Select Sys.CopyVar(var1, cpy)).ToList()
 
                         ' .BlcIfの子の文をblc_if_copyにコピーする。
-                        blc_if_copy.StmtBlc.AddRange(From x In .BlcIf.StmtBlc Where Not x.VirtualizableIf Select Sys.CopyStmt(x, cpy))
+                        blc_if_copy.StmtBlc.AddRange(From x In .BlcIf.StmtBlc Where Not x.VirtualizableIf Select Sys.CopyStatement(x, cpy))
 
                         ' このif文を囲むブロックをコピーする。
                         fnc1.BlcFnc = CopyAncestorBlock(if1, blc_if_copy, cpy)

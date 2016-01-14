@@ -598,16 +598,28 @@ Partial Public Class TReturn
 End Class
 
 Partial Public Class TProject
- Public  Overridable  Sub __SetParent(self As Object , _Parent As Object)
- With  CType (self , TProject)
- If .SimpleParameterizedClassList IsNot Nothing Then
-  .SimpleParameterizedClassList.UpList = self
- For  Each x In .SimpleParameterizedClassList
-  x.__SetParent(x , .SimpleParameterizedClassList)
- Next 
- End If 
- End With 
- End Sub 
+    Public Overridable Sub __SetParent(self As Object, _Parent As Object)
+        With CType(self, TProject)
+            If .SimpleParameterizedClassList IsNot Nothing Then
+                .SimpleParameterizedClassList.UpList = self
+                For Each x In .SimpleParameterizedClassList
+                    x.__SetParent(x, .SimpleParameterizedClassList)
+                Next
+            End If
+        End With
+    End Sub
 
+End Class
+
+Partial Public Class Sys
+    Public Shared Sub SetParent(self As Object, _Parent As Object)
+        If TypeOf self Is TStatement Then
+            CType(self, TStatement).__SetParent(self, _Parent)
+        ElseIf TypeOf self Is TTerm Then
+            CType(self, TTerm).__SetParent(self, _Parent)
+        Else
+            Debug.Assert(False)
+        End If
+    End Sub
 End Class
 

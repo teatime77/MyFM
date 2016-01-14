@@ -1961,10 +1961,10 @@ Public Class TBasicParser
     End Function
 
     Function CallExpression(trm1 As TTerm) As TTerm
-        Dim app1 As TApply
+
 
         Do While CurTkn.TypeTkn = EToken.eLP
-            app1 = TApply.MakeAppCall(trm1)
+            Dim app1 As TApply = TApply.MakeAppCall(trm1)
             ArgumentExpressionList(app1)
             trm1 = app1
         Loop
@@ -2221,7 +2221,6 @@ Public Class TBasicParser
 
     Function DotExpression() As TTerm
         Dim trm1 As TTerm
-        Dim trm2 As TTerm
         Dim id1 As TToken
 
         trm1 = PrimaryExpression()
@@ -2229,8 +2228,8 @@ Public Class TBasicParser
         Do While CurTkn.TypeTkn = EToken.eDot
             GetTkn(EToken.eDot)
             id1 = GetTkn(EToken.eId)
-            trm2 = New TDot(trm1, id1.StrTkn)
-            trm1 = CallExpression(trm2)
+            Dim dot1 = New TDot(trm1, id1.StrTkn)
+            trm1 = CallExpression(dot1)
         Loop
 
         Return trm1

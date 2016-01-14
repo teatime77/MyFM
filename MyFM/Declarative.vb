@@ -354,6 +354,26 @@ Public Class TDeclarative
 
         EndCondition(prj)
     End Sub
+
+    Public Sub NaviAny(obj As Object)
+        If TypeOf obj Is TProject Then
+            NaviProject(CType(obj, TProject))
+        ElseIf TypeOf obj Is TSourceFile Then
+            NaviSourceFile(CType(obj, TSourceFile))
+        ElseIf TypeOf obj Is TClass Then
+            NaviClass(CType(obj, TClass))
+        ElseIf TypeOf obj Is TField Then
+            NaviField(CType(obj, TField))
+        ElseIf TypeOf obj Is TFunction Then
+            NaviFunction(CType(obj, TFunction))
+        ElseIf TypeOf obj Is TLocalVariable Then
+            NaviLocalVariable(CType(obj, TLocalVariable))
+        ElseIf TypeOf obj Is TStatement Then
+            NaviStatement(CType(obj, TStatement))
+        ElseIf TypeOf obj Is TTerm Then
+            NaviTerm(CType(obj, TTerm))
+        End If
+    End Sub
 End Class
 
 ' -------------------------------------------------------------------------------- TSetRefDeclarative

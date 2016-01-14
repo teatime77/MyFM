@@ -55,7 +55,7 @@ Public Class TDataflow
 
         Select Case ref_type
             Case ERefPathType.SelfField
-                J = Sys.CopyTrm(change.ConditionChn, Nothing)
+                J = Sys.CopyTerm(change.ConditionChn, Nothing)
             Case ERefPathType.ParentField, ERefPathType.PrevField
                 If ref_type = ERefPathType.ParentField Then
                     trans = New TTransRelative(E相対位置.親)
@@ -77,7 +77,7 @@ Public Class TDataflow
             Case ERefPathType.SelfFieldChild
                 J = Nothing
             Case ERefPathType.局所変数
-                J = Sys.CopyTrm(change.ConditionChn, Nothing)
+                J = Sys.CopyTerm(change.ConditionChn, Nothing)
             Case Else
                 J = Nothing
         End Select
@@ -240,7 +240,7 @@ Public Class TDataflow
 
         valid_stmt = New Dictionary(Of TStatement, TStatement)()
 
-        RuleCp = Sys.CopyFnc(rule)
+        RuleCp = Sys.CopyFunction(rule)
         RuleCp.NameVar = RuleCp.NameVar + "_" + ChangeableFld.FullFldName()
         rule.ClaFnc.FncCla.Add(RuleCp)
 
@@ -1411,9 +1411,9 @@ Public Class Sys
         Return False
     End Function
 
-    Public Shared Function GetAllRefStmt(stmt1 As TStatement) As TList(Of TReference)
+    Public Shared Function GetAllReference(obj As Object) As TList(Of TReference)
         Dim all_ref_stmt As New TNaviAllRefStmt
-        all_ref_stmt.NaviStatement(stmt1)
+        all_ref_stmt.NaviAny(obj)
         Return all_ref_stmt.RefStmtList
     End Function
 
@@ -1581,7 +1581,7 @@ Public Class Sys
         End If
     End Function
 
-    Public Shared Function CopyTrm(trm1 As TTerm, cpy As TCopy) As TTerm
+    Public Shared Function CopyTerm(trm1 As TTerm, cpy As TCopy) As TTerm
         Dim trm2 As TTerm = trm1
 
         If trm1 IsNot Nothing Then
@@ -1617,12 +1617,12 @@ Public Class Sys
     Public Shared Function CopyFrom(from1 As TFrom, cpy As TCopy) As TFrom
         Dim from2 As New TFrom
 
-        from2.SeqQry = CopyTrm(from1.SeqQry, cpy)
+        from2.SeqQry = CopyTerm(from1.SeqQry, cpy)
         from2.VarQry = CopyVar(from1.VarQry, cpy)
-        from2.CndQry = CopyTrm(from1.CndQry, cpy)
-        from2.SelFrom = CopyTrm(from1.SelFrom, cpy)
-        from2.TakeFrom = CopyTrm(from1.TakeFrom, cpy)
-        from2.InnerFrom = CopyTrm(from1.InnerFrom, cpy)
+        from2.CndQry = CopyTerm(from1.CndQry, cpy)
+        from2.SelFrom = CopyTerm(from1.SelFrom, cpy)
+        from2.TakeFrom = CopyTerm(from1.TakeFrom, cpy)
+        from2.InnerFrom = CopyTerm(from1.InnerFrom, cpy)
 
         Return from2
     End Function
@@ -1630,10 +1630,10 @@ Public Class Sys
     Public Shared Function CopyAggregate(agg1 As TAggregate, cpy As TCopy) As TAggregate
         Dim agg2 As New TAggregate
 
-        agg2.SeqQry = CopyTrm(agg1.SeqQry, cpy)
+        agg2.SeqQry = CopyTerm(agg1.SeqQry, cpy)
         agg2.VarQry = CopyVar(agg1.VarQry, cpy)
-        agg2.CndQry = CopyTrm(agg1.CndQry, cpy)
-        agg2.IntoAggr = CopyTrm(agg1.IntoAggr, cpy)
+        agg2.CndQry = CopyTerm(agg1.CndQry, cpy)
+        agg2.IntoAggr = CopyTerm(agg1.IntoAggr, cpy)
 
         agg2.FunctionAggr = agg1.FunctionAggr
 
@@ -1643,7 +1643,7 @@ Public Class Sys
     Public Shared Function CopyDot(dot1 As TDot, cpy As TCopy) As TDot
         Dim dot2 As TDot, trm2 As TTerm
 
-        trm2 = CopyTrm(dot1.TrmDot, cpy)
+        trm2 = CopyTerm(dot1.TrmDot, cpy)
         dot2 = New TDot(trm2, dot1.VarRef)
         dot2.TypeDot = dot1.TypeDot
         dot2.TypeTrm = dot1.TypeTrm
@@ -1698,12 +1698,12 @@ Public Class Sys
         app2.TypeApp = app1.TypeApp
         app2.Negation = app1.Negation
         For Each trm1 In app1.ArgApp
-            trm2 = CopyTrm(trm1, cpy)
+            trm2 = CopyTerm(trm1, cpy)
             app2.AddInArg(trm2)
         Next
 
         app2.KndApp = app1.KndApp
-        app2.FncApp = CopyTrm(app1.FncApp, cpy)
+        app2.FncApp = CopyTerm(app1.FncApp, cpy)
         app2.ClassApp = app1.ClassApp
         app2.NewApp = app1.NewApp
 
@@ -1711,7 +1711,7 @@ Public Class Sys
     End Function
 
     Public Shared Function CopyPar(par1 As TParenthesis, cpy As TCopy) As TParenthesis
-        Return New TParenthesis(CopyTrm(par1.TrmPar, cpy))
+        Return New TParenthesis(CopyTerm(par1.TrmPar, cpy))
     End Function
 
     Public Shared Function CopyCns(cns1 As TConstant, cpy As TCopy) As TConstant
@@ -1741,8 +1741,8 @@ Public Class Sys
         Dim if_blc2 As New TIfBlock
 
         if_blc2.BlcIf = CopyBlc(if_blc.BlcIf, cpy)
-        if_blc2.CndIf = CopyTrm(if_blc.CndIf, cpy)
-        if_blc2.WithIf = CopyTrm(if_blc.WithIf, cpy)
+        if_blc2.CndIf = CopyTerm(if_blc.CndIf, cpy)
+        if_blc2.WithIf = CopyTerm(if_blc.WithIf, cpy)
 
         Return if_blc2
     End Function
@@ -1750,7 +1750,7 @@ Public Class Sys
     Public Shared Function CopySelect(sel1 As TSelect, cpy As TCopy) As TSelect
         Dim sel2 As New TSelect
 
-        sel2.TrmSel = CopyTrm(sel1.TrmSel, cpy)
+        sel2.TrmSel = CopyTerm(sel1.TrmSel, cpy)
         For Each case1 In sel1.CaseSel
             sel2.CaseSel.Add(CopyCase(case1, cpy))
         Next
@@ -1762,7 +1762,7 @@ Public Class Sys
         Dim case2 As New TCase
 
         For Each trm1 In case1.TrmCase
-            case2.TrmCase.Add(CopyTrm(trm1, cpy))
+            case2.TrmCase.Add(CopyTerm(trm1, cpy))
         Next
         case2.DefaultCase = case1.DefaultCase
         case2.BlcCase = CopyBlc(case1.BlcCase, cpy)
@@ -1777,13 +1777,13 @@ Public Class Sys
         for2.InVarFor = CopyVar(for1.InVarFor, cpy)
 
         for2.IdxFor = CopyRef(for1.IdxFor, cpy)
-        for2.FromFor = CopyTrm(for1.FromFor, cpy)
-        for2.ToFor = CopyTrm(for1.ToFor, cpy)
-        for2.StepFor = CopyTrm(for1.StepFor, cpy)
-        for2.InTrmFor = CopyTrm(for1.InTrmFor, cpy)
-        for2.IniFor = CopyStmt(for1.IniFor, cpy)
-        for2.CndFor = CopyTrm(for1.CndFor, cpy)
-        for2.StepStmtFor = CopyStmt(for1.StepStmtFor, cpy)
+        for2.FromFor = CopyTerm(for1.FromFor, cpy)
+        for2.ToFor = CopyTerm(for1.ToFor, cpy)
+        for2.StepFor = CopyTerm(for1.StepFor, cpy)
+        for2.InTrmFor = CopyTerm(for1.InTrmFor, cpy)
+        for2.IniFor = CopyStatement(for1.IniFor, cpy)
+        for2.CndFor = CopyTerm(for1.CndFor, cpy)
+        for2.StepStmtFor = CopyStatement(for1.StepStmtFor, cpy)
         for2.BlcFor = CopyBlc(for1.BlcFor, cpy)
         for2.IsDo = for1.IsDo
         for2.LabelFor = for1.LabelFor
@@ -1802,7 +1802,7 @@ Public Class Sys
             blc2.VarBlc.Add(CopyVar(var1, cpy))
         Next
         For Each stmt1 In blc1.StmtBlc
-            blc2.StmtBlc.Add(CopyStmt(stmt1, cpy))
+            blc2.StmtBlc.Add(CopyStatement(stmt1, cpy))
         Next
 
         Return blc2
@@ -1830,7 +1830,7 @@ Public Class Sys
         Return dcl2
     End Function
 
-    Public Shared Function CopyStmt(stmt1 As TStatement, cpy As TCopy) As TStatement
+    Public Shared Function CopyStatement(stmt1 As TStatement, cpy As TCopy) As TStatement
         If stmt1 Is Nothing Then
             Return Nothing
         End If
@@ -1853,6 +1853,8 @@ Public Class Sys
             Return CopyComment(CType(stmt1, TComment), cpy)
         ElseIf TypeOf stmt1 Is TVariableDeclaration Then
             Return CopyVarDecl(CType(stmt1, TVariableDeclaration), cpy)
+        ElseIf TypeOf stmt1 Is TBlock Then
+            Return CopyBlc(CType(stmt1, TBlock), cpy)
         Else
             Debug.Assert(False)
             Return Nothing
@@ -1875,13 +1877,13 @@ Public Class Sys
 
         var2 = New TLocalVariable(var1.NameVar, var1.TypeVar)
         var2.ParamArrayVar = var1.ParamArrayVar
-        var2.InitVar = CopyTrm(var1.InitVar, cpy)
+        var2.InitVar = CopyTerm(var1.InitVar, cpy)
         cpy.dctVar.Add(var1, var2)
 
         Return var2
     End Function
 
-    Public Shared Function CopyFnc(fnc1 As TFunction) As TFunction
+    Public Shared Function CopyFunction(fnc1 As TFunction) As TFunction
         Dim fnc2 As TFunction, cpy As TCopy
         Dim set_parent_stmt As TNaviSetParentStmt
 
@@ -1913,6 +1915,25 @@ Public Class Sys
         set_parent_stmt.NaviFunction(fnc2, Nothing)
 
         Return fnc2
+    End Function
+
+    Public Shared Function CopyAny(obj As Object) As Object
+        If TypeOf obj Is TFunction Then
+            Return CopyFunction(CType(obj, TFunction))
+        Else
+            Dim cpy As New TCopy
+
+            If TypeOf obj Is TStatement Then
+                Return CopyStatement(CType(obj, TStatement), cpy)
+
+            ElseIf TypeOf obj Is TTerm Then
+                Return CopyTerm(CType(obj, TTerm), cpy)
+
+            Else
+                Debug.Assert(False)
+                Return Nothing
+            End If
+        End If
     End Function
 
     ' 子のtrm1をtrm2に置き換える。
@@ -2106,6 +2127,52 @@ Public Class Sys
         ReplaceChildTerm(trm1.UpTrm, trm1, trm2)
     End Sub
 
+    ' Parent -> self
+    ' self -> .F or .F(index)
+    Public Shared Function NormalizeReference(prj1 As TProject, obj As Object, fld1 As TField) As Object
+        Dim idx_var As New TVariable("__index", prj1.IntType)
+        Dim copy_obj As Object = CopyAny(obj)
+
+        SetParent(copy_obj, Nothing)
+
+        Dim dot_list = From d In GetAllReference(copy_obj) Where TypeOf d Is TDot Select CType(d, TDot)
+        For Each dot1 In dot_list
+            If dot1.IsParentField() Then
+                ' 親のフィールド参照の場合
+
+                ' 自身のフィールド参照に置き換える。
+                Dim dot2 As TDot = CType(dot1.UpTrm, TDot)
+                dot2.TrmDot = Nothing
+                ReplaceTerm(dot1, dot2)
+
+            ElseIf dot1.IsSelfField() Then
+                ' 自身のフィールド参照の場合
+
+                If fld1.IsList() Then
+                    ' フィールドがリストの場合
+
+                    ' fld1のフィールドの要素の参照を作る。
+                    Dim dot2 As New TDot(Nothing, fld1)
+                    Dim app1 As TApply = TApply.MakeAppCall(dot2)
+                    app1.KndApp = EApply.eListApp
+                    app1.ArgApp.Add(New TReference(idx_var))
+
+                    ' fld1のフィールドの要素の参照に置き換える。
+                    dot1.TrmDot = app1
+                    dot1.TrmDot.UpTrm = dot1
+                Else
+                    ' フィールドがリストでない場合
+
+                    ' fld1のフィールド参照に置き換える。
+                    dot1.TrmDot = New TDot(Nothing, fld1)
+                    dot1.TrmDot.UpTrm = dot1
+                End If
+            End If
+        Next
+
+        Return copy_obj
+    End Function
+
     ' 条件を追加する
     Public Shared Sub AddCondition(stmt1 As TStatement, up_stmt As TStatement, and1 As TApply)
         Dim if_blc As TIfBlock, case1 As TCase, if1 As TIf, not1 As TApply, cnd1 As TTerm
@@ -2124,7 +2191,7 @@ Public Class Sys
             if_blc = CType(up_stmt, TIfBlock)
             if1 = CType(Sys.UpStmt(up_stmt.UpTrm), TIf)
             For Each _child In if1.IfBlc
-                cnd1 = Sys.CopyTrm(_child.CndIf, Nothing)
+                cnd1 = Sys.CopyTerm(_child.CndIf, Nothing)
 
                 If _child IsNot if_blc Then
                     ' 手前のIfブロックの場合
