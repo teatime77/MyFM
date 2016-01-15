@@ -6,8 +6,8 @@
     Public Overrides Sub AppInitialize()
         Dim x As Double = 100, y As Double = 100
 
-        Dim circle = New TImage()
-        circle.Load("../img/circle.png")
+        Dim circle = New TPicture()
+        circle.ImageIm = MakeImage("../img/circle.png")
         circle.SetBoundingRectangle(x, y, 80, 80)
         circle.Velocity.X = 2
         circle.Velocity.Y = 2
@@ -49,14 +49,14 @@
         txt1.Text = "こんにちは4"
         ShapeList.push(txt1)
         y += 100
-        Dim razania = New TImage()
+        Dim razania = New TPicture()
         razania.Load("../img/food_lasagna_razania.png")
         razania.SetBoundingRectangle(x, y, 100, 741 / 8.0)
         razania.Velocity.X = 2
         razania.Velocity.Y = 2
         ShapeList.push(razania)
         y += 100
-        Dim pizza = New TImage()
+        Dim pizza = New TPicture()
         pizza.Load("../img/food_pizza_takuhai.png")
         pizza.SetBoundingRectangle(x, y, 100, 712 / 8.0)
         pizza.Velocity.X = 2
@@ -111,7 +111,7 @@
                 End If
 
                 If .AbsCenter.Distance(app.MousePosition) <= .Radius Then
-                    If TypeOf self Is TImage Then
+                    If TypeOf self Is TPicture Then
                         .Rotation += 19 * Math.PI / 180
                     Else
                         .Rotation -= 19 * Math.PI / 180
@@ -120,8 +120,8 @@
                     .Rotation += 5 * Math.PI / 180
                 End If
 
-                If TypeOf self Is TImage Then
-                    With CType(self, TImage)
+                If TypeOf self Is TPicture Then
+                    With CType(self, TPicture)
                         app.cnt += 1
                         console.log("pos:" + .AbsCenter.X + " " + .AbsCenter.Y + " " + .ImageIm.src)
                         If .ImageIm.src = "http://localhost:17623/img/circle.png" Then
@@ -136,12 +136,12 @@
                         Dim v1 = (From x In .Children Select x.Center.X).ToArray()
                         'console.log("Center X:" + v1)
 
-                        Dim vshape = From x In .Children Where TypeOf x Is TImage
+                        Dim vshape = From x In .Children Where TypeOf x Is TPicture
                         .BoundingRectangle.Position.X = Aggregate img In vshape Into Min(img.BoundingRectangle.Position.X)
-                        Dim vx = From x In .Children Where TypeOf x Is TImage Select x.BoundingRectangle.Position.X
+                        Dim vx = From x In .Children Where TypeOf x Is TPicture Select x.BoundingRectangle.Position.X
                         .BoundingRectangle.Position.X = Aggregate x In vx Into Min(x)
-                        .BoundingRectangle.Position.X = Aggregate img In (From x In .Children Where TypeOf x Is TImage) Into Min(img.BoundingRectangle.Position.X)
-                        .BoundingRectangle.Position.X = Aggregate img In .Children Where TypeOf img Is TImage Into Min(img.BoundingRectangle.Position.X)
+                        .BoundingRectangle.Position.X = Aggregate img In (From x In .Children Where TypeOf x Is TPicture) Into Min(img.BoundingRectangle.Position.X)
+                        .BoundingRectangle.Position.X = Aggregate img In .Children Where TypeOf img Is TPicture Into Min(img.BoundingRectangle.Position.X)
 
                     End With
                 End If

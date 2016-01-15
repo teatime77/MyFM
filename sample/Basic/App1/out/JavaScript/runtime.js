@@ -73,7 +73,7 @@ function SetImageOnLoad(self) {
             SetImageOnLoad(self.Children[i]);
         }
     }
-    else if (self instanceof TImage) {
+    else if (self instanceof TPicture) {
     }
 
 }

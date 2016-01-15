@@ -244,10 +244,11 @@ Public Class TEllipse
     End Sub
 End Class
 
-Public Class TImage
+Public Class TPicture
     Inherits TShape
     Public Loaded As Boolean = False
-    Public ImageIm As Image
+    <_Weak()> Public ImageIm As Image
+    <_Weak()> Public ImageList As New TList(Of Image)
 
     Sub Load(src_url As String)
         ImageIm = New Image()
@@ -378,4 +379,11 @@ Public Class TApplication
 
     Public Overridable Sub Rule(self As Object, app As TMyApplication)
     End Sub
+
+    Public Function MakeImage(src_url As String) As Image
+        Dim img As New Image
+        img.src = src_url
+
+        Return img
+    End Function
 End Class

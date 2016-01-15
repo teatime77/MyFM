@@ -1360,10 +1360,28 @@ Public Class TNaviMakeSourceCode
         If TypeOf self Is TApply Then
             With CType(self, TApply)
                 Dim vtkn As New List(Of TToken)
+                Dim is_list As Boolean = False
 
-                vtkn.Add(New TToken(EToken.eLP, self))
-                vtkn.AddRange(Laminate((From trm In .ArgApp Select trm.TokenList), New TToken(EToken.eComma, self)))
-                vtkn.Add(New TToken(EToken.eRP, self))
+                If .TypeApp = EToken.eAppCall Then
+
+                    Select Case .KndApp
+                        Case EApply.eCallApp, EApply.eDictionaryApp
+                        Case EApply.eArrayApp, EApply.eStringApp, EApply.eListApp
+                            is_list = True
+                        Case Else
+                            Debug.Assert(False)
+                    End Select
+                End If
+
+                If is_list AndAlso ParserMK.LanguageSP <> ELanguage.Basic Then
+                    vtkn.Add(New TToken(EToken.eLB, self))
+                    vtkn.AddRange(Laminate((From trm In .ArgApp Select trm.TokenList), New TToken(EToken.eComma, self)))
+                    vtkn.Add(New TToken(EToken.eRB, self))
+                Else
+                    vtkn.Add(New TToken(EToken.eLP, self))
+                    vtkn.AddRange(Laminate((From trm In .ArgApp Select trm.TokenList), New TToken(EToken.eComma, self)))
+                    vtkn.Add(New TToken(EToken.eRP, self))
+                End If
 
                 Return vtkn
             End With

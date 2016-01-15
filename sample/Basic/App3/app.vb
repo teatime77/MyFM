@@ -2,17 +2,63 @@
     Inherits TApplication
     Public CircleR As Double = 80
     Public cnt As Double = 0
-    <_Weak()> Public Razania As TPicture
+    <_Weak()> Public Mama As TPicture
+    <_Weak()> Public Grandma As TPicture
+    <_Weak()> Public Kitty1 As TPicture
+    <_Weak()> Public Kitty2 As TPicture
+    <_Weak()> Public Kitty3 As TPicture
 
     Public Overrides Sub AppInitialize()
         Dim x As Double = 100, y As Double = 100
 
-        Dim circle = New TPicture()
-        circle.Load("../img/circle.png")
-        circle.SetBoundingRectangle(x, y, 80, 80)
-        circle.Velocity.X = 2
-        circle.Velocity.Y = 2
-        ShapeList.push(circle)
+        Mama = New TPicture()
+        Mama.ImageList.push(MakeImage("../../../img/mama1.png"))
+        Mama.ImageList.push(MakeImage("../../../img/mama2.png"))
+        Mama.ImageIm = Mama.ImageList(0)
+        Mama.SetBoundingRectangle(x, y, 100, 95)
+        Mama.Velocity.X = 2
+        Mama.Velocity.Y = 2
+        ShapeList.push(Mama)
+        y += 100
+
+        Grandma = New TPicture()
+        Grandma.ImageList.push(MakeImage("../../../img/grandma1.png"))
+        Grandma.ImageList.push(MakeImage("../../../img/grandma2.png"))
+        Grandma.ImageIm = Grandma.ImageList(0)
+        Grandma.SetBoundingRectangle(x, y, 100, 95)
+        Grandma.Velocity.X = 2
+        Grandma.Velocity.Y = 2
+        ShapeList.push(Grandma)
+        y += 100
+
+        Kitty1 = New TPicture()
+        Kitty1.ImageList.push(MakeImage("../../../img/kitty1_1.png"))
+        Kitty1.ImageList.push(MakeImage("../../../img/kitty1_2.png"))
+        Kitty1.ImageIm = Kitty1.ImageList(0)
+        Kitty1.SetBoundingRectangle(x, y, 100, 80)
+        Kitty1.Velocity.X = 2
+        Kitty1.Velocity.Y = 2
+        ShapeList.push(Kitty1)
+        y += 100
+
+        Kitty2 = New TPicture()
+        Kitty2.ImageList.push(MakeImage("../../../img/kitty2_1.png"))
+        Kitty2.ImageList.push(MakeImage("../../../img/kitty2_2.png"))
+        Kitty2.ImageIm = Kitty2.ImageList(0)
+        Kitty2.SetBoundingRectangle(x, y, 100, 80)
+        Kitty2.Velocity.X = 2
+        Kitty2.Velocity.Y = 2
+        ShapeList.push(Kitty2)
+        y += 100
+
+        Kitty3 = New TPicture()
+        Kitty3.ImageList.push(MakeImage("../../../img/kitty3_1.png"))
+        Kitty3.ImageList.push(MakeImage("../../../img/kitty3_2.png"))
+        Kitty3.ImageIm = Kitty3.ImageList(0)
+        Kitty3.SetBoundingRectangle(x, y, 100, 83)
+        Kitty3.Velocity.X = 2
+        Kitty3.Velocity.Y = 2
+        ShapeList.push(Kitty3)
         y += 100
 
         Dim rc1 = New TRectangle()
@@ -24,7 +70,6 @@
         rc1.BorderWidth = 10
         ShapeList.push(rc1)
         y += 100
-
         Dim rc2 = New TRectangle()
         rc2.SetBoundingRectangle(x, y, 80, 40)
         rc2.Velocity.X = 2
@@ -32,7 +77,6 @@
         rc2.BorderColor = "#0000FF"
         rc2.BorderWidth = 10
         ShapeList.push(rc2)
-
         Dim ell1 = New TEllipse()
         ell1.SetBoundingRectangle(x + 5, y + 5, 70, 30)
         ell1.Velocity.X = 3
@@ -42,7 +86,6 @@
         ell1.BorderWidth = 10
         ShapeList.push(ell1)
         y += 100
-
         Dim txt1 = New TLabel()
         txt1.SetBoundingRectangle(x, y, 80, 40)
         txt1.Velocity.X = 4
@@ -54,29 +97,25 @@
         txt1.Text = "こんにちは4"
         ShapeList.push(txt1)
         y += 100
-
-        Razania = New TPicture()
-        Razania.Load("../img/food_lasagna_razania.png")
-        Razania.SetBoundingRectangle(x, y, 100, 741 / 8.0)
-        Razania.Velocity.X = 2
-        Razania.Velocity.Y = 2
-        ShapeList.push(Razania)
+        Dim razania = New TPicture()
+        razania.Load("../img/food_lasagna_razania.png")
+        razania.SetBoundingRectangle(x, y, 100, 741 / 8.0)
+        razania.Velocity.X = 2
+        razania.Velocity.Y = 2
+        ShapeList.push(razania)
         y += 100
-
         Dim pizza = New TPicture()
         pizza.Load("../img/food_pizza_takuhai.png")
         pizza.SetBoundingRectangle(x, y, 100, 712 / 8.0)
         pizza.Velocity.X = 2
         pizza.Velocity.Y = 2
         ShapeList.push(pizza)
-
         Dim grp = New TGroup()
         grp.SetBoundingRectangle(300, 300, 100, 100)
         grp.Velocity.X = 2
         grp.Velocity.Y = 2
         ShapeList.push(grp)
         y += 100
-
         Dim rc3 = New TRectangle()
         rc3.SetBoundingRectangle(-25, -25, 50, 50)
         rc3.Velocity.X = 1
@@ -86,7 +125,6 @@
         rc3.BorderWidth = 10
         rc3.Parent = grp
         grp.Children.push(rc3)
-
         Dim txt2 = New TLabel()
         txt2.SetBoundingRectangle(25, 25, 50, 50)
         txt2.Velocity.X = 4
@@ -133,16 +171,16 @@
                 If TypeOf self Is TPicture Then
                     With CType(self, TPicture)
                         app.cnt += 1
-                        console.log("pos:" + .AbsCenter.X + " " + .AbsCenter.Y + " " + .ImageIm.src)
+                        If self Is app.Mama OrElse self Is app.Grandma OrElse self Is app.Kitty1 OrElse self Is app.Kitty2 OrElse self Is app.Kitty3 Then
+                            .ImageIm = .ImageList(Math.Floor(app.cnt / 40) Mod 2)
+                            .Rotation = 0
+                        End If
+                        'console.log("pos:" + .AbsCenter.X + " " + .AbsCenter.Y + " " + .ImageIm.src)
                         If .ImageIm.src = "http://localhost:17623/img/circle.png" Then
                             .Size.X = app.CircleR + 20 * Math.Sin(Math.PI * app.cnt / 180)
                             .Size.Y = app.CircleR + 20 * Math.Cos(Math.PI * app.cnt / 180)
                         End If
 
-                        If self Is app.Razania Then
-                            .Center.X = app.MousePosition.X
-                            .Center.Y = app.MousePosition.Y
-                        End If
                     End With
 
                 ElseIf TypeOf self Is TGroup Then
