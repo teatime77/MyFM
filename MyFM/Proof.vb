@@ -891,6 +891,10 @@ Public Class TUseDefineAnalysis
     Public VirtualizedMethodList As TList(Of TFunction)
     Public UseDefineChainTable As New Dictionary(Of TReference, TUseDefine)
     Public StatementConditionTable As New Dictionary(Of TStatement, TApply)
+
+    Public UseParentClassList As List(Of TClass)
+    Public VirtualizableClassList As TList(Of TClass)
+    Public NaviFunctionList As New List(Of TFunction)
 End Class
 
 Public Class TUseDefine
