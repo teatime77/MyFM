@@ -207,7 +207,10 @@ Partial Public Class TProject
                 ' ナビゲート関数を作る。
                 dt.UseParentClassList = use_parent_class_list
                 dt.VirtualizableClassList = set_virtualizable_if.VirtualizableClassList
-                MakeNaviFunctionList(rule, dt)
+
+                Dim walked_field_list_table As Dictionary(Of TClass, List(Of TField)) = MakeWalkedFieldListTable(dt)
+
+                MakeNaviFunctionList(rule, dt, walked_field_list_table)
 
                 For Each fnc1 In dt.NaviFunctionList
                     EnsureFunctionIntegrity(fnc1)
@@ -264,164 +267,165 @@ Partial Public Class TProject
         Return fnc1
     End Function
 
-    Public Sub MakeNaviFunctionList(self As Object, dt As TUseDefineAnalysis)
-        If TypeOf self Is TFunction Then
-            With CType(self, TFunction)
-                Dim reachable_from_bottom_pending As New TList(Of TField)
-                Dim reachable_from_bottom_processed As New List(Of TField)
+    Public Function MakeWalkedFieldListTable(dt As TUseDefineAnalysis) As Dictionary(Of TClass, List(Of TField))
+        Dim walked_field_list_table As New Dictionary(Of TClass, List(Of TField))
+        Dim reachable_from_bottom_pending As New TList(Of TField)
+        Dim reachable_from_bottom_processed As New List(Of TField)
 
-                Dim reachable_from_top_pending As New TList(Of TField)
-                Dim reachable_from_top_processed As New List(Of TField)
+        Dim reachable_from_top_pending As New TList(Of TField)
+        Dim reachable_from_top_processed As New List(Of TField)
 
-                For Each virtualizable_class In dt.VirtualizableClassList
+        For Each virtualizable_class In dt.VirtualizableClassList
 
-                    ' virtualizable_classとそのスーパークラスのリスト
-                    Dim virtualizable_super_class_list = Enumerable.Distinct(Sys.ThisAncestorSuperClassList(virtualizable_class))
+            ' virtualizable_classとそのスーパークラスのリスト
+            Dim virtualizable_super_class_list = Enumerable.Distinct(Sys.ThisAncestorSuperClassList(virtualizable_class))
 
-                    ' 型がvirtualizable_classかスーパークラスであるフィールドのリスト
-                    Dim parent_field_list = From parent_field In SimpleFieldList Where parent_field.ModVar.isStrong() AndAlso virtualizable_super_class_list.Contains(FieldElementType(parent_field))
+            ' 型がvirtualizable_classかスーパークラスであるフィールドのリスト
+            Dim parent_field_list = From parent_field In SimpleFieldList Where parent_field.ModVar.isStrong() AndAlso virtualizable_super_class_list.Contains(FieldElementType(parent_field))
 
-                    ' reachable_from_bottom_pendingに入っていないparent_fieldを追加する。
-                    reachable_from_bottom_pending.DistinctAddRange(parent_field_list)
-                Next
+            ' reachable_from_bottom_pendingに入っていないparent_fieldを追加する。
+            reachable_from_bottom_pending.DistinctAddRange(parent_field_list)
+        Next
 
-                Dim parent_to_child_field_list_table As New Dictionary(Of TField, List(Of TField))
+        Dim parent_to_child_field_list_table As New Dictionary(Of TField, List(Of TField))
 
-                Do While reachable_from_bottom_pending.Count <> 0
-                    Dim current_field = reachable_from_bottom_pending.Pop()
-                    reachable_from_bottom_processed.Add(current_field)
+        Do While reachable_from_bottom_pending.Count <> 0
+            Dim current_field = reachable_from_bottom_pending.Pop()
+            reachable_from_bottom_processed.Add(current_field)
 
-                    If Sys.ThisAncestorSuperClassList(MainClass).Contains(current_field.ClaFld) Then
-                        ' current_fieldが属するクラスが、メインクラスかそのスーパークラスの場合
+            If Sys.ThisAncestorSuperClassList(MainClass).Contains(current_field.ClaFld) Then
+                ' current_fieldが属するクラスが、メインクラスかそのスーパークラスの場合
 
-                        ' メインクラスからアクセス可能
-                        reachable_from_top_pending.Add(current_field)
-                    End If
+                ' メインクラスからアクセス可能
+                reachable_from_top_pending.Add(current_field)
+            End If
 
-                    ' current_fieldが属するクラスとそのスーパークラスのリスト
-                    Dim current_field_super_class_list = Enumerable.Distinct(Sys.ThisAncestorSuperClassList(current_field.ClaFld))
+            ' current_fieldが属するクラスとそのスーパークラスのリスト
+            Dim current_field_super_class_list = Enumerable.Distinct(Sys.ThisAncestorSuperClassList(current_field.ClaFld))
 
-                    ' 型がcurrent_fieldが属するクラスかスーパークラスであるフィールドのリスト
-                    Dim parent_field_list = From parent_field In SimpleFieldList Where parent_field.ModVar.isStrong() AndAlso current_field_super_class_list.Contains(FieldElementType(parent_field))
+            ' 型がcurrent_fieldが属するクラスかスーパークラスであるフィールドのリスト
+            Dim parent_field_list = From parent_field In SimpleFieldList Where parent_field.ModVar.isStrong() AndAlso current_field_super_class_list.Contains(FieldElementType(parent_field))
 
-                    For Each parent_field In parent_field_list
-                        Dim child_field_list As List(Of TField)
+            For Each parent_field In parent_field_list
+                Dim child_field_list As List(Of TField)
 
-                        If parent_to_child_field_list_table.ContainsKey(parent_field) Then
-                            child_field_list = parent_to_child_field_list_table(parent_field)
-                        Else
-                            child_field_list = New List(Of TField)()
-                            parent_to_child_field_list_table.Add(parent_field, child_field_list)
-                        End If
+                If parent_to_child_field_list_table.ContainsKey(parent_field) Then
+                    child_field_list = parent_to_child_field_list_table(parent_field)
+                Else
+                    child_field_list = New List(Of TField)()
+                    parent_to_child_field_list_table.Add(parent_field, child_field_list)
+                End If
 
-                        ' このリストにcurrent_fieldを追加する。
-                        child_field_list.Add(current_field)
-                        Debug.Print("parent field {0}", parent_field)
-                    Next
+                ' このリストにcurrent_fieldを追加する。
+                child_field_list.Add(current_field)
+                Debug.Print("parent field {0}", parent_field)
+            Next
 
-                    ' 未処理のフィールド
-                    Dim not_processed_parent_field_list = From parent_field In parent_field_list Where Not reachable_from_bottom_processed.Contains(parent_field)
+            ' 未処理のフィールド
+            Dim not_processed_parent_field_list = From parent_field In parent_field_list Where Not reachable_from_bottom_processed.Contains(parent_field)
 
-                    reachable_from_bottom_pending.DistinctAddRange(not_processed_parent_field_list)
-                Loop
+            reachable_from_bottom_pending.DistinctAddRange(not_processed_parent_field_list)
+        Loop
 
-                Dim walked_field_list_table As New Dictionary(Of TClass, List(Of TField))
+        Do While reachable_from_top_pending.Count <> 0
+            ' reachable_from_top_pendingからcurrent_fieldを取り出し、reachable_from_top_processedに追加する。
+            Dim current_field = reachable_from_top_pending.Pop()
+            reachable_from_top_processed.Add(current_field)
 
-                Do While reachable_from_top_pending.Count <> 0
-                    ' reachable_from_top_pendingからcurrent_fieldを取り出し、reachable_from_top_processedに追加する。
-                    Dim current_field = reachable_from_top_pending.Pop()
-                    reachable_from_top_processed.Add(current_field)
+            Dim walked_field_list As List(Of TField)
+            If walked_field_list_table.ContainsKey(current_field.ClaFld) Then
+                walked_field_list = walked_field_list_table(current_field.ClaFld)
+            Else
+                walked_field_list = New List(Of TField)()
+                walked_field_list_table.Add(current_field.ClaFld, walked_field_list)
+            End If
+            walked_field_list.Add(current_field)
 
-                    Dim walked_field_list As List(Of TField)
-                    If walked_field_list_table.ContainsKey(current_field.ClaFld) Then
-                        walked_field_list = walked_field_list_table(current_field.ClaFld)
-                    Else
-                        walked_field_list = New List(Of TField)()
-                        walked_field_list_table.Add(current_field.ClaFld, walked_field_list)
-                    End If
-                    walked_field_list.Add(current_field)
+            If parent_to_child_field_list_table.ContainsKey(current_field) Then
+                Dim child_field_list As List(Of TField) = parent_to_child_field_list_table(current_field)
 
-                    If parent_to_child_field_list_table.ContainsKey(current_field) Then
-                        Dim child_field_list As List(Of TField) = parent_to_child_field_list_table(current_field)
+                ' 未処理のフィールド
+                Dim not_processed_chile_field_list = From chile_field In child_field_list Where Not reachable_from_top_processed.Contains(chile_field)
 
-                        ' 未処理のフィールド
-                        Dim not_processed_chile_field_list = From chile_field In child_field_list Where Not reachable_from_top_processed.Contains(chile_field)
+                reachable_from_top_pending.DistinctAddRange(not_processed_chile_field_list)
+            End If
+        Loop
 
-                        reachable_from_top_pending.DistinctAddRange(not_processed_chile_field_list)
-                    End If
-                Loop
+        Return walked_field_list_table
+    End Function
 
-                Dim function_name As String = "Navigate_" + .NameVar
+    Public Sub MakeNaviFunctionList(rule As TFunction, dt As TUseDefineAnalysis, walked_field_list_table As Dictionary(Of TClass, List(Of TField)))
 
-                Dim dummy_function As New TFunction(function_name, Nothing)
-                Dim navi_needed_class_list As New TList(Of TClass)
+        Dim function_name As String = "Navigate_" + rule.NameVar
 
-                For Each cla1 In walked_field_list_table.Keys
-                    Dim walked_field_list As List(Of TField) = walked_field_list_table(cla1)
-                    Dim fnc1 As TFunction = InitNavigateFunction(function_name, cla1, dt)
+        Dim dummy_function As New TFunction(function_name, Nothing)
+        Dim navi_needed_class_list As New TList(Of TClass)
 
-                    If dt.UseParentClassList.Contains(cla1) Then
-                        ' 親のフィールドの値を参照している場合
+        For Each cla1 In walked_field_list_table.Keys
+            Dim walked_field_list As List(Of TField) = walked_field_list_table(cla1)
+            Dim fnc1 As TFunction = InitNavigateFunction(function_name, cla1, dt)
 
-                        AddRuleCall(fnc1, cla1)
-                    End If
+            If dt.UseParentClassList.Contains(cla1) Then
+                ' 親のフィールドの値を参照している場合
 
-                    Dim self_var As TVariable = fnc1.ArgFnc(0)
-                    Dim app_var As TVariable = fnc1.ArgFnc(1)
+                AddRuleCall(fnc1, cla1)
+            End If
 
-                    Debug.Print("Rule {0}", cla1.NameVar)
+            Dim self_var As TVariable = fnc1.ArgFnc(0)
+            Dim app_var As TVariable = fnc1.ArgFnc(1)
 
-                    For Each walked_field In walked_field_list
-                        If walked_field.TypeVar.OrgCla IsNot Nothing Then
-                            ' リストの場合
+            Debug.Print("Rule {0}", cla1.NameVar)
 
-                            ' ループを作る。
-                            Dim for1 As New TFor
-                            for1.InVarFor = New TLocalVariable("x", Nothing)
-                            for1.InTrmFor = New TDot(Nothing, walked_field)
-                            for1.BlcFor = New TBlock()
+            For Each walked_field In walked_field_list
+                If walked_field.TypeVar.OrgCla IsNot Nothing Then
+                    ' リストの場合
 
-                            ' リスト内の各要素に対しメソッドを呼ぶ。
-                            Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TReference(for1.InVarFor), dummy_function))
-                            app1.ArgApp.Add(New TReference(for1.InVarFor))
-                            app1.ArgApp.Add(New TReference(app_var))
-                            for1.BlcFor.AddStmtBlc(New TCall(app1))
+                    ' ループを作る。
+                    Dim for1 As New TFor
+                    for1.InVarFor = New TLocalVariable("x", Nothing)
+                    for1.InTrmFor = New TDot(Nothing, walked_field)
+                    for1.BlcFor = New TBlock()
 
-                            fnc1.BlcFnc.AddStmtBlc(for1)
+                    ' リスト内の各要素に対しメソッドを呼ぶ。
+                    Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TReference(for1.InVarFor), dummy_function))
+                    app1.ArgApp.Add(New TReference(for1.InVarFor))
+                    app1.ArgApp.Add(New TReference(app_var))
+                    for1.BlcFor.AddStmtBlc(New TCall(app1))
 
-                            Debug.Print("For Each x in .{0}" + vbCrLf + "x.{1}()" + vbCrLf + "Next", walked_field.NameVar, function_name)
-                        Else
-                            ' リストでない場合
+                    fnc1.BlcFnc.AddStmtBlc(for1)
 
-                            ' フィールドに対しメソッドを呼ぶ。
-                            Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TDot(Nothing, walked_field), dummy_function))
-                            app1.ArgApp.Add(New TDot(Nothing, walked_field))
-                            app1.ArgApp.Add(New TReference(app_var))
-                            fnc1.BlcFnc.AddStmtBlc(New TCall(app1))
+                    Debug.Print("For Each x in .{0}" + vbCrLf + "x.{1}()" + vbCrLf + "Next", walked_field.NameVar, function_name)
+                Else
+                    ' リストでない場合
 
-                            Debug.Print(".{0}()", function_name)
-                        End If
+                    ' フィールドに対しメソッドを呼ぶ。
+                    Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TDot(Nothing, walked_field), dummy_function))
+                    app1.ArgApp.Add(New TDot(Nothing, walked_field))
+                    app1.ArgApp.Add(New TReference(app_var))
+                    fnc1.BlcFnc.AddStmtBlc(New TCall(app1))
 
-                        navi_needed_class_list.DistinctAdd(FieldElementType(walked_field))
-                    Next
+                    Debug.Print(".{0}()", function_name)
+                End If
 
-                    If Not dt.UseParentClassList.Contains(cla1) Then
-                        ' 親のフィールドの値を参照していない場合
+                navi_needed_class_list.DistinctAdd(FieldElementType(walked_field))
+            Next
 
-                        AddRuleCall(fnc1, cla1)
-                    End If
-                Next
+            If Not dt.UseParentClassList.Contains(cla1) Then
+                ' 親のフィールドの値を参照していない場合
 
-                navi_needed_class_list.DistinctAddRange(dt.VirtualizableClassList)
-                For Each cla1 In navi_needed_class_list
-                    If Not walked_field_list_table.Keys.Contains(cla1) Then
+                AddRuleCall(fnc1, cla1)
+            End If
+        Next
 
-                        Dim fnc1 As TFunction = InitNavigateFunction(function_name, cla1, dt)
-                        AddRuleCall(fnc1, cla1)
-                    End If
-                Next
-            End With
-        End If
+        navi_needed_class_list.DistinctAddRange(dt.VirtualizableClassList)
+        For Each cla1 In navi_needed_class_list
+            If Not walked_field_list_table.Keys.Contains(cla1) Then
+
+                Dim fnc1 As TFunction = InitNavigateFunction(function_name, cla1, dt)
+                AddRuleCall(fnc1, cla1)
+            End If
+        Next
+
     End Sub
     '<<-------------------------------------------------------------------------------- ナビゲート関数を作る。
 
@@ -631,7 +635,7 @@ Partial Public Class TProject
                     Dim super_class_list = Sys.ThisAncestorSuperClassList(dot1.TypeDot).Distinct()
 
                     ' 上記のスーパークラスの型のフィールドのリスト
-                    Dim parent_field_list = From parent_field In Prj.SimpleFieldList Where parent_field.ModVar.isStrong() AndAlso super_class_list.Contains(Prj.FieldElementType(parent_field))
+                    Dim parent_field_list = From parent_field In Prj.SimpleFieldList Where parent_field.ModVar.isStrong() AndAlso super_class_list.Contains(FieldElementType(parent_field))
 
                     ' 親のフィールドを参照するドットの処理対象クラスの型のフィールドを持つクラスのリスト
                     Dim parent_field_class_list_2 = (From f In parent_field_list Select f.ClaFld).Distinct()
