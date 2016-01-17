@@ -888,7 +888,7 @@ Public Enum EDependency
 End Enum
 
 Public Class TUseDefineAnalysis
-    Public VirtualizedMethodList As TList(Of TFunction)
+    Public VirtualizedMethodList As New TList(Of TFunction)
     Public UseDefineChainTable As New Dictionary(Of TReference, TUseDefine)
     Public StatementConditionTable As New Dictionary(Of TStatement, TApply)
 
@@ -1256,18 +1256,8 @@ Public Class Sys
             Return CType(obj, TStatement).UpTrm
         ElseIf TypeOf obj Is TTerm Then
             Return CType(obj, TTerm).UpTrm
-        ElseIf TypeOf obj Is TList(Of TVariable) Then
-            Return CType(obj, TList(Of TVariable)).UpList
-        ElseIf TypeOf obj Is TList(Of TTerm) Then
-            Return CType(obj, TList(Of TTerm)).UpList
-        ElseIf TypeOf obj Is TList(Of TCase) Then
-            Return CType(obj, TList(Of TCase)).UpList
-        ElseIf TypeOf obj Is TList(Of TStatement) Then
-            Return CType(obj, TList(Of TStatement)).UpList
-        ElseIf TypeOf obj Is TList(Of TBlock) Then
-            Return CType(obj, TList(Of TBlock)).UpList
-        ElseIf TypeOf obj Is TList(Of TIfBlock) Then
-            Return CType(obj, TList(Of TIfBlock)).UpList
+        ElseIf TypeOf obj Is IUpList Then
+            Return CType(obj, IUpList).GetUpList()
         Else
             Debug.Assert(False)
             Return Nothing
@@ -1345,7 +1335,10 @@ Public Class Sys
     End Function
 
     Public Shared Iterator Function AllFieldList(cla1 As TClass) As IEnumerable(Of TField)
-        Yield From c In DistinctThisAncestorSuperClassList(cla1) From f In c.FldCla Select f
+        Dim field_list = From c In DistinctThisAncestorSuperClassList(cla1) From f In c.FldCla Select f
+        For Each fld In field_list
+            Yield fld
+        Next
     End Function
 
     Public Shared Iterator Function ThisDescendantSubClassList(cla1 As TClass) As IEnumerable(Of TClass)
@@ -1944,11 +1937,51 @@ Public Class Sys
         Return fnc2
     End Function
 
+    Public Shared Sub CopyAncestorVar(obj1 As Object, cpy As TCopy)
+        For Each obj2 In AncestorList(obj1)
+            If TypeOf obj2 Is TFrom Then
+                With CType(obj2, TFrom)
+                    CopyVar(.VarQry, cpy)
+                End With
+
+            ElseIf TypeOf obj2 Is TAggregate Then
+                With CType(obj2, TAggregate)
+                    CopyVar(.VarQry, cpy)
+                End With
+
+            ElseIf TypeOf obj2 Is TFor Then
+                With CType(obj2, TFor)
+                    CopyVar(.IdxVarFor, cpy)
+                    CopyVar(.InVarFor, cpy)
+                End With
+
+            ElseIf TypeOf obj2 Is TBlock Then
+                With CType(obj2, TBlock)
+                    For Each var1 In .VarBlc
+                        CopyVar(var1, cpy)
+                    Next
+
+                End With
+
+            ElseIf TypeOf obj2 Is TFunction Then
+                With CType(obj2, TFunction)
+                    For Each var1 In .ArgFnc
+                        CopyVar(var1, cpy)
+                    Next
+                    CopyVar(.ThisFnc, cpy)
+                End With
+
+            End If
+        Next
+    End Sub
+
     Public Shared Function CopyAny(obj As Object) As Object
         If TypeOf obj Is TFunction Then
             Return CopyFunction(CType(obj, TFunction))
         Else
             Dim cpy As New TCopy
+
+            CopyAncestorVar(obj, cpy)
 
             If TypeOf obj Is TStatement Then
                 Return CopyStatement(CType(obj, TStatement), cpy)
@@ -2226,12 +2259,17 @@ Public Class Sys
                     ' 否定の条件を追加する
                     not1 = TApply.NewOpr(EToken.eNot)
 
+                    Debug.Assert(cnd1 IsNot Nothing)
                     not1.AddInArg(cnd1)
                 Else
                     ' 現在のIfブロックの場合
 
-                    ' 条件を追加する
-                    and1.AddInArg(cnd1)
+                    If cnd1 IsNot Nothing Then
+                        ' Elseでない場合
+
+                        ' 条件を追加する
+                        and1.AddInArg(cnd1)
+                    End If
 
                     Exit For
                 End If
@@ -2256,6 +2294,7 @@ Public Class Sys
         ElseIf TypeOf stmt1 Is TIfBlock Then
         ElseIf TypeOf stmt1 Is TSelect Then
         ElseIf TypeOf stmt1 Is TCase Then
+        ElseIf TypeOf stmt1 Is TVariableDeclaration Then
         ElseIf TypeOf stmt1 Is TFor Then
             Debug.Assert(False)
         Else

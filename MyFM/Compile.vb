@@ -131,12 +131,12 @@ Partial Public Class TProject
         Dim navi_set_label = New TNaviSetLabel()
         navi_set_label.NaviProject(Me)
 
-        Dim navi_set_ref_stmt As New TNaviSetRefStmt
-        navi_set_ref_stmt.NaviProject(Me)
-
         ' DefRefをセットする。
         Dim set_def_ref = New TNaviSetDefRef()
         set_def_ref.NaviProject(Me, Nothing)
+
+        Dim navi_set_ref_stmt As New TNaviSetRefStmt
+        navi_set_ref_stmt.NaviProject(Me)
 
         Dim set_var_ref As New TNaviSetVarRef
         set_var_ref.NaviProject(Me, Nothing)
@@ -202,9 +202,21 @@ Partial Public Class TProject
 
                 ' クラスの場合分けのIf文からクラスごとのメソッドを作る。
                 Dim make_virtualizable_if_method As New TNaviMakeVirtualizableIfMethod
+                make_virtualizable_if_method.UDA = dt
                 make_virtualizable_if_method.NaviFunction(rule)
 
-                ' ナビゲート関数を作る。
+                ' 仮想メソッドの整合性を保つ。
+                For Each fnc1 In dt.VirtualizedMethodList
+                    EnsureFunctionIntegrity(fnc1)
+                Next
+
+                ' 仮想メソッド内の使用参照と定義参照の依存関係を求める。
+                VirtualizedMethodDefUseDependency(dt)
+
+                ' 親や子のフィールドの使用参照と定義参照の依存関係を求める。
+                VirtualizedMethodParentChildDefUseDependency(dt)
+
+                ' ナビゲート メソッドを作る。
                 dt.UseParentClassList = use_parent_class_list
                 dt.VirtualizableClassList = set_virtualizable_if.VirtualizableClassList
 
@@ -212,6 +224,7 @@ Partial Public Class TProject
 
                 MakeNaviFunctionList(rule, dt, walked_field_list_table)
 
+                ' ナビゲート メソッドの整合性を保つ。
                 For Each fnc1 In dt.NaviFunctionList
                     EnsureFunctionIntegrity(fnc1)
                 Next
@@ -429,7 +442,7 @@ Partial Public Class TProject
     End Sub
     '<<-------------------------------------------------------------------------------- ナビゲート関数を作る。
 
-    ' 使用参照と定義参照の依存関係を求める。
+    ' 仮想メソッド内の使用参照と定義参照の依存関係を求める。
     Public Sub VirtualizedMethodDefUseDependency(use_def As TUseDefineAnalysis)
 
         ' すべての仮想メソッドに対し
@@ -441,7 +454,11 @@ Partial Public Class TProject
             For Each ref1 In def_list
 
                 ' ref1を含む文の余分な条件を取り除いた前提条件
-                Dim cnd1 As TApply = Sys.GetTermPreConditionClean(ref1)
+                Dim ref1_up_stmt As TStatement = Sys.UpStmtProper(ref1)
+                Dim cnd1 As TApply = Sys.GetPreConditionClean(ref1_up_stmt)
+
+                ' CopyでUpTrmを使う。
+                cnd1.UpTrm = ref1_up_stmt
 
                 ' メソッド内でref11と同じ変数に対する局所変数か自身のフィールドの定義参照のリスト
                 Dim use_list = From r In Sys.GetAllReference(fnc1.BlcFnc) Where Sys.OverlapRefPath(ref1, r) AndAlso Not r.DefRef AndAlso (Not TypeOf r Is TDot OrElse CType(r, TDot).IsSelfField())
@@ -450,7 +467,10 @@ Partial Public Class TProject
                     ' ref2を含む文の余分な条件を取り除いた前提条件
                     Dim cnd2 As TApply = Sys.GetTermPreConditionClean(ref2)
 
-                    ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾するなら、その使用参照は除外する。
+                    If Sys.Consistent2(cnd1, cnd2) Then
+                        ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾しない場合
+
+                    End If
                 Next
             Next
         Next
@@ -499,7 +519,11 @@ Partial Public Class TProject
                         For Each dot1 In From d In parent_dot_list Where d.TrmDot Is Nothing AndAlso d.DefRef
 
                             ' dot1を含む文の余分な条件を取り除いた前提条件
-                            Dim cnd1 As TApply = Sys.GetTermPreConditionClean(dot1)
+                            Dim dot1_up_stmt As TStatement = Sys.UpStmtProper(dot1)
+                            Dim cnd1 As TApply = Sys.GetPreConditionClean(dot1_up_stmt)
+
+                            ' CopyでUpTrmを使う。
+                            cnd1.UpTrm = dot1_up_stmt
 
                             ' 元の仮想メソッドで参照パスが共通の定義参照のリストを得る。
                             Dim child_parent_overlap_dot_list = From d In child_parent_dot_list Where Sys.OverlapRefPath(dot1, CType(d.UpTrm, TDot))
@@ -507,12 +531,19 @@ Partial Public Class TProject
 
 
                                 ' dot2を含む文の余分な条件を取り除いた前提条件
-                                Dim cnd2 As TApply = Sys.GetTermPreConditionClean(dot2)
+                                Dim dot2_up_stmt As TStatement = Sys.UpStmtProper(dot2)
+                                Dim cnd2 As TApply = Sys.GetPreConditionClean(dot2_up_stmt)
+
+                                ' CopyでUpTrmを使う。
+                                cnd2.UpTrm = dot2_up_stmt
 
                                 ' 前提条件cnd2で親のフィールド参照を自身のフィールド参照に変換する。
                                 Dim nrm_cnd As TApply = Sys.NormalizeReference(Me, cnd2, fld1)
 
-                                ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾するなら、その使用参照は除外する。
+                                If Sys.Consistent2(cnd1, nrm_cnd) Then
+                                    ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾しない場合
+
+                                End If
                             Next
                         Next
 
@@ -524,7 +555,14 @@ Partial Public Class TProject
                         For Each dot1 In child_def_dot_list
 
                             ' dot1を含む文の余分な条件を取り除いた前提条件
-                            Dim cnd1 As TApply = Sys.GetTermPreConditionClean(dot1)
+                            Dim dot_up_stmt As TStatement = Sys.UpStmtProper(dot1)
+                            Dim cnd1 As TApply = Sys.GetPreConditionClean(dot_up_stmt)
+                            If cnd1.ArgApp.Count <> 0 AndAlso cnd1.ArgApp(0) Is Nothing Then
+                                cnd1 = Sys.GetPreConditionClean(dot_up_stmt)
+                            End If
+
+                            ' CopyでUpTrmを使う。
+                            cnd1.UpTrm = dot_up_stmt
 
                             ' 前提条件cnd1で親のフィールド参照を自身のフィールド参照に変換する。
                             Dim nrm_cnd As TApply = Sys.NormalizeReference(Me, cnd1, fld1)
@@ -536,7 +574,7 @@ Partial Public Class TProject
                                 ' フィールドがリストでない場合
 
                                 ' 親の仮想メソッド内でfld1の使用参照のリストを求める。
-                                parent_use_dot_list = (From d In parent_dot_list Where d.TrmDot Is Nothing AndAlso d.VarRef Is fld1 AndAlso Sys.OverlapRefPath(dot1, CType(d.UpTrm, TDot))).ToList()
+                                parent_use_dot_list = (From d In parent_dot_list Where d.TrmDot Is Nothing AndAlso d.VarRef Is fld1 AndAlso TypeOf d.UpTrm Is TDot AndAlso Sys.OverlapRefPath(dot1, CType(d.UpTrm, TDot))).ToList()
                             Else
                                 ' フィールドがリストの場合
 
@@ -550,7 +588,10 @@ Partial Public Class TProject
                                 ' dot2を含む文の余分な条件を取り除いた前提条件
                                 Dim cnd2 As TApply = Sys.GetTermPreConditionClean(dot2)
 
-                                ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾するなら、その使用参照は除外する。
+                                If Sys.Consistent2(nrm_cnd, cnd2) Then
+                                    ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾しない場合
+
+                                End If
                             Next
                         Next
                     Next
@@ -695,6 +736,13 @@ Partial Public Class TProject
         ' 変数参照を解決する
         Dim set_ref As New TSetRefDeclarative
         set_ref.NaviFunction(fnc1)
+
+        ' DefRefをセットする。
+        Dim set_def_ref = New TNaviSetDefRef()
+        set_def_ref.NaviFunction(fnc1, Nothing)
+
+        Dim navi_set_ref_stmt As New TNaviSetRefStmt
+        navi_set_ref_stmt.NaviFunction(fnc1)
 
         Dim set_up_trm As New TNaviSetUpTrm
         set_up_trm.NaviFunction(fnc1, Nothing)
@@ -947,7 +995,7 @@ Partial Public Class TProject
     ' クラスの場合分けのIf文からクラスごとのメソッドを作る。
     Public Class TNaviMakeVirtualizableIfMethod
         Inherits TDeclarative
-        Public VirtualizedMethodList As New TList(Of TFunction)
+        Public UDA As TUseDefineAnalysis
 
         Public Function CopyAncestorBlock(if1 As TIf, blc1 As TBlock, cpy As TCopy) As TBlock
             Dim up_blc As TBlock = Sys.UpBlock(if1)
@@ -1030,7 +1078,7 @@ Partial Public Class TProject
                         Dim set_up_trm As New TNaviSetUpTrm
                         set_up_trm.NaviFunction(fnc1, Nothing)
 
-                        VirtualizedMethodList.Add(fnc1)
+                        UDA.VirtualizedMethodList.Add(fnc1)
                     End If
                 End With
             End If

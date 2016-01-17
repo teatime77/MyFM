@@ -1071,7 +1071,9 @@ Public Class TNaviSetRefStmt
             Else
                 Debug.Assert(False)
             End If
+
             CurrentStatement = CType(self, TStatement)
+            CurrentStatement.RefStmt.Clear()
         End If
     End Sub
 
