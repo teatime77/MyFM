@@ -294,7 +294,7 @@ Public Class TDataflow
 
                     '-------------------------------------------------- 代入時の条件と、文の実行の条件の無矛盾の判定を表示する。
 
-                    If NormalizedCondition Is Nothing OrElse Sys.Consistent(NormalizedCondition, PreCondition) Then
+                    If NormalizedCondition Is Nothing OrElse Sys.Consistent2(NormalizedCondition, PreCondition) Then
                         ' 代入時の条件と、文の実行の条件が矛盾しない場合
 
                         Dim afr As New TAffectedRef(Change, ref1, ref_type, RefChangeableUpStmt)
@@ -887,6 +887,29 @@ Public Enum EDependency
     Unknown
 End Enum
 
+Public Class TUseDefineAnalysis
+    Public VirtualizedMethodList As TList(Of TFunction)
+    Public UseDefineChainTable As New Dictionary(Of TReference, TUseDefine)
+    Public StatementConditionTable As New Dictionary(Of TStatement, TApply)
+End Class
+
+Public Class TUseDefine
+    Public ParentRef As TUseDefine
+    Public UseRef As TReference
+    Public Cnd As TApply
+    Public DefineRefList As New List(Of TUseDefine)
+
+    Public Shared Iterator Function ThisAncestorChainList(chain1 As TUseDefine) As IEnumerable(Of TUseDefine)
+        Yield chain1
+        Dim chain2 As TUseDefine = chain1.ParentRef
+        Do While chain2 IsNot Nothing
+            Yield chain2
+            chain2 = chain2.ParentRef
+        Loop
+    End Function
+
+End Class
+
 ' 依存関係
 Public Class TDependency
     Public TypeDep As EDependency = EDependency.Unknown
@@ -1373,7 +1396,7 @@ Public Class Sys
     End Function
 
     ' 参照パスが重なるならTrueを返す。
-    Public Shared Function OverlapRefPath(ref1 As TDot, ref2 As TDot) As Boolean
+    Public Shared Function OverlapRefPath(ref1 As TReference, ref2 As TReference) As Boolean
         If ref1.VarRef IsNot ref2.VarRef Then
             ' 同じ変数を指していない場合
 
@@ -1394,9 +1417,9 @@ Public Class Sys
     End Function
 
     ' 指定したフィールドのリストの要素を参照するドットならtrue
-    Public Shared Function ChildElementDot(dot1 As TDot, fld1 As TField) As Boolean
-        If TypeOf dot1.TrmDot Is TReference Then
-            Dim var1 As TVariable = CType(dot1.TrmDot, TReference).VarRef
+    Public Shared Function ChildElementDot(parent_dot As TDot, fld1 As TField) As Boolean
+        If TypeOf parent_dot.TrmDot Is TReference Then
+            Dim var1 As TVariable = CType(parent_dot.TrmDot, TReference).VarRef
             If TypeOf var1.UpVar Is TQuery Then
                 Dim qry As TQuery = CType(var1.UpVar, TQuery)
                 If qry.VarQry Is var1 AndAlso TypeOf qry.SeqQry Is TDot Then
@@ -2450,21 +2473,18 @@ Public Class Sys
         Return pre_cond
     End Function
 
-    ' P ∧ Q が無矛盾なら true を返す。
-    Public Shared Function Consistent(P As TApply, Q As TApply) As Boolean
+    Public Shared Function Consistent(P As TApply) As Boolean
         Dim i1 As Integer, i2 As Integer, app1 As TApply, app2 As TApply, inf As EBinomialInference
 
-        i1 = 0
-        Do While i1 < P.ArgApp.Count
+        For i1 = 0 To P.ArgApp.Count - 1
             If TypeOf P.ArgApp(i1) Is TApply Then
                 app1 = CType(P.ArgApp(i1), TApply)
                 Select Case app1.TypeApp
                     Case EToken.eInstanceof, EToken.eIs, EToken.eEq
 
-                        i2 = 0
-                        Do While i2 < Q.ArgApp.Count
-                            If TypeOf Q.ArgApp(i2) Is TApply Then
-                                app2 = CType(Q.ArgApp(i2), TApply)
+                        For i2 = i1 + 1 To P.ArgApp.Count - 1
+                            If TypeOf P.ArgApp(i2) Is TApply Then
+                                app2 = CType(P.ArgApp(i2), TApply)
 
                                 If app2.TypeApp = app1.TypeApp AndAlso Sys.IsEqTrm(app1.ArgApp(0), app2.ArgApp(0)) Then
                                     ' 対象が同じ場合
@@ -2476,14 +2496,44 @@ Public Class Sys
                                     End If
                                 End If
                             End If
-                            i2 += 1
-                        Loop
+
+                        Next
                 End Select
             End If
-
-            i1 += 1
-        Loop
+        Next
 
         Return True
+    End Function
+
+    ' P ∧ Q が無矛盾なら true を返す。
+    Public Shared Function Consistent2(P As TApply, Q As TApply) As Boolean
+        Dim and1 As TApply = TApply.NewOpr(EToken.eAnd)
+
+        and1.ArgApp.AddRange(FlattenAndSub(P))
+        and1.ArgApp.AddRange(FlattenAndSub(Q))
+
+        Return Consistent(and1)
+    End Function
+
+    Public Shared Iterator Function FlattenAndSub(trm1 As TTerm) As IEnumerable(Of TTerm)
+        If Not TypeOf trm1 Is TApply Then
+            Yield trm1
+        Else
+            Dim app1 As TApply = CType(trm1, TApply)
+            If app1.TypeApp <> EToken.eAnd Then
+                Yield app1
+            Else
+
+                For Each trm2 In From x In app1.ArgApp From y In FlattenAndSub(x) Select y
+                    Yield trm2
+                Next
+            End If
+        End If
+    End Function
+
+    Public Shared Function FlattenAnd(trm1 As TTerm) As TApply
+        Dim and1 As TApply = TApply.NewOpr(EToken.eAnd)
+        and1.ArgApp.AddRange(FlattenAndSub(trm1))
+        Return and1
     End Function
 End Class
