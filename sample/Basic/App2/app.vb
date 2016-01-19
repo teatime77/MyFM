@@ -69,16 +69,16 @@
         pizza.Velocity.X = 2
         pizza.Velocity.Y = 2
         ShapeList.push(pizza)
+        y += 100
 
         Dim grp = New TGroup()
-        grp.SetBoundingRectangle(300, 300, 100, 100)
+        grp.SetBoundingRectangle(x, y, 100, 100)
         grp.Velocity.X = 2
         grp.Velocity.Y = 2
         ShapeList.push(grp)
-        y += 100
 
         Dim rc3 = New TRectangle()
-        rc3.SetBoundingRectangle(-25, -25, 50, 50)
+        rc3.SetBoundingRectangle(-2, -2, 50, 50)
         rc3.Velocity.X = 1
         rc3.Velocity.Y = 1
         rc3.BackgroundColor = "rgb(0, 255, 0)"
@@ -88,7 +88,7 @@
         grp.Children.push(rc3)
 
         Dim txt2 = New TLabel()
-        txt2.SetBoundingRectangle(25, 25, 50, 50)
+        txt2.SetBoundingRectangle(2, 2, 50, 50)
         txt2.Velocity.X = 4
         txt2.Velocity.Y = 4
         txt2.BackgroundColor = "rgb(192, 80, 77)"

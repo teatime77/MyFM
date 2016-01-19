@@ -13,6 +13,7 @@
         circle.Velocity.Y = 2
         ShapeList.push(circle)
         y += 100
+
         Dim rc1 = New TRectangle()
         rc1.SetBoundingRectangle(x, y, 80, 40)
         rc1.Velocity.X = 1
@@ -22,6 +23,7 @@
         rc1.BorderWidth = 10
         ShapeList.push(rc1)
         y += 100
+
         Dim rc2 = New TRectangle()
         rc2.SetBoundingRectangle(x, y, 80, 40)
         rc2.Velocity.X = 2
@@ -38,6 +40,7 @@
         ell1.BorderWidth = 10
         ShapeList.push(ell1)
         y += 100
+
         Dim txt1 = New TLabel()
         txt1.SetBoundingRectangle(x, y, 80, 40)
         txt1.Velocity.X = 4
@@ -49,6 +52,7 @@
         txt1.Text = "こんにちは4"
         ShapeList.push(txt1)
         y += 100
+
         Dim razania = New TPicture()
         razania.Load("../img/food_lasagna_razania.png")
         razania.SetBoundingRectangle(x, y, 100, 741 / 8.0)
@@ -56,20 +60,24 @@
         razania.Velocity.Y = 2
         ShapeList.push(razania)
         y += 100
+
         Dim pizza = New TPicture()
         pizza.Load("../img/food_pizza_takuhai.png")
         pizza.SetBoundingRectangle(x, y, 100, 712 / 8.0)
         pizza.Velocity.X = 2
         pizza.Velocity.Y = 2
         ShapeList.push(pizza)
+        y += 100
+
         Dim grp = New TGroup()
-        grp.SetBoundingRectangle(300, 300, 100, 100)
+        grp.SetBoundingRectangle(x, y, 100, 100)
         grp.Velocity.X = 2
         grp.Velocity.Y = 2
         ShapeList.push(grp)
         y += 100
+
         Dim rc3 = New TRectangle()
-        rc3.SetBoundingRectangle(-25, -25, 50, 50)
+        rc3.SetBoundingRectangle(-2, -2, 50, 50)
         rc3.Velocity.X = 1
         rc3.Velocity.Y = 1
         rc3.BackgroundColor = "rgb(0, 255, 0)"
@@ -77,8 +85,9 @@
         rc3.BorderWidth = 10
         rc3.Parent = grp
         grp.Children.push(rc3)
+
         Dim txt2 = New TLabel()
-        txt2.SetBoundingRectangle(25, 25, 50, 50)
+        txt2.SetBoundingRectangle(2, 2, 50, 50)
         txt2.Velocity.X = 4
         txt2.Velocity.Y = 4
         txt2.BackgroundColor = "rgb(192, 80, 77)"
@@ -143,6 +152,7 @@
                         .BoundingRectangle.Position.X = Aggregate img In (From x In .Children Where TypeOf x Is TPicture) Into Min(img.BoundingRectangle.Position.X)
                         .BoundingRectangle.Position.X = Aggregate img In .Children Where TypeOf img Is TPicture Into Min(img.BoundingRectangle.Position.X)
 
+                        .Rotation += 0
                     End With
                 End If
 

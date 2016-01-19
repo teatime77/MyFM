@@ -118,6 +118,9 @@ Public Class TShape
 
     Public Overridable Sub Draw(gr As TGraphics)
     End Sub
+
+    Public Overridable Sub SetAbsCenter(gr As TGraphics)
+    End Sub
 End Class
 
 Public Class TGroup
@@ -130,6 +133,9 @@ Public Class TGroup
         AbsCenter = gr.Transform.MulPoint(Center)
         gr.translate(Center.X, Center.Y)
         gr.rotate(Rotation)
+        For Each x In Children
+            x.Draw(gr)
+        Next
         gr.restore()
     End Sub
 End Class

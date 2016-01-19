@@ -19,7 +19,7 @@
         Mama.Velocity.X = 2
         Mama.Velocity.Y = 2
         ShapeList.push(Mama)
-        y += 100
+        y += 50
 
         Grandma = New TPicture()
         Grandma.ImageList.push(MakeImage("../../../img/grandma1.png"))
@@ -29,7 +29,7 @@
         Grandma.Velocity.X = 2
         Grandma.Velocity.Y = 2
         ShapeList.push(Grandma)
-        y += 100
+        y += 50
 
         Kitty1 = New TPicture()
         Kitty1.ImageList.push(MakeImage("../../../img/kitty1_1.png"))
@@ -39,7 +39,7 @@
         Kitty1.Velocity.X = 2
         Kitty1.Velocity.Y = 2
         ShapeList.push(Kitty1)
-        y += 100
+        y += 50
 
         Kitty2 = New TPicture()
         Kitty2.ImageList.push(MakeImage("../../../img/kitty2_1.png"))
@@ -49,7 +49,7 @@
         Kitty2.Velocity.X = 2
         Kitty2.Velocity.Y = 2
         ShapeList.push(Kitty2)
-        y += 100
+        y += 50
 
         Kitty3 = New TPicture()
         Kitty3.ImageList.push(MakeImage("../../../img/kitty3_1.png"))
@@ -59,7 +59,7 @@
         Kitty3.Velocity.X = 2
         Kitty3.Velocity.Y = 2
         ShapeList.push(Kitty3)
-        y += 100
+        y += 50
 
         Dim rc1 = New TRectangle()
         rc1.SetBoundingRectangle(x, y, 80, 40)
@@ -69,7 +69,8 @@
         rc1.BorderColor = "#0000FF"
         rc1.BorderWidth = 10
         ShapeList.push(rc1)
-        y += 100
+        y += 50
+
         Dim rc2 = New TRectangle()
         rc2.SetBoundingRectangle(x, y, 80, 40)
         rc2.Velocity.X = 2
@@ -85,7 +86,8 @@
         ell1.BorderColor = "#0000FF"
         ell1.BorderWidth = 10
         ShapeList.push(ell1)
-        y += 100
+        y += 50
+
         Dim txt1 = New TLabel()
         txt1.SetBoundingRectangle(x, y, 80, 40)
         txt1.Velocity.X = 4
@@ -96,28 +98,32 @@
         txt1.TextColor = "#00FF00"
         txt1.Text = "こんにちは4"
         ShapeList.push(txt1)
-        y += 100
+        y += 50
+
         Dim razania = New TPicture()
         razania.Load("../img/food_lasagna_razania.png")
         razania.SetBoundingRectangle(x, y, 100, 741 / 8.0)
         razania.Velocity.X = 2
         razania.Velocity.Y = 2
         ShapeList.push(razania)
-        y += 100
+        y += 50
+
         Dim pizza = New TPicture()
         pizza.Load("../img/food_pizza_takuhai.png")
         pizza.SetBoundingRectangle(x, y, 100, 712 / 8.0)
         pizza.Velocity.X = 2
         pizza.Velocity.Y = 2
         ShapeList.push(pizza)
+        y += 50
+
         Dim grp = New TGroup()
-        grp.SetBoundingRectangle(300, 300, 100, 100)
+        grp.SetBoundingRectangle(x, y, 100, 100)
         grp.Velocity.X = 2
         grp.Velocity.Y = 2
         ShapeList.push(grp)
-        y += 100
+
         Dim rc3 = New TRectangle()
-        rc3.SetBoundingRectangle(-25, -25, 50, 50)
+        rc3.SetBoundingRectangle(-2, -2, 50, 50)
         rc3.Velocity.X = 1
         rc3.Velocity.Y = 1
         rc3.BackgroundColor = "rgb(0, 255, 0)"
@@ -125,8 +131,9 @@
         rc3.BorderWidth = 10
         rc3.Parent = grp
         grp.Children.push(rc3)
+
         Dim txt2 = New TLabel()
-        txt2.SetBoundingRectangle(25, 25, 50, 50)
+        txt2.SetBoundingRectangle(2, 2, 50, 50)
         txt2.Velocity.X = 4
         txt2.Velocity.Y = 4
         txt2.BackgroundColor = "rgb(192, 80, 77)"
