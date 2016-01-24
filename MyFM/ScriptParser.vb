@@ -870,6 +870,8 @@ Public Class TScriptParser
                 aggr1.FunctionAggr = EAggregateFunction.eMax
             Case "Min"
                 aggr1.FunctionAggr = EAggregateFunction.eMin
+            Case "Average"
+                aggr1.FunctionAggr = EAggregateFunction.eAverage
             Case Else
                 Debug.Assert(False)
         End Select

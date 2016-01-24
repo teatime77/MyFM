@@ -1054,7 +1054,7 @@ Public Class TNaviMakeSourceCode
                                     If test_class.OrgCla IsNot Nothing Then
                                         tw.Fmt("Array", EToken.eDot, "isArray", EToken.eLP, .ArgApp(0).TokenList, EToken.eRP)
                                     Else
-                                        tw.Fmt(.ArgApp(0).TokenList, EToken.eInstanceof, test_class.TokenListVar)
+                                        tw.Fmt(EToken.eLP, .ArgApp(0).TokenList, EToken.eInstanceof, test_class.TokenListVar, EToken.eRP)
                                     End If
                                 End If
 
@@ -1179,6 +1179,8 @@ Public Class TNaviMakeSourceCode
                                     tw.Fmt(".Max()")
                                 Case EAggregateFunction.eMin
                                     tw.Fmt(".Min()")
+                                Case EAggregateFunction.eAverage
+                                    tw.Fmt(".Average()")
                                 Case Else
                                     Debug.Assert(False)
                             End Select
@@ -1200,6 +1202,8 @@ Public Class TNaviMakeSourceCode
                                     tw.Fmt("Max")
                                 Case EAggregateFunction.eMin
                                     tw.Fmt("Min")
+                                Case EAggregateFunction.eAverage
+                                    tw.Fmt("Average")
                                 Case Else
                                     Debug.Assert(False)
                             End Select

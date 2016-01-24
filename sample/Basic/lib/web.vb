@@ -35,6 +35,7 @@ End Class
 
 Public Class TList(Of T)
     Inherits List(Of T)
+    Public length As Integer
 
     <_Parent()> Public UpList As Object
 

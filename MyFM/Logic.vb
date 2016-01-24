@@ -37,6 +37,7 @@ Public Enum EAggregateFunction
     eSum
     eMax
     eMin
+    eAverage
 End Enum
 
 Public Enum EToken

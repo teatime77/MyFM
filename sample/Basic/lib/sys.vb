@@ -379,6 +379,10 @@ Public Class Math
     Public Shared Function Sin(d As Double) As Double
         Return 0
     End Function
+
+    Public Shared Function random() As Double
+        Return 0
+    End Function
 End Class
 
 Public MustInherit Class Attribute

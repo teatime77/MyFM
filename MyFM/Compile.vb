@@ -874,7 +874,7 @@ Partial Public Class TProject
                             if1.IfBlc(0).BlcIf.AddStmtBlc(New TAssignment(New TDot(New TDot(Nothing, fld), list_parent_field), New TReference(self_var)))
 
                             ' 直前のフィールドのリストを得る。
-                            Dim prev_field_list = From f In element_type.FldCla Where f.ModVar.isPrev
+                            Dim prev_field_list = From c In Sys.DistinctThisAncestorSuperClassList(element_type) From f In c.FldCla Where f.ModVar.isPrev Select f
                             Dim prev_var As TVariable = Nothing
 
                             If prev_field_list.Any() Then
