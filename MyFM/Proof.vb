@@ -63,7 +63,7 @@ Public Class TDataflow
                     trans = New TTransRelative(E相対位置.直前)
                 End If
 
-                J = TApply.NewOpr(EToken.eAnd)
+                J = TApply.NewOpr(EToken.And_)
                 For Each trm In change.ConditionChn.ArgApp
                     Dim trm_trans As TTerm
 
@@ -2271,7 +2271,7 @@ Public Class Sys
                     ' 手前のIfブロックの場合
 
                     ' 否定の条件を追加する
-                    not1 = TApply.NewOpr(EToken.eNot)
+                    not1 = TApply.NewOpr(EToken.Not_)
 
                     Debug.Assert(cnd1 IsNot Nothing)
                     not1.AddInArg(cnd1)
@@ -2315,7 +2315,7 @@ Public Class Sys
             Debug.Assert(False)
         End If
 
-        If stmt1.TypeStmt = EToken.eProtected Then
+        If stmt1.TypeStmt = EToken.Protected_ Then
             Debug.Assert(False)
         End If
 
@@ -2342,7 +2342,7 @@ Public Class Sys
         Dim A As TClass, B As TClass, A_subset_B As Boolean, B_subset_A As Boolean, A_EQ_B As Boolean
 
         Select Case P.TypeApp
-            Case EToken.eInstanceof
+            Case EToken.Instanceof
                 A = CType(P.ArgApp(1), TReference).VarRef
                 B = CType(Q.ArgApp(1), TReference).VarRef
 
@@ -2395,7 +2395,7 @@ Public Class Sys
                     End If
                 End If
 
-            Case EToken.eIs, EToken.eEq
+            Case EToken.Is_, EToken.Eq
                 Debug.WriteLine("is {0} {1} {2} {3}", P.Negation, P.ArgApp(1), Q.Negation, Q.ArgApp(1))
                 A_EQ_B = Sys.IsEqTrm(P.ArgApp(1), Q.ArgApp(1))
                 If Not P.Negation Then
@@ -2432,7 +2432,7 @@ Public Class Sys
                     End If
                 End If
 
-            Case EToken.eLT
+            Case EToken.LT
                 Debug.WriteLine("eq {0} {1} {2} {3}", P.Negation, P.ArgApp(1), Q.Negation, Q.ArgApp(1))
                 If Not P.Negation Then
                     If Not Q.Negation Then
@@ -2461,13 +2461,13 @@ Public Class Sys
             If TypeOf trm Is TApply Then
                 app1 = CType(trm, TApply)
                 Select Case app1.TypeApp
-                    Case EToken.eIsNot
+                    Case EToken.IsNot_
                         app1.Negation = Not app1.Negation
-                        app1.TypeApp = EToken.eIs
+                        app1.TypeApp = EToken.Is_
 
-                    Case EToken.eNE
+                    Case EToken.NE
                         app1.Negation = Not app1.Negation
-                        app1.TypeApp = EToken.eEq
+                        app1.TypeApp = EToken.Eq
                 End Select
             End If
         Next
@@ -2478,7 +2478,7 @@ Public Class Sys
             If TypeOf and1.ArgApp(i1) Is TApply Then
                 app1 = CType(and1.ArgApp(i1), TApply)
                 Select Case app1.TypeApp
-                    Case EToken.eInstanceof, EToken.eIs, EToken.eEq
+                    Case EToken.Instanceof, EToken.Is_, EToken.Eq
 
                         For i2 = i1 + 1 To and1.ArgApp.Count - 1
                             If TypeOf and1.ArgApp(i2) Is TApply Then
@@ -2521,7 +2521,7 @@ Public Class Sys
         Dim pre_cond As TApply
 
         ' 文を実行する前提条件を返す
-        pre_cond = TApply.NewOpr(EToken.eAnd)
+        pre_cond = TApply.NewOpr(EToken.And_)
         CalcPreCondition(stmt, pre_cond)
 
         ' 余分な条件を取り除く
@@ -2537,7 +2537,7 @@ Public Class Sys
             If TypeOf P.ArgApp(i1) Is TApply Then
                 app1 = CType(P.ArgApp(i1), TApply)
                 Select Case app1.TypeApp
-                    Case EToken.eInstanceof, EToken.eIs, EToken.eEq
+                    Case EToken.Instanceof, EToken.Is_, EToken.Eq
 
                         For i2 = i1 + 1 To P.ArgApp.Count - 1
                             If TypeOf P.ArgApp(i2) Is TApply Then
@@ -2564,7 +2564,7 @@ Public Class Sys
 
     ' P ∧ Q が無矛盾なら true を返す。
     Public Shared Function Consistent2(P As TApply, Q As TApply) As Boolean
-        Dim and1 As TApply = TApply.NewOpr(EToken.eAnd)
+        Dim and1 As TApply = TApply.NewOpr(EToken.And_)
 
         and1.ArgApp.AddRange(FlattenAndSub(P))
         and1.ArgApp.AddRange(FlattenAndSub(Q))
@@ -2577,7 +2577,7 @@ Public Class Sys
             Yield trm1
         Else
             Dim app1 As TApply = CType(trm1, TApply)
-            If app1.TypeApp <> EToken.eAnd Then
+            If app1.TypeApp <> EToken.And_ Then
                 Yield app1
             Else
 
@@ -2589,7 +2589,7 @@ Public Class Sys
     End Function
 
     Public Shared Function FlattenAnd(trm1 As TTerm) As TApply
-        Dim and1 As TApply = TApply.NewOpr(EToken.eAnd)
+        Dim and1 As TApply = TApply.NewOpr(EToken.And_)
         and1.ArgApp.AddRange(FlattenAndSub(trm1))
         Return and1
     End Function

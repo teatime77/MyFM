@@ -628,7 +628,7 @@ Partial Public Class TProject
                 End If
 
                 ' 代入文の実行条件と使用定義連鎖の実行条件のAndを得る。
-                Dim and1 As TApply = TApply.NewOpr(EToken.eAnd)
+                Dim and1 As TApply = TApply.NewOpr(EToken.And_)
                 and1.ArgApp.Add(cnd1)
                 and1.ArgApp.AddRange(From c In TUseDefine.ThisAncestorChainList(child_chain) Select c.Cnd)
 
@@ -753,7 +753,7 @@ Partial Public Class TProject
         fnc1.ClaFnc = cls1
         fnc1.ModVar = New TModifier()
         fnc1.ModVar.isPublic = True
-        fnc1.TypeFnc = EToken.eSub
+        fnc1.TypeFnc = EToken.Sub_
         fnc1.ThisFnc = New TLocalVariable(ParsePrj.ThisName, cls1)
         fnc1.BlcFnc = New TBlock()
         fnc1.IsNew = False
@@ -838,7 +838,7 @@ Partial Public Class TProject
                         app1.AddInArg(New TDot(Nothing, fld))
                         app1.AddInArg(New TReference(self_var))
 
-                        Dim if1 As TIf = MakeNotNullIf(TApply.NewOpr2(EToken.eIsNot, New TDot(Nothing, fld), New TReference(ParsePrj.NullName())))
+                        Dim if1 As TIf = MakeNotNullIf(TApply.NewOpr2(EToken.IsNot_, New TDot(Nothing, fld), New TReference(ParsePrj.NullName())))
                         if1.IfBlc(0).BlcIf.StmtBlc.Add(New TCall(app1))
 
                         fnc1.BlcFnc.AddStmtBlc(if1)
@@ -867,7 +867,7 @@ Partial Public Class TProject
                             ' 未処理のクラスのリストに追加する。
                             pending_class_list.AddRange(pending_this_descendant_sub_class_list)
 
-                            Dim if1 As TIf = MakeNotNullIf(TApply.NewOpr2(EToken.eIsNot, New TDot(Nothing, fld), New TReference(ParsePrj.NullName())))
+                            Dim if1 As TIf = MakeNotNullIf(TApply.NewOpr2(EToken.IsNot_, New TDot(Nothing, fld), New TReference(ParsePrj.NullName())))
 
                             ' リストの親フィールドに親の値を代入する。
                             Dim list_parent_field As TField = (From f In fld.TypeVar.OrgCla.FldCla Where f.ModVar.isParent).First()
@@ -966,7 +966,7 @@ Partial Public Class TProject
 
                     ' Baseを呼ぶ
                     Dim app1 As New TApply
-                    app1.TypeApp = EToken.eBaseCall
+                    app1.TypeApp = EToken.BaseCall
                     app1.FncApp = New TReference(set_parent_name)
 
                     app1.AddInArg(New TReference(fnc1.ArgFnc(0)))

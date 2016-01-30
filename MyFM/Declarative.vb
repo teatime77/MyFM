@@ -282,11 +282,11 @@ Public Class TDeclarative
             ElseIf TypeOf stmt1 Is TComment Then
             Else
                 Select Case stmt1.TypeStmt
-                    Case EToken.eExitDo
+                    Case EToken.ExitDo
 
-                    Case EToken.eExitFor
+                    Case EToken.ExitFor
 
-                    Case EToken.eExitSub
+                    Case EToken.ExitSub
 
                     Case Else
                         Debug.Assert(False)
@@ -401,7 +401,7 @@ Public Class TSetRefDeclarative
             If TypeOf (cnd) Is TApply Then
                 Dim app1 As TApply = CType(cnd, TApply)
 
-                If app1.TypeApp = EToken.eInstanceof AndAlso TypeOf (app1.ArgApp(0)) Is TReference AndAlso CType(app1.ArgApp(0), TReference).VarRef Is var1 Then
+                If app1.TypeApp = EToken.Instanceof AndAlso TypeOf (app1.ArgApp(0)) Is TReference AndAlso CType(app1.ArgApp(0), TReference).VarRef Is var1 Then
                     Dim o2 As Object = app1.ArgApp(1)
                     Return True
                 End If
@@ -418,11 +418,11 @@ Public Class TSetRefDeclarative
             If TypeOf trm1 Is TConstant Then
                 With CType(trm1, TConstant)
                     Select Case .TypeAtm
-                        Case EToken.eString
+                        Case EToken.String_
                             .TypeTrm = .ProjectTrm.StringType
-                        Case EToken.eInt, EToken.eHex
+                        Case EToken.Int, EToken.Hex
                             .TypeTrm = .ProjectTrm.IntType
-                        Case EToken.eChar
+                        Case EToken.Char_
                             .TypeTrm = .ProjectTrm.CharType
                         Case Else
                             Debug.WriteLine("@h")
@@ -467,16 +467,16 @@ Public Class TSetRefDeclarative
             ElseIf TypeOf trm1 Is TApply Then
                 With CType(trm1, TApply)
                     Select Case .TypeApp
-                        Case EToken.eAnd, EToken.eOR, EToken.eNot, EToken.eAnp
+                        Case EToken.And_, EToken.OR_, EToken.Not_, EToken.Anp
                             .TypeTrm = .ProjectTrm.BoolType
 
-                        Case EToken.eEq, EToken.eNE, EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eIsNot, EToken.eInstanceof, EToken.eIs
+                        Case EToken.Eq, EToken.NE, EToken.ASN, EToken.LT, EToken.GT, EToken.ADDEQ, EToken.SUBEQ, EToken.MULEQ, EToken.DIVEQ, EToken.MODEQ, EToken.LE, EToken.GE, EToken.IsNot_, EToken.Instanceof, EToken.Is_
                             .TypeTrm = .ProjectTrm.BoolType
 
-                        Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC, EToken.eBitOR
+                        Case EToken.ADD, EToken.Mns, EToken.MUL, EToken.DIV, EToken.MOD_, EToken.INC, EToken.DEC, EToken.BitOR
                             .TypeTrm = .ArgApp(0).TypeTrm
 
-                        Case EToken.eAppCall
+                        Case EToken.AppCall
                             If TypeOf .FncApp Is TReference Then
 
                                 Dim ref1 As TReference = CType(.FncApp, TReference)
@@ -531,25 +531,25 @@ Public Class TSetRefDeclarative
                                 End If
                             End If
 
-                        Case EToken.eBaseCall
+                        Case EToken.BaseCall
                             .TypeTrm = Nothing
 
-                        Case EToken.eBaseNew
+                        Case EToken.BaseNew
                             .TypeTrm = Nothing
 
-                        Case EToken.eAs
+                        Case EToken.As_
                             .TypeTrm = .ClassApp
 
                         Case EToken.Question
                             .TypeTrm = .ArgApp(1).TypeTrm
 
-                        Case EToken.eInstanceof
+                        Case EToken.Instanceof
                             .TypeTrm = .ProjectTrm.BoolType
 
-                        Case EToken.eNew
+                        Case EToken.New_
                             .TypeTrm = .NewApp
 
-                        Case EToken.eGetType
+                        Case EToken.GetType_
                             .TypeTrm = .ProjectTrm.TypeType
 
                         Case Else
@@ -640,7 +640,7 @@ Public Class TSetRefDeclarative
                         Dim app1 As TApply = CType(obj, TApply)
 
                         Debug.Assert(self Is app1.FncApp)
-                        Debug.Assert(app1.TypeApp = EToken.eAppCall)
+                        Debug.Assert(app1.TypeApp = EToken.AppCall)
 
                         If .IsAddressOf Then
                             .VarRef = TProject.FindFieldFunction(.TypeDot, .NameRef, Nothing)
@@ -680,7 +680,7 @@ Public Class TSetRefDeclarative
 
                         If ref1 Is app1.FncApp Then
                             Select Case app1.TypeApp
-                                Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC, EToken.eBitOR
+                                Case EToken.ADD, EToken.Mns, EToken.MUL, EToken.DIV, EToken.MOD_, EToken.INC, EToken.DEC, EToken.BitOR
 
                                     If .VarRef Is Nothing Then
 
@@ -695,21 +695,21 @@ Public Class TSetRefDeclarative
 
                                             Dim name1 As String = ""
                                             Select Case app1.TypeApp
-                                                Case EToken.eADD
+                                                Case EToken.ADD
                                                     name1 = "__Add"
-                                                Case EToken.eMns
+                                                Case EToken.Mns
                                                     name1 = "__Mns"
-                                                Case EToken.eMUL
+                                                Case EToken.MUL
                                                     name1 = "__Mul"
-                                                Case EToken.eDIV
+                                                Case EToken.DIV
                                                     name1 = "__Div"
-                                                Case EToken.eMOD
+                                                Case EToken.MOD_
                                                     name1 = "__Mod"
-                                                Case EToken.eINC
+                                                Case EToken.INC
                                                     name1 = "__Inc"
-                                                Case EToken.eDEC
+                                                Case EToken.DEC
                                                     name1 = "__Dec"
-                                                Case EToken.eBitOR
+                                                Case EToken.BitOR
                                                     name1 = "__BitOr"
                                             End Select
 
@@ -728,7 +728,7 @@ Public Class TSetRefDeclarative
                                         End If
                                     End If
 
-                                Case EToken.eAppCall
+                                Case EToken.AppCall
                                     .VarRef = TProject.FindFieldFunction(app1.FunctionTrm.ClaFnc, .NameRef, app1.ArgApp)
                                     If .VarRef Is Nothing Then
 
@@ -739,7 +739,7 @@ Public Class TSetRefDeclarative
                                         End If
                                     End If
 
-                                Case EToken.eNew
+                                Case EToken.New_
                                     If app1.NewApp.DimCla = 0 Then
                                         .VarRef = TProject.FindNew(app1.NewApp, app1.ArgApp)
                                         'AndAlso app1.ArgApp.Count <> 0 AndAlso app1.NewApp.DimCla = 0
@@ -751,12 +751,12 @@ Public Class TSetRefDeclarative
                                     End If
                                     Return
 
-                                Case EToken.eBaseCall
+                                Case EToken.BaseCall
                                     .VarRef = TProject.FindFieldFunction(.FunctionTrm.ClaFnc.SuperClassList(0), .NameRef, app1.ArgApp)
                                     Debug.Assert(.VarRef IsNot Nothing AndAlso TypeOf .VarRef Is TFunction)
                                     Return
 
-                                Case EToken.eBaseNew
+                                Case EToken.BaseNew
                                     .VarRef = TProject.FindNew(.FunctionTrm.ClaFnc.SuperClassList(0), app1.ArgApp)
                                     If .VarRef Is Nothing Then
                                         If app1.ArgApp.Count <> 0 Then
@@ -788,7 +788,7 @@ Public Class TSetRefDeclarative
             ElseIf TypeOf self Is TApply Then
                 With CType(self, TApply)
                     Select Case .TypeApp
-                        Case EToken.eAppCall
+                        Case EToken.AppCall
                             If .FncApp IsNot Nothing Then
 
                                 If TypeOf .FncApp Is TReference AndAlso TypeOf CType(.FncApp, TReference).VarRef Is TFunction Then
@@ -821,8 +821,8 @@ Public Class TSetRefDeclarative
                                 Debug.Print("想定外 2")
                             End If
 
-                        Case EToken.eADD, EToken.eMns, EToken.eMUL, EToken.eDIV, EToken.eMOD, EToken.eINC, EToken.eDEC, EToken.eBitOR, EToken.Question
-                        Case EToken.eNew, EToken.eCast, EToken.eGetType, EToken.eBaseNew, EToken.eBaseCall
+                        Case EToken.ADD, EToken.Mns, EToken.MUL, EToken.DIV, EToken.MOD_, EToken.INC, EToken.DEC, EToken.BitOR, EToken.Question
+                        Case EToken.New_, EToken.Cast, EToken.GetType_, EToken.BaseNew, EToken.BaseCall
                         Case Else
                             If .IsLog() Then
                             Else
@@ -984,12 +984,12 @@ Public Class TNaviSetLabel
         If TypeOf self Is TExit Then
             With CType(self, TExit)
 
-                If .TypeStmt = EToken.eExitDo OrElse .TypeStmt = EToken.eExitFor Then
+                If .TypeStmt = EToken.ExitDo OrElse .TypeStmt = EToken.ExitFor Then
                     Dim for_do As TFor = Nothing
 
                     Dim for_select As Object = (From obj In Sys.AncestorList(self) Where TypeOf (obj) Is TFor OrElse TypeOf obj Is TSelect).First()
                     Select Case .TypeStmt
-                        Case EToken.eExitDo
+                        Case EToken.ExitDo
                             If Not (TypeOf for_select Is TFor AndAlso CType(for_select, TFor).IsDo) Then
                                 ' 直近のSelectまたはループがDoでない場合
 
@@ -997,7 +997,7 @@ Public Class TNaviSetLabel
                                 for_do = CType((From obj In Sys.AncestorList(self) Where TypeOf (obj) Is TFor AndAlso CType(obj, TFor).IsDo).First(), TFor)
                             End If
 
-                        Case EToken.eExitFor
+                        Case EToken.ExitFor
                             If Not (TypeOf for_select Is TFor AndAlso Not CType(for_select, TFor).IsDo) Then
                                 ' 直近のSelectまたはループがForでない場合
 
@@ -1122,7 +1122,7 @@ Public Class TNaviSetVirtualizableIf
         If TypeOf if_blc.CndIf Is TApply Then
             Dim app1 As TApply = CType(if_blc.CndIf, TApply)
 
-            If TypeOf app1.ArgApp(0) Is TReference AndAlso app1.TypeApp = EToken.eInstanceof Then
+            If TypeOf app1.ArgApp(0) Is TReference AndAlso app1.TypeApp = EToken.Instanceof Then
                 Dim ref1 As TReference = CType(app1.ArgApp(0), TReference)
 
                 If ref1.VarRef Is if_blc.FunctionTrm.ArgFnc(0) Then

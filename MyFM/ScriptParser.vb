@@ -56,16 +56,16 @@ Public Class TScriptParser
     Public Function GetTkn(type1 As EToken) As TToken
         Dim tkn1 As TToken
 
-        If type1 = CurTkn.TypeTkn OrElse type1 = EToken.eUnknown Then
+        If type1 = CurTkn.TypeTkn OrElse type1 = EToken.Unknown Then
             tkn1 = CurTkn
 
             CurPos += 1
-            Do While CurPos < CurVTkn.Count AndAlso (CurVTkn(CurPos).TypeTkn = EToken.eLineComment OrElse CurVTkn(CurPos).TypeTkn = EToken.eBlockComment)
+            Do While CurPos < CurVTkn.Count AndAlso (CurVTkn(CurPos).TypeTkn = EToken.LineComment OrElse CurVTkn(CurPos).TypeTkn = EToken.BlockComment)
                 CurPos += 1
             Loop
 
             If CurPos < CurVTkn.Count Then
-                If CurVTkn(CurPos).TypeTkn = EToken.eLowLine Then
+                If CurVTkn(CurPos).TypeTkn = EToken.LowLine Then
 
                     CurLineIdx += 1
                     CurLineStr = PrjParse.CurSrc.vTextSrc(CurLineIdx)
@@ -76,7 +76,7 @@ Public Class TScriptParser
                 CurTkn = CurVTkn(CurPos)
 
                 Dim nxt_pos As Integer = CurPos + 1
-                Do While nxt_pos < CurVTkn.Count AndAlso (CurVTkn(nxt_pos).TypeTkn = EToken.eLineComment OrElse CurVTkn(nxt_pos).TypeTkn = EToken.eBlockComment)
+                Do While nxt_pos < CurVTkn.Count AndAlso (CurVTkn(nxt_pos).TypeTkn = EToken.LineComment OrElse CurVTkn(nxt_pos).TypeTkn = EToken.BlockComment)
                     nxt_pos += 1
                 Loop
 
@@ -104,20 +104,20 @@ Public Class TScriptParser
         Dim tp1 As TClass, tp2 As TClass
         Dim vtp As TList(Of TClass)
 
-        GetTkn(EToken.eLP)
-        GetTkn(EToken.eOf)
+        GetTkn(EToken.LP)
+        GetTkn(EToken.Of_)
 
         vtp = New TList(Of TClass)()
         Do While True
             tp2 = ReadType(False)
             vtp.Add(tp2)
-            If CurTkn.TypeTkn <> EToken.eComma Then
+            If CurTkn.TypeTkn <> EToken.Comma Then
 
                 Exit Do
             End If
-            GetTkn(EToken.eComma)
+            GetTkn(EToken.Comma)
         Loop
-        GetTkn(EToken.eRP)
+        GetTkn(EToken.RP)
 
         ' ジェネリック型のクラスを得る。
         tp1 = PrjParse.GetAddSpecializedClass(id1.StrTkn, vtp)
@@ -129,8 +129,8 @@ Public Class TScriptParser
         Dim tp1 As TClass
         Dim id1 As TToken, dim_cnt As Integer
 
-        id1 = GetTkn(EToken.eId)
-        If CurTkn.TypeTkn = EToken.eLT Then
+        id1 = GetTkn(EToken.Id)
+        If CurTkn.TypeTkn = EToken.LT Then
             ' ジェネリック型の場合
 
             ' ジェネリック型の構文解析
@@ -149,14 +149,14 @@ Public Class TScriptParser
                 End If
             End If
         End If
-        If CurTkn.TypeTkn = EToken.eLB AndAlso (NxtTkn.TypeTkn = EToken.eRB OrElse NxtTkn.TypeTkn = EToken.eComma) Then
-            GetTkn(EToken.eLB)
+        If CurTkn.TypeTkn = EToken.LB AndAlso (NxtTkn.TypeTkn = EToken.RB OrElse NxtTkn.TypeTkn = EToken.Comma) Then
+            GetTkn(EToken.LB)
             dim_cnt = 1
-            Do While CurTkn.TypeTkn = EToken.eComma
-                GetTkn(EToken.eComma)
+            Do While CurTkn.TypeTkn = EToken.Comma
+                GetTkn(EToken.Comma)
                 dim_cnt += 1
             Loop
-            GetTkn(EToken.eRB)
+            GetTkn(EToken.RB)
             If Not is_new Then
                 tp1 = PrjParse.GetArrCla(tp1, dim_cnt)
             End If
@@ -169,11 +169,11 @@ Public Class TScriptParser
         Dim tkn1 As TToken
 
         Select Case CurTkn.TypeTkn
-            Case EToken.eSM
+            Case EToken.SM
                 Return ""
 
-            Case EToken.eLineComment
-                tkn1 = GetTkn(EToken.eLineComment)
+            Case EToken.LineComment
+                tkn1 = GetTkn(EToken.LineComment)
                 Return tkn1.StrTkn
 
             Case Else
@@ -185,8 +185,8 @@ Public Class TScriptParser
     Function ReadLineComment() As TStatement
         Dim stmt1 As New TStatement
 
-        stmt1.TypeStmt = EToken.eLineComment
-        GetTkn(EToken.eLineComment)
+        stmt1.TypeStmt = EToken.LineComment
+        GetTkn(EToken.LineComment)
         Return stmt1
     End Function
 
@@ -204,162 +204,162 @@ Public Class TScriptParser
     Public Sub RegTkn()
         Dim dic1 As New Dictionary(Of String, EToken)
 
-        EOTTkn = NewToken(EToken.eEOT, "", 0)
+        EOTTkn = NewToken(EToken.EOT, "", 0)
 
-        vTkn.Add("abstract", EToken.eAbstract)
+        vTkn.Add("abstract", EToken.Abstract)
 
-        dic1.Add("aggregate", EToken.eAggregate)
+        dic1.Add("aggregate", EToken.Aggregate_)
 
         If LanguageSP = ELanguage.CSharp Then
 
-            dic1.Add("as", EToken.eAs)
+            dic1.Add("as", EToken.As_)
         End If
 
-        dic1.Add("base", EToken.eBase)
-        dic1.Add("break", EToken.eBreak)
-        dic1.Add("byval", EToken.eByVal)
-        dic1.Add("call", EToken.eCall)
-        dic1.Add("case", EToken.eCase)
-        dic1.Add("catch", EToken.eCatch)
-        dic1.Add("class", EToken.eClass)
+        dic1.Add("base", EToken.Base)
+        dic1.Add("break", EToken.Break_)
+        dic1.Add("byval", EToken.ByVal_)
+        dic1.Add("call", EToken.Call_)
+        dic1.Add("case", EToken.Case_)
+        dic1.Add("catch", EToken.Catch_)
+        dic1.Add("class", EToken.Class_)
 
-        dic1.Add("const", EToken.eConst)
-        dic1.Add("constructor", EToken.eConstructor)
+        dic1.Add("const", EToken.Const_)
+        dic1.Add("constructor", EToken.Constructor)
 
-        dic1.Add("default", EToken.eDefault)
-        dic1.Add("var", EToken.eVar)
-        dic1.Add("do", EToken.eDo)
-        dic1.Add("each", EToken.eEach)
-        dic1.Add("else", EToken.eElse)
-        dic1.Add("elseif", EToken.eElseIf)
-        'dic1.Add("end", EToken.eEnd)
-        dic1.Add("endif", EToken.eEndIf)
-        dic1.Add("enum", EToken.eEnum)
-        dic1.Add("exit", EToken.eExit)
+        dic1.Add("default", EToken.Default_)
+        dic1.Add("var", EToken.Var)
+        dic1.Add("do", EToken.Do_)
+        dic1.Add("each", EToken.Each_)
+        dic1.Add("else", EToken.Else_)
+        dic1.Add("elseif", EToken.ElseIf_)
+        'dic1.Add("end", EToken.End_)
+        dic1.Add("endif", EToken.EndIf_)
+        dic1.Add("enum", EToken.Enum_)
+        dic1.Add("exit", EToken.Exit_)
 
-        dic1.Add("extends", EToken.eExtends)
+        dic1.Add("extends", EToken.Extends)
 
-        dic1.Add("for", EToken.eFor)
-        dic1.Add("foreach", EToken.eForeach)
-        dic1.Add("from", EToken.eFrom)
-        dic1.Add("function", EToken.eFunction)
-        dic1.Add("get", EToken.eGet)
-        dic1.Add("goto", EToken.eGoto)
-        dic1.Add("handles", EToken.eHandles)
-        dic1.Add("if", EToken.eIf)
-        dic1.Add("implements", EToken.eImplements)
+        dic1.Add("for", EToken.For_)
+        dic1.Add("foreach", EToken.Foreach_)
+        dic1.Add("from", EToken.From_)
+        dic1.Add("function", EToken.Function_)
+        dic1.Add("get", EToken.Get_)
+        dic1.Add("goto", EToken.Goto_)
+        dic1.Add("handles", EToken.Handles_)
+        dic1.Add("if", EToken.If_)
+        dic1.Add("implements", EToken.Implements_)
 
         Select Case LanguageSP
             Case ELanguage.CSharp
-                dic1.Add("imports", EToken.eImports)
+                dic1.Add("imports", EToken.Imports_)
 
             Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.Java
-                dic1.Add("import", EToken.eImports)
+                dic1.Add("import", EToken.Imports_)
         End Select
 
-        dic1.Add("in", EToken.eIn)
-        dic1.Add("instanceof", EToken.eInstanceof)
-        dic1.Add("interface", EToken.eInterface)
-        dic1.Add("into", EToken.eInto)
-        dic1.Add("loop", EToken.eLoop)
-        dic1.Add("namespace", EToken.eNamespace)
-        dic1.Add("new", EToken.eNew)
-        dic1.Add("of", EToken.eOf)
-        dic1.Add("out", EToken.eOut)
+        dic1.Add("in", EToken.In_)
+        dic1.Add("instanceof", EToken.Instanceof)
+        dic1.Add("interface", EToken.Interface_)
+        dic1.Add("into", EToken.Into_)
+        dic1.Add("loop", EToken.Loop_)
+        dic1.Add("namespace", EToken.Namespace_)
+        dic1.Add("new", EToken.New_)
+        dic1.Add("of", EToken.Of_)
+        dic1.Add("out", EToken.Out_)
 
-        dic1.Add("package", EToken.ePackage)
+        dic1.Add("package", EToken.Package)
 
-        dic1.Add("override", EToken.eOverride)
-        dic1.Add("partial", EToken.ePartial)
-        dic1.Add("private", EToken.ePrivate)
-        dic1.Add("ref", EToken.eRef)
-        dic1.Add("return", EToken.eReturn)
-        dic1.Add("select", EToken.eSelect)
+        dic1.Add("override", EToken.Override)
+        dic1.Add("partial", EToken.Partial_)
+        dic1.Add("private", EToken.Private_)
+        dic1.Add("ref", EToken.Ref)
+        dic1.Add("return", EToken.Return_)
+        dic1.Add("select", EToken.Select_)
         If LanguageSP = ELanguage.CSharp Then
 
-            dic1.Add("set", EToken.eSet)
+            dic1.Add("set", EToken.Set_)
         End If
 
-        dic1.Add("static", EToken.eShared)
-        dic1.Add("struct", EToken.eStruct)
+        dic1.Add("static", EToken.Shared_)
+        dic1.Add("struct", EToken.Struct)
 
-        '        dic1.Add("sub", EToken.eSub)
-        dic1.Add("switch", EToken.eSwitch)
-        dic1.Add("then", EToken.eThen)
-        dic1.Add("throw", EToken.eThrow)
-        dic1.Add("try", EToken.eTry)
-        dic1.Add("using", EToken.eUsing)
-        dic1.Add("virtual", EToken.eVirtual)
-        dic1.Add("where", EToken.eWhere)
-        dic1.Add("while", EToken.eWhile)
+        '        dic1.Add("sub", EToken.Sub_)
+        dic1.Add("switch", EToken.Switch)
+        dic1.Add("then", EToken.Then_)
+        dic1.Add("throw", EToken.Throw_)
+        dic1.Add("try", EToken.Try_)
+        dic1.Add("using", EToken.Using_)
+        dic1.Add("virtual", EToken.Virtual)
+        dic1.Add("where", EToken.Where_)
+        dic1.Add("while", EToken.While_)
 
-        'dic1.Add("@else", EToken.ePElse)
-        'dic1.Add("@end", EToken.ePEnd)
-        'dic1.Add("@id", EToken.eId)
-        'dic1.Add("@if", EToken.ePIf)
-        'dic1.Add("@int", EToken.eInt)
-        'dic1.Add("@hex", EToken.eHex)
-        'dic1.Add("@set", EToken.ePSet)
+        'dic1.Add("@else", EToken.PElse)
+        'dic1.Add("@end", EToken.PEnd)
+        'dic1.Add("@id", EToken.Id)
+        'dic1.Add("@if", EToken.PIf)
+        'dic1.Add("@int", EToken.Int)
+        'dic1.Add("@hex", EToken.Hex)
+        'dic1.Add("@set", EToken.PSet)
 
-        dic1.Add("/*", EToken.eBlockComment)
-        dic1.Add("//", EToken.eLineComment)
+        dic1.Add("/*", EToken.BlockComment)
+        dic1.Add("//", EToken.LineComment)
 
-        'dic1.Add("<?", EToken.eXMLST)
-        'dic1.Add("<!", EToken.eMATHST)
-        'dic1.Add("]@", EToken.eMATHED)
+        'dic1.Add("<?", EToken.XMLST)
+        'dic1.Add("<!", EToken.MATHST)
+        'dic1.Add("]@", EToken.MATHED)
 
-        dic1.Add("=", EToken.eASN)
-        dic1.Add("+=", EToken.eADDEQ)
-        dic1.Add("-=", EToken.eSUBEQ)
-        dic1.Add("*=", EToken.eMULEQ)
-        dic1.Add("/=", EToken.eDIVEQ)
-        dic1.Add("%=", EToken.eMODEQ)
+        dic1.Add("=", EToken.ASN)
+        dic1.Add("+=", EToken.ADDEQ)
+        dic1.Add("-=", EToken.SUBEQ)
+        dic1.Add("*=", EToken.MULEQ)
+        dic1.Add("/=", EToken.DIVEQ)
+        dic1.Add("%=", EToken.MODEQ)
 
-        dic1.Add("+", EToken.eADD)
-        dic1.Add("-", EToken.eMns)
-        dic1.Add("%", EToken.eMOD)
-        dic1.Add("&", EToken.eAnp)
-        dic1.Add("(", EToken.eLP)
-        dic1.Add(")", EToken.eRP)
-        dic1.Add("*", EToken.eMUL)
-        dic1.Add(",", EToken.eComma)
-        dic1.Add(".", EToken.eDot)
-        dic1.Add("/", EToken.eDIV)
-        dic1.Add(":", EToken.eMMB)
-        dic1.Add(";", EToken.eSM)
+        dic1.Add("+", EToken.ADD)
+        dic1.Add("-", EToken.Mns)
+        dic1.Add("%", EToken.MOD_)
+        dic1.Add("&", EToken.Anp)
+        dic1.Add("(", EToken.LP)
+        dic1.Add(")", EToken.RP)
+        dic1.Add("*", EToken.MUL)
+        dic1.Add(",", EToken.Comma)
+        dic1.Add(".", EToken.Dot)
+        dic1.Add("/", EToken.DIV)
+        dic1.Add(":", EToken.MMB)
+        dic1.Add(";", EToken.SM)
         dic1.Add("?", EToken.Question)
-        dic1.Add("[", EToken.eLB)
-        dic1.Add("]", EToken.eRB)
-        dic1.Add("^", EToken.eHAT)
-        dic1.Add("{", EToken.eLC)
-        dic1.Add("|", EToken.eBitOR)
-        dic1.Add("}", EToken.eRC)
-        dic1.Add("~", EToken.eTilde)
+        dic1.Add("[", EToken.LB)
+        dic1.Add("]", EToken.RB)
+        dic1.Add("^", EToken.HAT)
+        dic1.Add("{", EToken.LC)
+        dic1.Add("|", EToken.BitOR)
+        dic1.Add("}", EToken.RC)
+        dic1.Add("~", EToken.Tilde)
 
-        dic1.Add("++", EToken.eINC)
-        dic1.Add("--", EToken.eDEC)
+        dic1.Add("++", EToken.INC)
+        dic1.Add("--", EToken.DEC)
 
-        dic1.Add("==", EToken.eEq)
-        dic1.Add("!=", EToken.eNE)
-        dic1.Add("<", EToken.eLT)
-        dic1.Add(">", EToken.eGT)
-        dic1.Add("<=", EToken.eLE)
-        dic1.Add(">=", EToken.eGE)
+        dic1.Add("==", EToken.Eq)
+        dic1.Add("!=", EToken.NE)
+        dic1.Add("<", EToken.LT)
+        dic1.Add(">", EToken.GT)
+        dic1.Add("<=", EToken.LE)
+        dic1.Add(">=", EToken.GE)
 
-        dic1.Add("||", EToken.eOR)
-        dic1.Add("&&", EToken.eAnd)
-        dic1.Add("!", EToken.eNot)
+        dic1.Add("||", EToken.OR_)
+        dic1.Add("&&", EToken.And_)
+        dic1.Add("!", EToken.Not_)
 
-        'dic1.Add("->", EToken.eRARROW)
+        'dic1.Add("->", EToken.RARROW)
 
-        'dic1.Add("∀", EToken.eALL)
-        'dic1.Add("∃", EToken.eEXIST)
-        'dic1.Add("∈", EToken.eElement)
-        'dic1.Add("∧", EToken.eLAnd)
-        'dic1.Add("∨", EToken.eLOr)
-        'dic1.Add("∩", EToken.eINTERSECTION)
-        'dic1.Add("∪", EToken.eUNION)
-        'dic1.Add("⊆", EToken.eSUBSET)
+        'dic1.Add("∀", EToken.ALL)
+        'dic1.Add("∃", EToken.EXIST)
+        'dic1.Add("∈", EToken.Element)
+        'dic1.Add("∧", EToken.LAnd)
+        'dic1.Add("∨", EToken.LOr)
+        'dic1.Add("∩", EToken.INTERSECTION)
+        'dic1.Add("∪", EToken.UNION)
+        'dic1.Add("⊆", EToken.SUBSET)
 
         ' for Add
         For Each key1 In dic1.Keys
@@ -374,13 +374,13 @@ Public Class TScriptParser
             Next
         End If
 
-        vTknName.Add(EToken.eAbstract, "")
+        vTknName.Add(EToken.Abstract, "")
         If LanguageSP <> ELanguage.CSharp Then
-            vTknName.Add(EToken.eAs, ":")
+            vTknName.Add(EToken.As_, ":")
         End If
-        vTknName.Add(EToken.eIs, "==")
-        vTknName.Add(EToken.eIsNot, "!=")
-        vTknName.Add(EToken.ePublic, "")
+        vTknName.Add(EToken.Is_, "==")
+        vTknName.Add(EToken.IsNot_, "!=")
+        vTknName.Add(EToken.Public_, "")
     End Sub
 
     Function NewToken(type1 As EToken, str1 As String, pos1 As Integer) As TToken
@@ -411,7 +411,7 @@ Public Class TScriptParser
         v1 = New TList(Of TToken)()
 
         cur1 = 0
-        prv_type = EToken.eUnknown
+        prv_type = EToken.Unknown
 
         Do While True
             tkn1 = Nothing
@@ -449,7 +449,7 @@ Public Class TScriptParser
                     Next
 
                     str1 = TSys.Substring(src_text, cur1, k1)
-                    tkn1 = NewToken(EToken.eHex, str1, cur1)
+                    tkn1 = NewToken(EToken.Hex, str1, cur1)
 
                     cur1 = k1
                 Else
@@ -466,7 +466,7 @@ Public Class TScriptParser
                     End If
 
                     str1 = TSys.Substring(src_text, cur1, k1)
-                    tkn1 = NewToken(EToken.eInt, str1, cur1)
+                    tkn1 = NewToken(EToken.Int, str1, cur1)
 
                     cur1 = k1
                 End If
@@ -489,15 +489,15 @@ Public Class TScriptParser
                     '  予約語の場合
 
                     type1 = vTkn(str1.ToLower())
-                    If type1 = EToken.eGetType AndAlso (prv_type = EToken.eDot OrElse prv_type = EToken.eFunction) Then
-                        type1 = EToken.eId
-                    ElseIf type1 = EToken.eSelect AndAlso prv_type = EToken.eDot Then
-                        type1 = EToken.eId
+                    If type1 = EToken.GetType_ AndAlso (prv_type = EToken.Dot OrElse prv_type = EToken.Function_) Then
+                        type1 = EToken.Id
+                    ElseIf type1 = EToken.Select_ AndAlso prv_type = EToken.Dot Then
+                        type1 = EToken.Id
                     End If
                 Else
                     '  識別子の場合
 
-                    type1 = EToken.eId
+                    type1 = EToken.Id
                 End If
                 tkn1 = NewToken(type1, str1, cur1)
 
@@ -512,9 +512,9 @@ Public Class TScriptParser
                     ch2 = src_text(k1)
                     If ch2 = quo1 Then
                         If ch2 = "'"c Then
-                            tkn1 = New TToken(EToken.eChar, sw.ToString(), cur1)
+                            tkn1 = New TToken(EToken.Char_, sw.ToString(), cur1)
                         Else
-                            tkn1 = New TToken(EToken.eString, sw.ToString(), cur1)
+                            tkn1 = New TToken(EToken.String_, sw.ToString(), cur1)
                         End If
                         cur1 = k1 + 1
                         Exit For
@@ -556,7 +556,7 @@ Public Class TScriptParser
                     k1 = src_len
                 End If
                 str1 = src_text.Substring(cur1, k1 - cur1)
-                tkn1 = New TToken(EToken.eLineComment, str1, cur1)
+                tkn1 = New TToken(EToken.LineComment, str1, cur1)
                 cur1 = k1
 
             ElseIf ch1 = "/"c AndAlso ch2 = "*"c Then
@@ -565,7 +565,7 @@ Public Class TScriptParser
                 k1 = src_text.IndexOf("*/", cur1)
                 Debug.Assert(k1 <> -1)
                 str1 = src_text.Substring(cur1, k1 + 2 - cur1)
-                tkn1 = New TToken(EToken.eBlockComment, str1, cur1)
+                tkn1 = New TToken(EToken.BlockComment, str1, cur1)
                 cur1 = k1 + 2
 
             ElseIf ch1 = "@"c Then
@@ -585,7 +585,7 @@ Public Class TScriptParser
                 '  記号の場合
 
                 ok = False
-                type1 = EToken.eUnknown
+                type1 = EToken.Unknown
                 If cur1 + 1 < src_len Then
                     '  2文字の記号を調べる
 
@@ -634,20 +634,20 @@ Public Class TScriptParser
         Do While k1 < v.Count
             Dim is_abstract As Boolean = False
 
-            If v(k1).TypeTkn = EToken.eAbstract Then
+            If v(k1).TypeTkn = EToken.Abstract Then
                 is_abstract = True
-                GetTkn(EToken.eAbstract)
+                GetTkn(EToken.Abstract)
             End If
 
             Select Case v(k1).TypeTkn
-                Case EToken.eDelegate, EToken.eClass, EToken.eStruct, EToken.eInterface, EToken.eEnum
+                Case EToken.Delegate_, EToken.Class_, EToken.Struct, EToken.Interface_, EToken.Enum_
 
                     k1 += 1
-                    Debug.Assert(v(k1).TypeTkn = EToken.eId)
+                    Debug.Assert(v(k1).TypeTkn = EToken.Id)
 
                     id1 = v(k1)
 
-                    If v(k1).TypeTkn = EToken.eDelegate Then
+                    If v(k1).TypeTkn = EToken.Delegate_ Then
                         Debug.Assert(prj1.GetCla(id1.StrTkn) Is Nothing)
 
                         cla1 = New TDelegate(prj1, id1.StrTkn)
@@ -657,7 +657,7 @@ Public Class TScriptParser
                         cla1 = prj1.RegCla(id1.StrTkn)
                     End If
 
-                    If k1 + 2 < v.Count AndAlso v(k1 + 1).TypeTkn = EToken.eLT Then
+                    If k1 + 2 < v.Count AndAlso v(k1 + 1).TypeTkn = EToken.LT Then
                         cla1.GenericType = EGeneric.ParameterizedClass
 
                         cla1.GenCla = New TList(Of TClass)()
@@ -672,11 +672,11 @@ Public Class TScriptParser
                             cla1.GenCla.Add(cla2)
 
                             k1 += 1
-                            If v(k1).TypeTkn = EToken.eGT Then
+                            If v(k1).TypeTkn = EToken.GT Then
                                 Exit Do
                             End If
 
-                            Debug.Assert(v(k1).TypeTkn = EToken.eComma)
+                            Debug.Assert(v(k1).TypeTkn = EToken.Comma)
                             k1 += 1
                         Loop
 
@@ -715,20 +715,20 @@ Public Class TScriptParser
         Dim trm1 As TTerm, right_token As EToken
 
         Select Case CurTkn.TypeTkn
-            Case EToken.eLP
-                GetTkn(EToken.eLP)
-                right_token = EToken.eRP
+            Case EToken.LP
+                GetTkn(EToken.LP)
+                right_token = EToken.RP
 
-            Case EToken.eLB
-                GetTkn(EToken.eLB)
-                right_token = EToken.eRB
+            Case EToken.LB
+                GetTkn(EToken.LB)
+                right_token = EToken.RB
 
             Case Else
                 Debug.Assert(False)
         End Select
 
-        If CurTkn.TypeTkn = EToken.eOf Then
-            GetTkn(EToken.eOf)
+        If CurTkn.TypeTkn = EToken.Of_ Then
+            GetTkn(EToken.Of_)
         End If
         '                 b_of = true;
         If CurTkn.TypeTkn <> right_token Then
@@ -736,10 +736,10 @@ Public Class TScriptParser
                 trm1 = TermExpression()
                 app1.AddInArg(trm1)
 
-                If CurTkn.TypeTkn <> EToken.eComma Then
+                If CurTkn.TypeTkn <> EToken.Comma Then
                     Exit Do
                 End If
-                GetTkn(EToken.eComma)
+                GetTkn(EToken.Comma)
             Loop
         End If
         GetTkn(right_token)
@@ -748,7 +748,7 @@ Public Class TScriptParser
     End Function
 
     Function CallExpression(trm1 As TTerm) As TTerm
-        Do While CurTkn.TypeTkn = EToken.eLP OrElse CurTkn.TypeTkn = EToken.eLB
+        Do While CurTkn.TypeTkn = EToken.LP OrElse CurTkn.TypeTkn = EToken.LB
             Dim app1 As TApply = TApply.MakeAppCall(trm1)
             ArgumentExpressionList(app1)
             trm1 = app1
@@ -763,18 +763,18 @@ Public Class TScriptParser
         Dim trm1 As TTerm
 
         arr1 = New TArray()
-        GetTkn(EToken.eLB)
-        If CurTkn.TypeTkn <> EToken.eRB Then
+        GetTkn(EToken.LB)
+        If CurTkn.TypeTkn <> EToken.RB Then
             Do While True
                 trm1 = TermExpression()
                 arr1.TrmArr.Add(trm1)
-                If CurTkn.TypeTkn = EToken.eRB Then
+                If CurTkn.TypeTkn = EToken.RB Then
                     Exit Do
                 End If
-                GetTkn(EToken.eComma)
+                GetTkn(EToken.Comma)
             Loop
         End If
-        GetTkn(EToken.eRB)
+        GetTkn(EToken.RB)
 
         Return arr1
     End Function
@@ -784,23 +784,23 @@ Public Class TScriptParser
         Dim type1 As TClass
         Dim app1 As TApply
 
-        tkn1 = GetTkn(EToken.eNew)
+        tkn1 = GetTkn(EToken.New_)
         type1 = ReadType(True)
         app1 = TApply.MakeAppNew(type1)
-        If CurTkn.TypeTkn = EToken.eLP Then
+        If CurTkn.TypeTkn = EToken.LP Then
             ArgumentExpressionList(app1)
         End If
-        If CurTkn.TypeTkn = EToken.eLB Then
+        If CurTkn.TypeTkn = EToken.LB Then
             ' 配列の場合
             app1.IniApp = ArrayExpression()
 
             ' 配列型に変える
             app1.NewApp = PrjParse.GetArrCla(app1.NewApp, 1)
         End If
-        If CurTkn.TypeTkn = EToken.eFrom Then
-            GetTkn(EToken.eFrom)
+        If CurTkn.TypeTkn = EToken.From_ Then
+            GetTkn(EToken.From_)
 
-            Debug.Assert(CurTkn.TypeTkn = EToken.eLB)
+            Debug.Assert(CurTkn.TypeTkn = EToken.LB)
             app1.IniApp = ArrayExpression()
         End If
 
@@ -811,32 +811,32 @@ Public Class TScriptParser
     Function FromExpression() As TFrom
         Dim from1 As New TFrom
 
-        GetTkn(EToken.eFrom)
-        Dim id1 As TToken = GetTkn(EToken.eId)
+        GetTkn(EToken.From_)
+        Dim id1 As TToken = GetTkn(EToken.Id)
         from1.VarQry = New TLocalVariable(id1, Nothing)
 
-        GetTkn(EToken.eIn)
+        GetTkn(EToken.In_)
         from1.SeqQry = TermExpression()
 
-        If CurTkn.TypeTkn = EToken.eWhere Then
+        If CurTkn.TypeTkn = EToken.Where_ Then
 
-            GetTkn(EToken.eWhere)
+            GetTkn(EToken.Where_)
             from1.CndQry = TermExpression()
         End If
 
-        If CurTkn.TypeTkn = EToken.eSelect Then
+        If CurTkn.TypeTkn = EToken.Select_ Then
 
-            GetTkn(EToken.eSelect)
+            GetTkn(EToken.Select_)
             from1.SelFrom = TermExpression()
         End If
 
-        If CurTkn.TypeTkn = EToken.eTake Then
+        If CurTkn.TypeTkn = EToken.Take_ Then
 
-            GetTkn(EToken.eTake)
+            GetTkn(EToken.Take_)
             from1.TakeFrom = TermExpression()
         End If
 
-        If CurTkn.TypeTkn = EToken.eFrom Then
+        If CurTkn.TypeTkn = EToken.From_ Then
             from1.InnerFrom = FromExpression()
         End If
 
@@ -847,22 +847,22 @@ Public Class TScriptParser
     Function AggregateExpression() As TAggregate
         Dim aggr1 As New TAggregate, id1 As TToken, id2 As TToken
 
-        GetTkn(EToken.eAggregate)
-        id1 = GetTkn(EToken.eId)
+        GetTkn(EToken.Aggregate_)
+        id1 = GetTkn(EToken.Id)
         aggr1.VarQry = New TLocalVariable(id1, Nothing)
 
-        GetTkn(EToken.eIn)
+        GetTkn(EToken.In_)
         aggr1.SeqQry = TermExpression()
 
-        If CurTkn.TypeTkn = EToken.eWhere Then
+        If CurTkn.TypeTkn = EToken.Where_ Then
 
-            GetTkn(EToken.eWhere)
+            GetTkn(EToken.Where_)
             aggr1.CndQry = TermExpression()
         End If
 
-        GetTkn(EToken.eInto)
+        GetTkn(EToken.Into_)
 
-        id2 = GetTkn(EToken.eId)
+        id2 = GetTkn(EToken.Id)
         Select Case id2.StrTkn
             Case "Sum"
                 aggr1.FunctionAggr = EAggregateFunction.eSum
@@ -877,11 +877,11 @@ Public Class TScriptParser
         End Select
 
 
-        GetTkn(EToken.eLP)
+        GetTkn(EToken.LP)
 
         aggr1.IntoAggr = TermExpression()
 
-        GetTkn(EToken.eRP)
+        GetTkn(EToken.RP)
 
         Return aggr1
     End Function
@@ -895,9 +895,9 @@ Public Class TScriptParser
         Dim app1 As TApply
 
         Select Case CurTkn.TypeTkn
-            Case EToken.eId
-                id1 = GetTkn(EToken.eId)
-                If CurTkn.TypeTkn = EToken.eLP AndAlso NxtTkn.TypeTkn = EToken.eOf Then
+            Case EToken.Id
+                id1 = GetTkn(EToken.Id)
+                If CurTkn.TypeTkn = EToken.LP AndAlso NxtTkn.TypeTkn = EToken.Of_ Then
                     ' ジェネリック型の場合
 
                     ' ジェネリック型の構文解析
@@ -909,76 +909,76 @@ Public Class TScriptParser
                 ref1 = New TReference(id1)
                 Return CallExpression(ref1)
 
-            Case EToken.eDot
+            Case EToken.Dot
                 trm1 = Nothing
-                Do While CurTkn.TypeTkn = EToken.eDot
-                    GetTkn(EToken.eDot)
-                    id1 = GetTkn(EToken.eId)
+                Do While CurTkn.TypeTkn = EToken.Dot
+                    GetTkn(EToken.Dot)
+                    id1 = GetTkn(EToken.Id)
                     trm2 = New TDot(trm1, id1.StrTkn)
                     trm1 = CallExpression(trm2)
                 Loop
 
                 Return trm1
 
-            Case EToken.eBase
-                GetTkn(EToken.eBase)
-                GetTkn(EToken.eDot)
-                Debug.Assert(CurTkn.TypeTkn = EToken.eNew OrElse CurTkn.TypeTkn = EToken.eId)
-                tkn1 = GetTkn(EToken.eUnknown)
+            Case EToken.Base
+                GetTkn(EToken.Base)
+                GetTkn(EToken.Dot)
+                Debug.Assert(CurTkn.TypeTkn = EToken.New_ OrElse CurTkn.TypeTkn = EToken.Id)
+                tkn1 = GetTkn(EToken.Unknown)
                 app1 = TApply.MakeAppBase(tkn1)
                 ArgumentExpressionList(app1)
                 Return app1
 
-            Case EToken.eLP
-                GetTkn(EToken.eLP)
+            Case EToken.LP
+                GetTkn(EToken.LP)
                 trm1 = New TParenthesis(TermExpression())
-                GetTkn(EToken.eRP)
+                GetTkn(EToken.RP)
                 ret1 = CallExpression(trm1)
 
-            Case EToken.eLB
+            Case EToken.LB
                 Return ArrayExpression()
 
-            Case EToken.eString, EToken.eChar, EToken.eInt, EToken.eHex
-                tkn1 = GetTkn(EToken.eUnknown)
+            Case EToken.String_, EToken.Char_, EToken.Int, EToken.Hex
+                tkn1 = GetTkn(EToken.Unknown)
                 ret1 = New TConstant(tkn1.TypeTkn, tkn1.StrTkn)
 
-            Case EToken.eNew
+            Case EToken.New_
                 Return NewExpression()
 
-            Case EToken.eInstanceof
-                GetTkn(EToken.eInstanceof)
+            Case EToken.Instanceof
+                GetTkn(EToken.Instanceof)
                 trm1 = AdditiveExpression()
-                GetTkn(EToken.eIs)
+                GetTkn(EToken.Is_)
                 type1 = ReadType(False)
                 Return TApply.NewTypeOf(trm1, type1)
 
-            Case EToken.eGetType
-                GetTkn(EToken.eGetType)
-                GetTkn(EToken.eLP)
+            Case EToken.GetType_
+                GetTkn(EToken.GetType_)
+                GetTkn(EToken.LP)
                 type1 = ReadType(False)
-                GetTkn(EToken.eRP)
+                GetTkn(EToken.RP)
                 Return TApply.MakeAppGetType(type1)
 
-            Case EToken.eLT
-                GetTkn(EToken.eLT)
+            Case EToken.LT
+                GetTkn(EToken.LT)
                 type1 = ReadType(False)
-                GetTkn(EToken.eGT)
+                GetTkn(EToken.GT)
                 trm1 = AdditiveExpression()
                 trm1.CastType = type1
 
                 Return trm1
 
-            Case EToken.eAddressOf
-                GetTkn(EToken.eAddressOf)
+            Case EToken.AddressOf_
+                GetTkn(EToken.AddressOf_)
                 trm1 = TermExpression()
                 Debug.Assert(TypeOf trm1 Is TReference)
                 CType(trm1, TReference).IsAddressOf = True
                 Return trm1
 
-            Case EToken.eFrom
+            Case EToken.From_
                 Return FromExpression()
 
-            Case EToken.eAggregate
+            Case EToken.Aggregate_
                 Return AggregateExpression()
 
             Case Else
@@ -996,9 +996,9 @@ Public Class TScriptParser
 
         trm1 = PrimaryExpression()
 
-        Do While CurTkn.TypeTkn = EToken.eDot
-            GetTkn(EToken.eDot)
-            id1 = GetTkn(EToken.eId)
+        Do While CurTkn.TypeTkn = EToken.Dot
+            GetTkn(EToken.Dot)
+            id1 = GetTkn(EToken.Id)
             trm2 = New TDot(trm1, id1.StrTkn)
             trm1 = CallExpression(trm2)
         Loop
@@ -1009,8 +1009,8 @@ Public Class TScriptParser
     Function IncDecExpression() As TTerm
         Dim trm1 As TTerm = DotExpression()
 
-        If CurTkn.TypeTkn = EToken.eINC OrElse CurTkn.TypeTkn = EToken.eDEC Then
-            Dim tkn1 As TToken = GetTkn(EToken.eUnknown)
+        If CurTkn.TypeTkn = EToken.INC OrElse CurTkn.TypeTkn = EToken.DEC Then
+            Dim tkn1 As TToken = GetTkn(EToken.Unknown)
 
             Return TApply.MakeApp1Opr(tkn1, trm1)
         End If
@@ -1023,8 +1023,8 @@ Public Class TScriptParser
         Dim tkn1 As TToken
         Dim trm1 As TTerm
 
-        If CurTkn.TypeTkn = EToken.eMns Then
-            tkn1 = GetTkn(EToken.eMns)
+        If CurTkn.TypeTkn = EToken.Mns Then
+            tkn1 = GetTkn(EToken.Mns)
             trm1 = IncDecExpression()
 
             Return TApply.MakeApp1Opr(tkn1, trm1)
@@ -1039,8 +1039,8 @@ Public Class TScriptParser
         Dim trm2 As TTerm
 
         trm1 = UnaryExpression()
-        If CurTkn.TypeTkn = EToken.eMUL OrElse CurTkn.TypeTkn = EToken.eDIV OrElse CurTkn.TypeTkn = EToken.eMOD Then
-            tkn1 = GetTkn(EToken.eUnknown)
+        If CurTkn.TypeTkn = EToken.MUL OrElse CurTkn.TypeTkn = EToken.DIV OrElse CurTkn.TypeTkn = EToken.MOD_ Then
+            tkn1 = GetTkn(EToken.Unknown)
             trm2 = MultiplicativeExpression()
 
             Return TApply.MakeApp2Opr(tkn1, trm1, trm2)
@@ -1055,8 +1055,8 @@ Public Class TScriptParser
         Dim trm2 As TTerm
 
         trm1 = MultiplicativeExpression()
-        If CurTkn.TypeTkn = EToken.eADD OrElse CurTkn.TypeTkn = EToken.eMns Then
-            tkn1 = GetTkn(EToken.eUnknown)
+        If CurTkn.TypeTkn = EToken.ADD OrElse CurTkn.TypeTkn = EToken.Mns Then
+            tkn1 = GetTkn(EToken.Unknown)
             trm2 = AdditiveExpression()
 
             Return TApply.MakeApp2Opr(tkn1, trm1, trm2)
@@ -1073,9 +1073,9 @@ Public Class TScriptParser
 
         trm1 = AdditiveExpression()
         Select Case CurTkn.TypeTkn
-            Case EToken.eEq, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eNE, EToken.eLT, EToken.eGT, EToken.eLE, EToken.eGE, EToken.eIs, EToken.eIsNot, EToken.eInstanceof
+            Case EToken.Eq, EToken.ADDEQ, EToken.SUBEQ, EToken.MULEQ, EToken.DIVEQ, EToken.MODEQ, EToken.NE, EToken.LT, EToken.GT, EToken.LE, EToken.GE, EToken.Is_, EToken.IsNot_, EToken.Instanceof
                 type1 = CurTkn.TypeTkn
-                GetTkn(EToken.eUnknown)
+                GetTkn(EToken.Unknown)
                 trm2 = AdditiveExpression()
                 Return TApply.NewOpr2(type1, trm1, trm2)
 
@@ -1089,7 +1089,7 @@ Public Class TScriptParser
         Dim type1 As EToken
         Dim app1 As TApply
 
-        If CurTkn.TypeTkn = EToken.eNot Then
+        If CurTkn.TypeTkn = EToken.Not_ Then
             type1 = CurTkn.TypeTkn
             GetTkn(type1)
             trm1 = NotExpression()
@@ -1115,7 +1115,7 @@ Public Class TScriptParser
         Dim type1 As EToken
 
         trm1 = NotExpression()
-        If CurTkn.TypeTkn = EToken.eBitOR Then
+        If CurTkn.TypeTkn = EToken.BitOR Then
 
             type1 = CurTkn.TypeTkn
             opr1 = TApply.NewOpr(type1)
@@ -1138,7 +1138,7 @@ Public Class TScriptParser
         Dim type1 As EToken
 
         trm1 = BitOrExpression()
-        If CurTkn.TypeTkn = EToken.eAnd OrElse CurTkn.TypeTkn = EToken.eAnp Then
+        If CurTkn.TypeTkn = EToken.And_ OrElse CurTkn.TypeTkn = EToken.Anp Then
 
             type1 = CurTkn.TypeTkn
             opr1 = TApply.NewOpr(type1)
@@ -1161,7 +1161,7 @@ Public Class TScriptParser
         Dim type1 As EToken
 
         trm1 = AndExpression()
-        If CurTkn.TypeTkn = EToken.eOR Then
+        If CurTkn.TypeTkn = EToken.OR_ Then
 
             type1 = CurTkn.TypeTkn
             opr1 = TApply.NewOpr(type1)
@@ -1192,8 +1192,8 @@ Public Class TScriptParser
         trm1 = CType(AdditiveExpression(), TTerm)
 
         Select Case CurTkn.TypeTkn
-            Case EToken.eASN, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ
-                eq1 = GetTkn(EToken.eUnknown)
+            Case EToken.ASN, EToken.ADDEQ, EToken.SUBEQ, EToken.MULEQ, EToken.DIVEQ, EToken.MODEQ
+                eq1 = GetTkn(EToken.Unknown)
                 trm2 = CType(TermExpression(), TTerm)
                 rel1 = TApply.NewOpr2(eq1.TypeTkn, trm1, trm2)
                 asn1 = New TAssignment(rel1)
@@ -1210,13 +1210,13 @@ Public Class TScriptParser
         Dim ret1 As TReturn
 
         GetTkn(type_tkn)
-        If CurTkn.TypeTkn = EToken.eSM Then
+        If CurTkn.TypeTkn = EToken.SM Then
 
-            ret1 = New TReturn(Nothing, type_tkn = EToken.eYield)
+            ret1 = New TReturn(Nothing, type_tkn = EToken.Yield_)
         Else
-            ret1 = New TReturn(TermExpression(), type_tkn = EToken.eYield)
+            ret1 = New TReturn(TermExpression(), type_tkn = EToken.Yield_)
         End If
-        GetTkn(EToken.eSM)
+        GetTkn(EToken.SM)
 
         Return ret1
     End Function
@@ -1224,18 +1224,18 @@ Public Class TScriptParser
     Function ReadExit() As TStatement
         Dim stmt1 As New TExit
 
-        GetTkn(EToken.eExit)
+        GetTkn(EToken.Exit_)
         Select Case CurTkn.TypeTkn
-            Case EToken.eDo
-                stmt1.TypeStmt = EToken.eExitDo
-            Case EToken.eFor
-                stmt1.TypeStmt = EToken.eExitFor
-            Case EToken.eSub
-                stmt1.TypeStmt = EToken.eExitSub
+            Case EToken.Do_
+                stmt1.TypeStmt = EToken.ExitDo
+            Case EToken.For_
+                stmt1.TypeStmt = EToken.ExitFor
+            Case EToken.Sub_
+                stmt1.TypeStmt = EToken.ExitSub
             Case Else
                 Chk(False)
         End Select
-        GetTkn(EToken.eUnknown)
+        GetTkn(EToken.Unknown)
 
         Return stmt1
     End Function
@@ -1243,7 +1243,7 @@ Public Class TScriptParser
     Function ReadThrow() As TStatement
         Dim stmt1 As TThrow
 
-        GetTkn(EToken.eThrow)
+        GetTkn(EToken.Throw_)
         stmt1 = New TThrow(CType(TermExpression(), TTerm))
 
         Return stmt1
@@ -1252,10 +1252,10 @@ Public Class TScriptParser
     Function ReadTry() As TStatement
         Dim try1 As New TTry
 
-        GetTkn(EToken.eTry)
+        GetTkn(EToken.Try_)
 
         try1.BlcTry = ReadBlock(try1)
-        GetTkn(EToken.eCatch)
+        GetTkn(EToken.Catch_)
         try1.VarCatch = New TList(Of TVariable)()
         try1.VarCatch.Add(ReadVariable())
         try1.BlcCatch = ReadBlock(try1)
@@ -1268,8 +1268,8 @@ Public Class TScriptParser
 
         for1.IsDo = True
 
-        GetTkn(EToken.eDo)
-        GetTkn(EToken.eWhile)
+        GetTkn(EToken.Do_)
+        GetTkn(EToken.While_)
         for1.CndFor = CType(TermExpression(), TTerm)
 
         for1.BlcFor = ReadBlock(for1)
@@ -1281,45 +1281,45 @@ Public Class TScriptParser
         Dim for1 As New TFor
         Dim id1 As TToken
 
-        GetTkn(EToken.eFor)
+        GetTkn(EToken.For_)
 
-        If CurTkn.TypeTkn = EToken.eLP Then
+        If CurTkn.TypeTkn = EToken.LP Then
 
-            GetTkn(EToken.eLP)
-            GetTkn(EToken.eVar)
+            GetTkn(EToken.LP)
+            GetTkn(EToken.Var)
 
             for1.IdxVarFor = ReadVariable()
-            GetTkn(EToken.eSM)
+            GetTkn(EToken.SM)
 
             for1.CndFor = TermExpression()
-            GetTkn(EToken.eSM)
+            GetTkn(EToken.SM)
 
             for1.StepStmtFor = AssignmentExpression()
-            GetTkn(EToken.eRP)
+            GetTkn(EToken.RP)
         Else
 
-            GetTkn(EToken.eEach)
+            GetTkn(EToken.Each_)
 
-            If CurTkn.TypeTkn = EToken.eId Then
+            If CurTkn.TypeTkn = EToken.Id Then
 
-                id1 = GetTkn(EToken.eId)
+                id1 = GetTkn(EToken.Id)
                 for1.InVarFor = New TLocalVariable(id1.StrTkn, Nothing)
             End If
 
-            If CurTkn.TypeTkn = EToken.eAt Then
+            If CurTkn.TypeTkn = EToken.At_ Then
 
-                GetTkn(EToken.eAt)
+                GetTkn(EToken.At_)
 
                 Do While True
-                    GetTkn(EToken.eId)
-                    If CurTkn.TypeTkn <> EToken.eComma Then
+                    GetTkn(EToken.Id)
+                    If CurTkn.TypeTkn <> EToken.Comma Then
                         Exit Do
                     End If
-                    GetTkn(EToken.eComma)
+                    GetTkn(EToken.Comma)
                 Loop
             End If
 
-            GetTkn(EToken.eIn)
+            GetTkn(EToken.In_)
 
             for1.InTrmFor = CType(TermExpression(), TTerm)
         End If
@@ -1332,29 +1332,29 @@ Public Class TScriptParser
     Function ReadSelect() As TSelect
         Dim sel2 As New TSelect, case2 As TCase
 
-        GetTkn(EToken.eSwitch)
-        GetTkn(EToken.eLP)
+        GetTkn(EToken.Switch)
+        GetTkn(EToken.LP)
         sel2.TrmSel = TermExpression()
-        GetTkn(EToken.eRP)
-        GetTkn(EToken.eLC)
+        GetTkn(EToken.RP)
+        GetTkn(EToken.LC)
 
-        Do While CurTkn.TypeTkn = EToken.eCase OrElse CurTkn.TypeTkn = EToken.eDefault
+        Do While CurTkn.TypeTkn = EToken.Case_ OrElse CurTkn.TypeTkn = EToken.Default_
             case2 = New TCase()
-            case2.DefaultCase = (CurTkn.TypeTkn = EToken.eDefault)
-            GetTkn(EToken.eUnknown)
+            case2.DefaultCase = (CurTkn.TypeTkn = EToken.Default_)
+            GetTkn(EToken.Unknown)
 
             If Not case2.DefaultCase Then
 
                 Do While True
                     Dim trm1 As TTerm = TermExpression()
                     case2.TrmCase.Add(trm1)
-                    If CurTkn.TypeTkn <> EToken.eComma Then
+                    If CurTkn.TypeTkn <> EToken.Comma Then
                         Exit Do
                     End If
-                    GetTkn(EToken.eComma)
+                    GetTkn(EToken.Comma)
                 Loop
             End If
-            GetTkn(EToken.eMMB)
+            GetTkn(EToken.MMB)
 
             sel2.CaseSel.Add(case2)
             case2.BlcCase = ReadCaseBlock(sel2)
@@ -1364,7 +1364,7 @@ Public Class TScriptParser
             End If
         Loop
 
-        GetTkn(EToken.eRC)
+        GetTkn(EToken.RC)
 
         Return sel2
     End Function
@@ -1373,19 +1373,19 @@ Public Class TScriptParser
         Dim if2 As New TIf
         Dim if_cnd As TTerm
 
-        GetTkn(EToken.eIf)
-        GetTkn(EToken.eLP)
+        GetTkn(EToken.If_)
+        GetTkn(EToken.LP)
         if_cnd = CType(TermExpression(), TTerm)
-        GetTkn(EToken.eRP)
+        GetTkn(EToken.RP)
 
         Dim if_blc As New TIfBlock(if_cnd, ReadBlock(if2))
         if2.IfBlc.Add(if_blc)
 
-        Do While CurTkn.TypeTkn = EToken.eElse
+        Do While CurTkn.TypeTkn = EToken.Else_
 
-            GetTkn(EToken.eElse)
-            If NxtTkn.TypeTkn = EToken.eIf Then
-                GetTkn(EToken.eIf)
+            GetTkn(EToken.Else_)
+            If NxtTkn.TypeTkn = EToken.If_ Then
+                GetTkn(EToken.If_)
                 if_blc = New TIfBlock(TermExpression(), ReadBlock(if2))
                 if2.IfBlc.Add(if_blc)
             Else
@@ -1402,21 +1402,21 @@ Public Class TScriptParser
         Dim stmt1 As New TVariableDeclaration
         Dim var1 As TVariable
 
-        GetTkn(EToken.eVar)
-        stmt1.TypeStmt = EToken.eVarDecl
+        GetTkn(EToken.Var)
+        stmt1.TypeStmt = EToken.VarDecl
         stmt1.ModDecl = New TModifier()
         Do While True
             var1 = ReadVariable()
             stmt1.VarDecl.Add(var1)
             CurBlc.VarBlc.Add(var1)
-            If CurTkn.TypeTkn <> EToken.eComma Then
+            If CurTkn.TypeTkn <> EToken.Comma Then
                 Exit Do
             End If
-            GetTkn(EToken.eComma)
+            GetTkn(EToken.Comma)
         Loop
 
         stmt1.TailCom = ReadTailCom()
-        GetTkn(EToken.eSM)
+        GetTkn(EToken.SM)
 
         Return stmt1
     End Function
@@ -1430,10 +1430,10 @@ Public Class TScriptParser
         CurBlc = blc1
 
         If Not case_block Then
-            GetTkn(EToken.eLC)
+            GetTkn(EToken.LC)
         End If
 
-        Do While CurTkn.TypeTkn <> EToken.eRC AndAlso Not (case_block AndAlso CurTkn.TypeTkn = EToken.eCase)
+        Do While CurTkn.TypeTkn <> EToken.RC AndAlso Not (case_block AndAlso CurTkn.TypeTkn = EToken.Case_)
             Dim stmt1 As TStatement = ReadStatement()
             If stmt1 Is Nothing Then
                 Exit Do
@@ -1441,9 +1441,9 @@ Public Class TScriptParser
             CurBlc.AddStmtBlc(stmt1)
         Loop
 
-        If CurTkn.TypeTkn = EToken.eRC Then
+        If CurTkn.TypeTkn = EToken.RC Then
 
-            GetTkn(EToken.eRC)
+            GetTkn(EToken.RC)
         End If
 
         CurBlc = blc_sv
@@ -1468,38 +1468,38 @@ Public Class TScriptParser
         mod1 = ReadModifier()
 
         Select Case CurTkn.TypeTkn
-            Case EToken.eVar
+            Case EToken.Var
                 stmt1 = ReadLocalVariableDeclaration()
 
-            Case EToken.eIf
+            Case EToken.If_
                 stmt1 = ReadIf()
 
-            Case EToken.eReturn, EToken.eYield
+            Case EToken.Return_, EToken.Yield_
                 stmt1 = ReadReturn(CurTkn.TypeTkn)
 
-            Case EToken.eDo
+            Case EToken.Do_
                 stmt1 = ReadDo()
 
-            Case EToken.eSwitch
+            Case EToken.Switch
                 stmt1 = ReadSelect()
 
-            Case EToken.eFor
+            Case EToken.For_
                 stmt1 = ReadFor()
 
-            Case EToken.eExit
+            Case EToken.Exit_
                 stmt1 = ReadExit()
 
-            Case EToken.eId, EToken.eBase, EToken.eCType, EToken.eDot
+            Case EToken.Id, EToken.Base, EToken.CType_, EToken.Dot
                 stmt1 = AssignmentExpression()
-                GetTkn(EToken.eSM)
+                GetTkn(EToken.SM)
 
-            Case EToken.eTry
+            Case EToken.Try_
                 stmt1 = ReadTry()
 
-            Case EToken.eThrow
+            Case EToken.Throw_
                 stmt1 = ReadThrow()
 
-            Case EToken.eLineComment
+            Case EToken.LineComment
                 stmt1 = ReadLineComment()
 
             Case Else
@@ -1520,14 +1520,14 @@ Public Class TScriptParser
             var1 = New TLocalVariable()
         End If
 
-        id1 = GetTkn(EToken.eId)
+        id1 = GetTkn(EToken.Id)
         var1.NameVar = id1.StrTkn
 
-        If CurTkn.TypeTkn = EToken.eMMB Then
+        If CurTkn.TypeTkn = EToken.MMB Then
 
-            GetTkn(EToken.eMMB)
+            GetTkn(EToken.MMB)
 
-            If CurTkn.TypeTkn = EToken.eNew Then
+            If CurTkn.TypeTkn = EToken.New_ Then
                 app1 = NewExpression()
                 var1.TypeVar = app1.NewApp
                 var1.InitVar = app1
@@ -1538,8 +1538,8 @@ Public Class TScriptParser
             var1.TypeVar = ReadType(False)
         End If
 
-        If CurTkn.TypeTkn = EToken.eASN Then
-            GetTkn(EToken.eASN)
+        If CurTkn.TypeTkn = EToken.ASN Then
+            GetTkn(EToken.ASN)
 
             var1.InitVar = AdditiveExpression()
         End If
@@ -1553,27 +1553,27 @@ Public Class TScriptParser
 
     Function ReadField() As TField
         Dim fld As TField = CType(ReadVariableField(True), TField)
-        GetTkn(EToken.eSM)
+        GetTkn(EToken.SM)
 
         Return fld
     End Function
 
     Sub ReadFunctionArgument(arg_list As TList(Of TVariable))
-        GetTkn(EToken.eLP)
+        GetTkn(EToken.LP)
 
-        Do While CurTkn.TypeTkn <> EToken.eRP
+        Do While CurTkn.TypeTkn <> EToken.RP
             Dim by_ref As Boolean, param_array As Boolean
             Dim var1 As TVariable
 
             by_ref = False
             param_array = False
             Select Case CurTkn.TypeTkn
-                Case EToken.eRef
+                Case EToken.Ref
                     by_ref = True
-                    GetTkn(EToken.eRef)
-                Case EToken.eParamArray
+                    GetTkn(EToken.Ref)
+                Case EToken.ParamArray_
                     param_array = True
-                    GetTkn(EToken.eParamArray)
+                    GetTkn(EToken.ParamArray_)
             End Select
 
             var1 = ReadVariable()
@@ -1581,13 +1581,13 @@ Public Class TScriptParser
             var1.ParamArrayVar = param_array
             arg_list.Add(var1)
 
-            If CurTkn.TypeTkn <> EToken.eComma Then
+            If CurTkn.TypeTkn <> EToken.Comma Then
                 Exit Do
             End If
-            GetTkn(EToken.eComma)
+            GetTkn(EToken.Comma)
         Loop
 
-        GetTkn(EToken.eRP)
+        GetTkn(EToken.RP)
     End Sub
 
     Function ReadFunction(cla1 As TClass, mod1 As TModifier) As TFunction
@@ -1595,20 +1595,20 @@ Public Class TScriptParser
         Dim fnc1 As TFunction = Nothing
 
         Select Case CurTkn.TypeTkn
-            Case EToken.eId
-                id1 = GetTkn(EToken.eId)
+            Case EToken.Id
+                id1 = GetTkn(EToken.Id)
                 fnc1 = New TFunction(id1.StrTkn, Nothing)
-                fnc1.TypeFnc = EToken.eFunction
+                fnc1.TypeFnc = EToken.Function_
 
-            Case EToken.eConstructor
-                id1 = GetTkn(EToken.eConstructor)
+            Case EToken.Constructor
+                id1 = GetTkn(EToken.Constructor)
                 fnc1 = New TFunction("New@" + cla1.NameCla(), Nothing)
-                fnc1.TypeFnc = EToken.eNew
+                fnc1.TypeFnc = EToken.New_
 
-            Case EToken.eOperator
-                GetTkn(EToken.eOperator)
+            Case EToken.Operator_
+                GetTkn(EToken.Operator_)
                 fnc1 = New TFunction(CurTkn.StrTkn, Nothing)
-                fnc1.TypeFnc = EToken.eOperator
+                fnc1.TypeFnc = EToken.Operator_
                 fnc1.OpFnc = CurTkn.TypeTkn
 
             Case Else
@@ -1617,21 +1617,21 @@ Public Class TScriptParser
 
         fnc1.ModVar = mod1
         fnc1.ThisFnc = New TLocalVariable(ThisName, cla1)
-        fnc1.IsNew = (fnc1.TypeFnc = EToken.eNew)
+        fnc1.IsNew = (fnc1.TypeFnc = EToken.New_)
 
         ReadFunctionArgument(fnc1.ArgFnc)
 
-        If CurTkn.TypeTkn = EToken.eMMB Then
-            GetTkn(EToken.eMMB)
+        If CurTkn.TypeTkn = EToken.MMB Then
+            GetTkn(EToken.MMB)
             fnc1.RetType = ReadType(False)
         End If
 
-        If CurTkn.TypeTkn = EToken.eImplements Then
-            GetTkn(EToken.eImplements)
+        If CurTkn.TypeTkn = EToken.Implements_ Then
+            GetTkn(EToken.Implements_)
 
-            id2 = GetTkn(EToken.eId)
-            GetTkn(EToken.eDot)
-            id3 = GetTkn(EToken.eId)
+            id2 = GetTkn(EToken.Id)
+            GetTkn(EToken.Dot)
+            id3 = GetTkn(EToken.Id)
 
             fnc1.InterfaceFnc = PrjParse.GetCla(id2.StrTkn)
             Debug.Assert(fnc1.InterfaceFnc IsNot Nothing)
@@ -1659,9 +1659,9 @@ Public Class TScriptParser
         PrjParse.dicGenCla.Clear()
 
         tkn1 = CurTkn
-        GetTkn(EToken.eUnknown)
-        id1 = GetTkn(EToken.eId)
-        If tkn1.TypeTkn = EToken.eDelegate Then
+        GetTkn(EToken.Unknown)
+        id1 = GetTkn(EToken.Id)
+        If tkn1.TypeTkn = EToken.Delegate_ Then
             cla1 = PrjParse.GetDelegate(id1.StrTkn)
         Else
             cla1 = PrjParse.GetCla(id1.StrTkn)
@@ -1672,13 +1672,13 @@ Public Class TScriptParser
         PrjParse.CurSrc.ClaSrc.Add(cla1)
 
         Select Case tkn1.TypeTkn
-            Case EToken.eDelegate
+            Case EToken.Delegate_
                 cla1.KndCla = EClass.eDelegateCla
-            Case EToken.eClass
+            Case EToken.Class_
                 cla1.KndCla = EClass.eClassCla
-            Case EToken.eStruct
+            Case EToken.Struct
                 cla1.KndCla = EClass.eStructCla
-            Case EToken.eInterface
+            Case EToken.Interface_
                 cla1.KndCla = EClass.eInterfaceCla
         End Select
 
@@ -1691,24 +1691,24 @@ Public Class TScriptParser
                 PrjParse.dicGenCla.Add(cla_f.NameCla(), cla_f)
             Next
 
-            GetTkn(EToken.eLT)
+            GetTkn(EToken.LT)
 
             Do While True
-                GetTkn(EToken.eId)
-                If CurTkn.TypeTkn = EToken.eGT Then
-                    GetTkn(EToken.eGT)
+                GetTkn(EToken.Id)
+                If CurTkn.TypeTkn = EToken.GT Then
+                    GetTkn(EToken.GT)
                     Exit Do
                 End If
-                GetTkn(EToken.eComma)
+                GetTkn(EToken.Comma)
             Loop
         End If
 
-        If tkn1.TypeTkn = EToken.eDelegate Then
+        If tkn1.TypeTkn = EToken.Delegate_ Then
             Dim dlg1 As TDelegate = CType(cla1, TDelegate)
 
             ReadFunctionArgument(dlg1.ArgDlg)
 
-            GetTkn(EToken.eMMB)
+            GetTkn(EToken.MMB)
             dlg1.RetDlg = ReadType(False)
 
             Dim fnc1 As New TFunction("Invoke", dlg1.RetDlg)
@@ -1718,25 +1718,25 @@ Public Class TScriptParser
             fnc1.ClaFnc = dlg1
             dlg1.FncCla.Add(fnc1)
         Else
-            If CurTkn.TypeTkn = EToken.eExtends Then
-                GetTkn(EToken.eExtends)
+            If CurTkn.TypeTkn = EToken.Extends Then
+                GetTkn(EToken.Extends)
 
                 Dim spr_cla As TClass = ReadType(False)
                 cla1.SuperClassList.Add(spr_cla)
             End If
 
-            If CurTkn.TypeTkn = EToken.eImplements Then
-                GetTkn(EToken.eImplements)
+            If CurTkn.TypeTkn = EToken.Implements_ Then
+                GetTkn(EToken.Implements_)
 
                 Do While True
 
                     Dim spr_cla As TClass = ReadType(False)
                     cla1.InterfaceList.Add(spr_cla)
 
-                    If CurTkn.TypeTkn <> EToken.eComma Then
+                    If CurTkn.TypeTkn <> EToken.Comma Then
                         Exit Do
                     End If
-                    GetTkn(EToken.eComma)
+                    GetTkn(EToken.Comma)
                 Loop
             End If
 
@@ -1744,25 +1744,25 @@ Public Class TScriptParser
                 cla1.SuperClassList.Add(PrjParse.ObjectType)
             End If
 
-            GetTkn(EToken.eLC)
+            GetTkn(EToken.LC)
 
-            Do While CurTkn.TypeTkn <> EToken.eRC
+            Do While CurTkn.TypeTkn <> EToken.RC
                 Dim mod2 As TModifier = ReadModifier()
 
-                If CurTkn.TypeTkn = EToken.eConstructor Then
+                If CurTkn.TypeTkn = EToken.Constructor Then
                     Dim fnc1 As TFunction = ReadFunction(cla1, mod2)
                     fnc1.ClaFnc = cla1
                     cla1.FncCla.Add(fnc1)
                 Else
 
-                    Debug.Assert(CurTkn.TypeTkn = EToken.eId)
+                    Debug.Assert(CurTkn.TypeTkn = EToken.Id)
                     Select Case NxtTkn.TypeTkn
-                        Case EToken.eMMB
+                        Case EToken.MMB
                             Dim fld1 As TField = ReadField()
                             fld1.ModVar = mod2
                             cla1.AddFld(fld1)
 
-                        Case EToken.eLP
+                        Case EToken.LP
                             Dim fnc1 As TFunction = ReadFunction(cla1, mod2)
                             fnc1.ClaFnc = cla1
                             cla1.FncCla.Add(fnc1)
@@ -1773,7 +1773,7 @@ Public Class TScriptParser
                 End If
 
             Loop
-            GetTkn(EToken.eRC)
+            GetTkn(EToken.RC)
         End If
 
         PrjParse.dicGenCla.Clear()
@@ -1786,8 +1786,8 @@ Public Class TScriptParser
         Dim fld1 As TField
         Dim type1 As TClass
 
-        GetTkn(EToken.eEnum)
-        Dim id1 As TToken = GetTkn(EToken.eId)
+        GetTkn(EToken.Enum_)
+        Dim id1 As TToken = GetTkn(EToken.Id)
 
         cla1 = PrjParse.GetCla(id1.StrTkn)
         Debug.Assert(cla1 IsNot Nothing)
@@ -1797,12 +1797,12 @@ Public Class TScriptParser
         cla1.SuperClassList.Add(PrjParse.ObjectType)
         type1 = cla1
 
-        Do While CurTkn.TypeTkn = EToken.eId
-            Dim ele1 As TToken = GetTkn(EToken.eId)
+        Do While CurTkn.TypeTkn = EToken.Id
+            Dim ele1 As TToken = GetTkn(EToken.Id)
             fld1 = New TField(ele1.StrTkn, type1)
             cla1.AddFld(fld1)
         Loop
-        GetTkn(EToken.eRP)
+        GetTkn(EToken.RP)
         cla1.Parsed = True
 
         Return cla1
@@ -1815,25 +1815,25 @@ Public Class TScriptParser
         mod1.ValidMod = False
         Do While True
             Select Case CurTkn.TypeTkn
-                Case EToken.ePartial
+                Case EToken.Partial_
                     mod1.isPartial = True
-                Case EToken.ePublic
+                Case EToken.Public_
                     mod1.isPublic = True
-                Case EToken.eShared
+                Case EToken.Shared_
                     mod1.isShared = True
-                Case EToken.eConst
+                Case EToken.Const_
                     mod1.isConst = True
-                Case EToken.eAbstract
+                Case EToken.Abstract
                     mod1.isAbstract = True
-                Case EToken.eVirtual
+                Case EToken.Virtual
                     mod1.isVirtual = True
-                Case EToken.eMustOverride
+                Case EToken.MustOverride_
                     mod1.isMustOverride = True
-                Case EToken.eOverride
+                Case EToken.Override
                     mod1.isOverride = True
-                Case EToken.eIterator
+                Case EToken.Iterator_
                     mod1.isIterator = True
-                Case EToken.eProtected, EToken.eFriend, EToken.ePrivate
+                Case EToken.Protected_, EToken.Friend_, EToken.Private_
                 Case EToken.Attribute
                     If CurTkn.StrTkn = "@_Weak" Then
                         mod1.isWeak = True
@@ -1849,12 +1849,12 @@ Public Class TScriptParser
                         Debug.Assert(False)
                     End If
 
-                Case EToken.eLT
-                    GetTkn(EToken.eLT)
+                Case EToken.LT
+                    GetTkn(EToken.LT)
                     Do While True
                         Dim id1 As TToken
 
-                        id1 = GetTkn(EToken.eId)
+                        id1 = GetTkn(EToken.Id)
                         If id1.StrTkn = "XmlIgnoreAttribute" Then
                             mod1.isXmlIgnore = True
                         ElseIf id1.StrTkn = "_Weak" Then
@@ -1870,21 +1870,21 @@ Public Class TScriptParser
                         Else
                             Debug.Assert(False)
                         End If
-                        GetTkn(EToken.eLP)
-                        GetTkn(EToken.eRP)
+                        GetTkn(EToken.LP)
+                        GetTkn(EToken.RP)
 
-                        If CurTkn.TypeTkn <> EToken.eComma Then
+                        If CurTkn.TypeTkn <> EToken.Comma Then
                             Exit Do
                         End If
-                        GetTkn(EToken.eComma)
+                        GetTkn(EToken.Comma)
 
                     Loop
-                    Debug.Assert(CurTkn.TypeTkn = EToken.eGT)
+                    Debug.Assert(CurTkn.TypeTkn = EToken.GT)
 
                 Case Else
                     Exit Do
             End Select
-            GetTkn(EToken.eUnknown)
+            GetTkn(EToken.Unknown)
             mod1.ValidMod = True
         Loop
 
@@ -1896,18 +1896,18 @@ Public Class TScriptParser
         Dim tkn1 As TToken
         Dim sb1 As TStringWriter
 
-        GetTkn(EToken.eImports)
+        GetTkn(EToken.Imports_)
 
         sb1 = New TStringWriter()
         Do While True
-            id1 = GetTkn(EToken.eId)
+            id1 = GetTkn(EToken.Id)
             sb1.Append(id1.StrTkn)
 
             Select Case CurTkn.TypeTkn
-                Case EToken.eSM
+                Case EToken.SM
                     Exit Do
-                Case EToken.eDot
-                    tkn1 = GetTkn(EToken.eDot)
+                Case EToken.Dot
+                    tkn1 = GetTkn(EToken.Dot)
                     sb1.Append(tkn1.StrTkn)
                 Case Else
                     Chk(False)
@@ -1921,36 +1921,36 @@ Public Class TScriptParser
         Dim mod1 As TModifier
         Dim is_module As Boolean = False
 
-        Do While CurTkn.TypeTkn = EToken.eImports
+        Do While CurTkn.TypeTkn = EToken.Imports_
             ReadImports()
         Loop
 
-        If CurTkn.TypeTkn = EToken.eModule Then
+        If CurTkn.TypeTkn = EToken.Module_ Then
             is_module = True
-            GetTkn(EToken.eModule)
-            GetTkn(EToken.eId)
-            GetTkn(EToken.eLP)
+            GetTkn(EToken.Module_)
+            GetTkn(EToken.Id)
+            GetTkn(EToken.LP)
         End If
 
         Do While True
             mod1 = ReadModifier()
 
-            Do While CurTkn.TypeTkn = EToken.eLineComment OrElse CurTkn.TypeTkn = EToken.eBlockComment
-                GetTkn(EToken.eUnknown)
+            Do While CurTkn.TypeTkn = EToken.LineComment OrElse CurTkn.TypeTkn = EToken.BlockComment
+                GetTkn(EToken.Unknown)
             Loop
 
             Select Case CurTkn.TypeTkn
-                Case EToken.eDelegate, EToken.eClass, EToken.eStruct, EToken.eInterface
+                Case EToken.Delegate_, EToken.Class_, EToken.Struct, EToken.Interface_
                     ReadClass(mod1)
 
-                Case EToken.eEnum
+                Case EToken.Enum_
                     ReadEnum()
 
-                Case EToken.eEOT
+                Case EToken.EOT
                     Exit Do
 
-                Case EToken.eFunction
-                    GetTkn(EToken.eFunction)
+                Case EToken.Function_
+                    GetTkn(EToken.Function_)
                     Dim fnc1 As TFunction = ReadFunction(Nothing, mod1)
                     Debug.Assert(fnc1.NameVar = "_Weak" OrElse fnc1.NameVar = "_Parent" OrElse fnc1.NameVar = "_Prev" OrElse fnc1.NameVar = "_Next" OrElse fnc1.NameVar = "_Invariant")
 
@@ -1960,7 +1960,7 @@ Public Class TScriptParser
         Loop
 
         If is_module Then
-            GetTkn(EToken.eRP)
+            GetTkn(EToken.RP)
         End If
     End Sub
 

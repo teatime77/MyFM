@@ -41,177 +41,177 @@ Public Enum EAggregateFunction
 End Enum
 
 Public Enum EToken
-    eAbstract
-    eADD
-    eADDEQ
-    eAddressOf
-    eAggregate
-    eAnd
-    eAnp
-    eAny
-    eAppCall
-    eAs
-    eASN
-    eAsync
-    eAt
+    Abstract
+    ADD
+    ADDEQ
+    AddressOf_
+    Aggregate_
+    And_
+    Anp
+    Any
+    AppCall
+    As_
+    ASN
+    Async
+    At_
     Attribute
-    eAwait
-    eBase
-    eBaseCall
-    eBaseNew
-    eBlockComment
-    eBreak
-    eByVal
-    eCall
-    eCase
-    eCast
-    eCatch
-    eChar
-    eClass
-    eComma
-    eComment
-    eConst
-    eConstructor
-    eContinue
-    eCType
-    eDebugger
-    eDeclare
-    eDefault
-    eDelegate
-    eDelete
-    eDEC
-    eVar
-    eDIV
-    eDIVEQ
-    eDo
-    eDot
-    eEach
-    eElse
-    eElseIf
-    eEnd
-    eEndClass
-    eEndEnum
-    eEndFunction
-    eEndIf
-    eEndInterface
-    eEndModule
-    eEndOperator
-    eEndSelect
-    eEOL
-    eEndStruct
-    eEndSub
-    eEndTry
-    eEndWith
-    eEnum
-    eEOT
-    eEq
-    eExit
-    eExitDo
-    eExitFor
-    eExitSub
-    eExtends
-    eFor
-    eForeach
-    eFriend
-    eFrom
-    eFunction
-    eGE
-    eGet
-    eGetType
-    eGoto
-    eGT
-    eHandles
-    eHAT
-    eHex
-    eId
-    eIf
-    eIfBlock
-    eImplements
-    eImports
-    eIn
-    eInstanceof
-    eInt
-    eInterface
-    eInto
-    eINC
-    eIs
-    eIsNot
-    eIterator
-    eLabel
-    eLB
-    eLC
-    eLE
-    eLineComment
-    eLoop
-    eLowLine
-    eLP
-    eLT
-    eMMB
-    eMns
-    eMOD
-    eMODEQ
-    eModule
-    eMUL
-    eMULEQ
-    eMustOverride
-    eNamespace
-    eNE
-    eNew
-    eNext
-    eNL
-    eNot
-    eOf
-    eOperator
-    eOR
-    eOut
-    eOverride
-    ePackage
-    eParamArray
-    ePartial
-    ePrivate
-    eProtected
-    ePublic
+    Await
+    Base
+    BaseCall
+    BaseNew
+    BlockComment
+    Break_
+    ByVal_
+    Call_
+    Case_
+    Cast
+    Catch_
+    Char_
+    Class_
+    Comma
+    Comment
+    Const_
+    Constructor
+    Continue_
+    CType_
+    Debugger
+    Declare_
+    Default_
+    Delegate_
+    Delete
+    DEC
+    Var
+    DIV
+    DIVEQ
+    Do_
+    Dot
+    Each_
+    Else_
+    ElseIf_
+    End_
+    EndClass
+    EndEnum
+    EndFunction
+    EndIf_
+    EndInterface
+    EndModule
+    EndOperator
+    EndSelect
+    EOL
+    EndStruct
+    EndSub
+    EndTry
+    EndWith
+    Enum_
+    EOT
+    Eq
+    Exit_
+    ExitDo
+    ExitFor
+    ExitSub
+    Extends
+    For_
+    Foreach_
+    Friend_
+    From_
+    Function_
+    GE
+    Get_
+    GetType_
+    Goto_
+    GT
+    Handles_
+    HAT
+    Hex
+    Id
+    If_
+    IfBlock
+    Implements_
+    Imports_
+    In_
+    Instanceof
+    Int
+    Interface_
+    Into_
+    INC
+    Is_
+    IsNot_
+    Iterator_
+    Label
+    LB
+    LC
+    LE
+    LineComment
+    Loop_
+    LowLine
+    LP
+    LT
+    MMB
+    Mns
+    MOD_
+    MODEQ
+    Module_
+    MUL
+    MULEQ
+    MustOverride_
+    Namespace_
+    NE
+    New_
+    Next_
+    NL
+    Not_
+    Of_
+    Operator_
+    OR_
+    Out_
+    Override
+    Package
+    ParamArray_
+    Partial_
+    Private_
+    Protected_
+    Public_
     Question
-    eRB
-    eRC
-    eReDim
-    eRef
-    eRegEx
-    eReturn
-    eRP
-    eSelect
-    eSet
-    eShared
-    eSM
-    eStep
-    eString
-    eStruct
-    eSub
-    eSUBEQ
-    eSwitch
-    eTab
-    eTake
-    eThen
-    eThrow
-    eTilde
-    eTo
-    eTry
-    eUnknown
-    eUsing
-    eVarDecl
-    eVirtual
-    eBitOR
-    eWhere
-    eWhile
-    eWith
-    eYield
+    RB
+    RC
+    ReDim_
+    Ref
+    RegEx
+    Return_
+    RP
+    Select_
+    Set_
+    Shared_
+    SM
+    Step_
+    String_
+    Struct
+    Sub_
+    SUBEQ
+    Switch
+    Tab
+    Take_
+    Then_
+    Throw_
+    Tilde
+    To_
+    Try_
+    Unknown
+    Using_
+    VarDecl
+    Virtual
+    BitOR
+    Where_
+    While_
+    With_
+    Yield_
 
-    eMAX_ETkn
+    MAX_ETkn
 End Enum
 
 Public Class TToken
     Public SpcTkn As Integer
-    Public TypeTkn As EToken = EToken.eUnknown
+    Public TypeTkn As EToken = EToken.Unknown
     Public StrTkn As String
     Public PosTkn As Integer
     Public TabTkn As Integer
@@ -294,7 +294,7 @@ Public Class TTerm
     Public Function IsApp() As Boolean
         If TypeOf Me Is TApply Then
             Select Case CType(Me, TApply).TypeApp
-                Case EToken.eCast, EToken.eAppCall, EToken.eADD, EToken.eBaseNew, EToken.eNew, EToken.eMns, EToken.eMUL, EToken.eBaseCall, EToken.eDIV, EToken.eMOD, EToken.eGetType, EToken.eINC, EToken.eDEC, EToken.eBitOR, EToken.Question
+                Case EToken.Cast, EToken.AppCall, EToken.ADD, EToken.BaseNew, EToken.New_, EToken.Mns, EToken.MUL, EToken.BaseCall, EToken.DIV, EToken.MOD_, EToken.GetType_, EToken.INC, EToken.DEC, EToken.BitOR, EToken.Question
                     Return True
             End Select
         End If
@@ -305,7 +305,7 @@ Public Class TTerm
     Public Function IsRel() As Boolean
         If TypeOf Me Is TApply Then
             Select Case CType(Me, TApply).TypeApp
-                Case EToken.eEq, EToken.eNE, EToken.eASN, EToken.eLT, EToken.eGT, EToken.eADDEQ, EToken.eSUBEQ, EToken.eMULEQ, EToken.eDIVEQ, EToken.eMODEQ, EToken.eLE, EToken.eGE, EToken.eIsNot, EToken.eInstanceof, EToken.eIs
+                Case EToken.Eq, EToken.NE, EToken.ASN, EToken.LT, EToken.GT, EToken.ADDEQ, EToken.SUBEQ, EToken.MULEQ, EToken.DIVEQ, EToken.MODEQ, EToken.LE, EToken.GE, EToken.IsNot_, EToken.Instanceof, EToken.Is_
                     Return True
             End Select
         End If
@@ -319,7 +319,7 @@ Public Class TTerm
         If TypeOf Me Is TApply Then
             app1 = CType(Me, TApply)
             Select Case app1.TypeApp
-                Case EToken.eAnd, EToken.eOR, EToken.eNot, EToken.eAnp
+                Case EToken.And_, EToken.OR_, EToken.Not_, EToken.Anp
                     Return True
             End Select
             If app1.Negation Then
@@ -674,7 +674,7 @@ Public Class TFunction
     Public TypeFnc As EToken
     Public IsNew As Boolean = False
     Public IsTreeWalker As Boolean = False
-    Public OpFnc As EToken = EToken.eUnknown
+    Public OpFnc As EToken = EToken.Unknown
     <_Weak()> Public ClaFnc As TClass
     <_Weak()> Public RetType As TClass
     <_Weak()> Public InterfaceFnc As TClass
@@ -717,7 +717,7 @@ Public Class TFunction
     Public Sub New(function_name As String, prj1 As TProject, cla1 As TClass)
         NameVar = function_name
         ModVar = New TModifier()
-        TypeFnc = EToken.eSub
+        TypeFnc = EToken.Sub_
         ThisFnc = New TLocalVariable(prj1.ParsePrj.ThisName, cla1)
         ClaFnc = cla1
         ClaFnc.FncCla.Add(Me)
@@ -837,7 +837,7 @@ End Class
 ' -------------------------------------------------------------------------------- TApply
 Public Class TApply
     Inherits TTerm
-    Public TypeApp As EToken = EToken.eUnknown
+    Public TypeApp As EToken = EToken.Unknown
     Public Negation As Boolean = False
     Public ArgApp As New TList(Of TTerm)
     Public KndApp As EApply = EApply.eUnknownApp
@@ -855,7 +855,7 @@ Public Class TApply
         Dim app1 As TApply
 
         app1 = New TApply()
-        app1.TypeApp = EToken.eNew
+        app1.TypeApp = EToken.New_
         app1.NewApp = type1
         app1.FncApp = New TReference("New@" + type1.NameCla())
 
@@ -866,10 +866,10 @@ Public Class TApply
         Dim app1 As TApply
 
         app1 = New TApply()
-        If tkn1.TypeTkn = EToken.eNew Then
-            app1.TypeApp = EToken.eBaseNew
+        If tkn1.TypeTkn = EToken.New_ Then
+            app1.TypeApp = EToken.BaseNew
         Else
-            app1.TypeApp = EToken.eBaseCall
+            app1.TypeApp = EToken.BaseCall
         End If
         app1.FncApp = New TReference(tkn1)
 
@@ -885,7 +885,7 @@ Public Class TApply
             Debug.Assert(False, "make app call:new type")
         End If
         app1 = New TApply()
-        app1.TypeApp = EToken.eAppCall
+        app1.TypeApp = EToken.AppCall
         app1.FncApp = fnc1
 
         Return app1
@@ -934,7 +934,7 @@ Public Class TApply
         Dim app1 As TApply
 
         app1 = New TApply()
-        app1.TypeApp = EToken.eGetType
+        app1.TypeApp = EToken.GetType_
         app1.ClassApp = type1
 
         Return app1
@@ -961,7 +961,7 @@ Public Class TApply
     Public Shared Function NewTypeOf(trm1 As TTerm, type2 As TClass) As TApply
         Dim app1 As New TApply
 
-        app1.TypeApp = EToken.eInstanceof
+        app1.TypeApp = EToken.Instanceof
         app1.AddInArg(trm1)
         app1.AddInArg(New TReference(type2))
 
@@ -1074,7 +1074,7 @@ Public Class TStatement
 
     Public Overridable Function JumpEnd() As Boolean
         Select Case TypeStmt
-            Case EToken.eReturn, EToken.eExitDo, EToken.eExitFor, EToken.eExitSub
+            Case EToken.Return_, EToken.ExitDo, EToken.ExitFor, EToken.ExitSub
                 ' ジャンプする場合
 
                 Return True
@@ -1122,7 +1122,7 @@ Public Class TBlock
             stmt1 = StmtBlc(i1)
 
             Select Case stmt1.TypeStmt
-                Case EToken.eComment
+                Case EToken.Comment
                     ' コメント文の場合
 
                     i1 = i1 - 1
@@ -1143,7 +1143,7 @@ Public Class TIf
     Public IfBlc As New TList(Of TIfBlock)
 
     Public Sub New()
-        TypeStmt = EToken.eIf
+        TypeStmt = EToken.If_
     End Sub
 
     Public Overrides Function JumpEnd() As Boolean
@@ -1166,11 +1166,11 @@ Public Class TIfBlock
     Public BlcIf As TBlock
 
     Public Sub New()
-        TypeStmt = EToken.eIfBlock
+        TypeStmt = EToken.IfBlock
     End Sub
 
     Public Sub New(cnd As TTerm, blc As TBlock)
-        TypeStmt = EToken.eIfBlock
+        TypeStmt = EToken.IfBlock
         CndIf = cnd
         Dim vidx = From i In Sys.IndexList(blc.StmtBlc) Where TypeOf blc.StmtBlc(i) Is TWith
         If vidx.Any() Then
@@ -1197,7 +1197,7 @@ Public Class TCase
     Public BlcCase As TBlock
 
     Public Sub New()
-        TypeStmt = EToken.eCase
+        TypeStmt = EToken.Case_
     End Sub
 
     Public Sub AddTrmCase(trm As TTerm)
@@ -1212,7 +1212,7 @@ Public Class TSelect
     Public CaseSel As New TList(Of TCase)
 
     Public Sub New()
-        TypeStmt = EToken.eSwitch
+        TypeStmt = EToken.Switch
     End Sub
 End Class
 
@@ -1242,11 +1242,11 @@ Public Class TFor
     Public LabelFor As Integer
 
     Public Sub New()
-        TypeStmt = EToken.eFor
+        TypeStmt = EToken.For_
     End Sub
 
     Public Sub New(prj1 As TProject, idx_name As String, from1 As TTerm, to1 As TTerm)
-        TypeStmt = EToken.eFor
+        TypeStmt = EToken.For_
 
         IdxVarFor = New TLocalVariable(idx_name, prj1.IntType)
         IdxFor = New TReference(IdxVarFor)
@@ -1263,7 +1263,7 @@ Public Class TWith
     <_Weak()> Public BlcWith As TBlock
 
     Public Sub New()
-        TypeStmt = EToken.eWith
+        TypeStmt = EToken.With_
     End Sub
 End Class
 
@@ -1280,13 +1280,13 @@ Public Class TAssignment
     Public RelAsn As TApply
 
     Public Sub New(rel1 As TApply)
-        TypeStmt = EToken.eASN
+        TypeStmt = EToken.ASN
         RelAsn = rel1
     End Sub
 
     Public Sub New(ref1 As TReference, trm1 As TTerm)
-        TypeStmt = EToken.eASN
-        RelAsn = TApply.NewOpr2(EToken.eASN, ref1, trm1)
+        TypeStmt = EToken.ASN
+        RelAsn = TApply.NewOpr2(EToken.ASN, ref1, trm1)
     End Sub
 End Class
 
@@ -1296,7 +1296,7 @@ Public Class TCall
     Public AppCall As TApply
 
     Public Sub New(app1 As TApply)
-        TypeStmt = EToken.eCall
+        TypeStmt = EToken.Call_
         AppCall = app1
     End Sub
 End Class
@@ -1308,7 +1308,7 @@ Public Class TReturn
     Public YieldRet As Boolean
 
     Public Sub New(trm1 As TTerm, yield_ret As Boolean)
-        TypeStmt = EToken.eReturn
+        TypeStmt = EToken.Return_
         TrmRet = trm1
         YieldRet = yield_ret
     End Sub

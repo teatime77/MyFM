@@ -747,7 +747,7 @@ Public Class TProject
 
             ini_fnc.ClaFnc = cls1
             ini_fnc.ModVar = New TModifier()
-            ini_fnc.TypeFnc = EToken.eSub
+            ini_fnc.TypeFnc = EToken.Sub_
             ini_fnc.ThisFnc = New TLocalVariable(ParsePrj.ThisName, cls1)
             ini_fnc.BlcFnc = New TBlock()
 
@@ -809,7 +809,7 @@ Public Class TProject
 
                 new_fnc.ClaFnc = cls1
                 new_fnc.ModVar = New TModifier()
-                new_fnc.TypeFnc = EToken.eNew
+                new_fnc.TypeFnc = EToken.New_
                 new_fnc.ThisFnc = New TLocalVariable(ParsePrj.ThisName, cls1)
                 new_fnc.BlcFnc = New TBlock()
                 new_fnc.IsNew = True
@@ -855,25 +855,25 @@ Public Class TProject
         Dim tp1 As TClass, name1 As String
 
         Select Case type1
-            Case EToken.eADD
+            Case EToken.ADD
                 name1 = "+"
-            Case EToken.eMns
+            Case EToken.Mns
                 name1 = "-"
-            Case EToken.eMUL
+            Case EToken.MUL
                 name1 = "*"
-            Case EToken.eDIV
+            Case EToken.DIV
                 name1 = "/"
-            Case EToken.eMOD
+            Case EToken.MOD_
                 name1 = "Mod"
-            Case EToken.eEq
+            Case EToken.Eq
                 name1 = "="
-            Case EToken.eNE
+            Case EToken.NE
                 name1 = "<>"
-            Case EToken.eINC
+            Case EToken.INC
                 name1 = "++"
-            Case EToken.eDEC
+            Case EToken.DEC
                 name1 = "--"
-            Case EToken.eBitOR
+            Case EToken.BitOR
                 name1 = "|"
             Case Else
                 Return Nothing
@@ -884,7 +884,7 @@ Public Class TProject
         Debug.Assert(tp1 IsNot Nothing)
 
         ' 名前が同じの演算子オーバーロード関数を探す
-        Dim vfnc = From fnc In tp1.FncCla Where fnc.TypeFnc = EToken.eOperator AndAlso fnc.NameFnc() = name1
+        Dim vfnc = From fnc In tp1.FncCla Where fnc.TypeFnc = EToken.Operator_ AndAlso fnc.NameFnc() = name1
         If vfnc.Any() Then
             Return vfnc.First()
         End If
@@ -1379,30 +1379,30 @@ Public Class TProject
 
                 Debug.Assert(cla1.GenCla IsNot Nothing AndAlso cla1.GenCla.Count = 1)
                 SetClassNameList(cla1.GenCla(0), parser)
-                tw.Fmt(cla1.GenCla(0).TokenListVar, EToken.eLP)
+                tw.Fmt(cla1.GenCla(0).TokenListVar, EToken.LP)
 
                 For i1 = 0 To cla1.DimCla - 1
                     If i1 <> 0 Then
-                        tw.Fmt(EToken.eComma)
+                        tw.Fmt(EToken.Comma)
                     End If
                 Next
-                tw.Fmt(EToken.eRP)
+                tw.Fmt(EToken.RP)
             Else
                 ' 配列でない場合
                 tw.Fmt(cla1.NameVar)
                 If cla1.GenCla IsNot Nothing Then
                     ' 総称型の場合
 
-                    tw.Fmt(EToken.eLP, EToken.eOf)
+                    tw.Fmt(EToken.LP, EToken.Of_)
                     For i1 = 0 To cla1.GenCla.Count - 1
                         If i1 <> 0 Then
-                            tw.Fmt(EToken.eComma)
+                            tw.Fmt(EToken.Comma)
                         End If
 
                         SetClassNameList(cla1.GenCla(i1), parser)
                         tw.Fmt(cla1.GenCla(i1).TokenListVar)
                     Next
-                    tw.Fmt(EToken.eRP)
+                    tw.Fmt(EToken.RP)
                 End If
             End If
         End If
@@ -1424,11 +1424,11 @@ Public Class TProject
             Dim txt As String = ""
 
             Select Case tkn.TypeTkn
-                Case EToken.eInt
-                Case EToken.eNL
-                Case EToken.eUnknown
-                Case EToken.eComment
-                Case EToken.eTab
+                Case EToken.Int
+                Case EToken.NL
+                Case EToken.Unknown
+                Case EToken.Comment
+                Case EToken.Tab
                 Case Else
                     If parser.vTknName.ContainsKey(tkn.TypeTkn) Then
                         txt = parser.vTknName(tkn.TypeTkn)
@@ -1442,35 +1442,35 @@ Public Class TProject
             End Select
 
             Select Case tkn.TypeTkn
-                Case EToken.eInt
+                Case EToken.Int
                     sw.Write(tkn.StrTkn)
 
-                Case EToken.eNL
+                Case EToken.NL
                     sw.WriteLine("")
 
-                Case EToken.eTab
+                Case EToken.Tab
                     Dim k As Integer
                     For k = 0 To tkn.TabTkn * 4 - 1
                         sw.Write(" ")
                     Next
 
-                Case EToken.eComment
+                Case EToken.Comment
                     If parser.LanguageSP = ELanguage.Basic Then
                         sw.Write("'" + tkn.StrTkn)
                     Else
                         sw.Write("//" + tkn.StrTkn)
                     End If
 
-                Case EToken.eAs, EToken.eTo, EToken.eIs, EToken.eIsNot, EToken.eIn, EToken.eInto, EToken.eWhere, EToken.eTake, EToken.eStep, EToken.eImplements, EToken.eParamArray
+                Case EToken.As_, EToken.To_, EToken.Is_, EToken.IsNot_, EToken.In_, EToken.Into_, EToken.Where_, EToken.Take_, EToken.Step_, EToken.Implements_, EToken.ParamArray_
                     sw.Write(" " + txt + " ")
 
-                Case EToken.eThen
+                Case EToken.Then_
                     sw.Write(" " + txt)
 
-                Case EToken.eChar, EToken.eString
+                Case EToken.Char_, EToken.String_
                     sw.Write(tkn.StrTkn)
 
-                Case EToken.eUnknown
+                Case EToken.Unknown
                     If TypeOf tkn.ObjTkn Is TDot Then
                         With CType(tkn.ObjTkn, TDot)
                             sw.Write(".{0}", parser.TranslageReferenceName(CType(tkn.ObjTkn, TDot)))
@@ -1520,7 +1520,7 @@ Public Class TProject
 
             End Select
 
-            start_of_line = (tkn.TypeTkn = EToken.eNL OrElse tkn.TypeTkn = EToken.eTab)
+            start_of_line = (tkn.TypeTkn = EToken.NL OrElse tkn.TypeTkn = EToken.Tab)
         Next
 
         Return sw.ToString()
@@ -1528,31 +1528,31 @@ Public Class TProject
 
     Public Function IsReserved(e As EToken, lang As ELanguage) As Boolean
         Select Case e
-            Case EToken.ePublic, EToken.eClass, EToken.eFunction, EToken.eAs, EToken.eReturn, EToken.eEndFunction, EToken.eEndClass
+            Case EToken.Public_, EToken.Class_, EToken.Function_, EToken.As_, EToken.Return_, EToken.EndFunction, EToken.EndClass
                 Return True
-            Case EToken.eSub, EToken.eEndSub, EToken.eOf, EToken.eShared, EToken.eStruct, EToken.eExtends, EToken.eEndStruct, EToken.eNew
+            Case EToken.Sub_, EToken.EndSub, EToken.Of_, EToken.Shared_, EToken.Struct, EToken.Extends, EToken.EndStruct, EToken.New_
                 Return True
-            Case EToken.eAbstract, EToken.eVirtual, EToken.eOverride, EToken.eEnum, EToken.eEnd, EToken.eConst, EToken.eImports, EToken.eOperator, EToken.eVar
+            Case EToken.Abstract, EToken.Virtual, EToken.Override, EToken.Enum_, EToken.End_, EToken.Const_, EToken.Imports_, EToken.Operator_, EToken.Var
                 Return True
-            Case EToken.eEndOperator, EToken.eIf, EToken.eThen, EToken.eEndIf, EToken.eInterface, EToken.eEndInterface, EToken.eFor, EToken.eTo, EToken.eStep, EToken.eNext, EToken.eReDim, EToken.eEach
+            Case EToken.EndOperator, EToken.If_, EToken.Then_, EToken.EndIf_, EToken.Interface_, EToken.EndInterface, EToken.For_, EToken.To_, EToken.Step_, EToken.Next_, EToken.ReDim_, EToken.Each_
                 Return True
-            Case EToken.eIn, EToken.eInstanceof, EToken.eIs, EToken.eCType, EToken.eElseIf, EToken.eSelect, EToken.eCase, EToken.eEndSelect, EToken.eElse, EToken.eWith, EToken.eIsNot
+            Case EToken.In_, EToken.Instanceof, EToken.Is_, EToken.CType_, EToken.ElseIf_, EToken.Select_, EToken.Case_, EToken.EndSelect, EToken.Else_, EToken.With_, EToken.IsNot_
                 Return True
-            Case EToken.eEndWith, EToken.eExitSub, EToken.eFrom, EToken.eMustOverride, EToken.eDo, EToken.eWhile, EToken.eExitDo, EToken.eLoop, EToken.eThrow, EToken.eTry, EToken.eCatch, EToken.eEndTry
+            Case EToken.EndWith, EToken.ExitSub, EToken.From_, EToken.MustOverride_, EToken.Do_, EToken.While_, EToken.ExitDo, EToken.Loop_, EToken.Throw_, EToken.Try_, EToken.Catch_, EToken.EndTry
                 Return True
-            Case EToken.eExitFor, EToken.eAddressOf, EToken.eBase, EToken.eWhere, EToken.eGetType, EToken.eIterator, EToken.eYield, EToken.eAggregate, EToken.eInto, EToken.eParamArray
+            Case EToken.ExitFor, EToken.AddressOf_, EToken.Base, EToken.Where_, EToken.GetType_, EToken.Iterator_, EToken.Yield_, EToken.Aggregate_, EToken.Into_, EToken.ParamArray_
                 Return True
 
-            Case EToken.eNot, EToken.eMOD
+            Case EToken.Not_, EToken.MOD_
                 If lang = ELanguage.Basic Then
                     Return True
                 End If
 
-            Case EToken.eLP, EToken.eRP, EToken.eComma, EToken.eEq, EToken.eDot, EToken.eMUL, EToken.eADD, EToken.eMns, EToken.eAnd, EToken.eNE, EToken.eOR, EToken.eDIV, EToken.eLE
-            Case EToken.eLC, EToken.eRC, EToken.eASN, EToken.eADDEQ, EToken.eLT, EToken.eGT, EToken.eGE, EToken.eSM, EToken.eMULEQ, EToken.eLB, EToken.eRB, EToken.eSUBEQ
+            Case EToken.LP, EToken.RP, EToken.Comma, EToken.Eq, EToken.Dot, EToken.MUL, EToken.ADD, EToken.Mns, EToken.And_, EToken.NE, EToken.OR_, EToken.DIV, EToken.LE
+            Case EToken.LC, EToken.RC, EToken.ASN, EToken.ADDEQ, EToken.LT, EToken.GT, EToken.GE, EToken.SM, EToken.MULEQ, EToken.LB, EToken.RB, EToken.SUBEQ
 
-            Case EToken.eUnknown, EToken.eNL, EToken.eTab, EToken.eComment
-            Case EToken.eInt, EToken.eChar, EToken.eString
+            Case EToken.Unknown, EToken.NL, EToken.Tab, EToken.Comment
+            Case EToken.Int, EToken.Char_, EToken.String_
 
             Case Else
                 Debug.Assert(False)
@@ -1569,7 +1569,7 @@ Public Class TProject
 
             Dim style As String
 
-            'If tkn.TypeTkn = EToken.ePublic Then
+            'If tkn.TypeTkn = EToken.Public_ Then
             '    Debug.Print("")
             'End If
             If IsReserved(tkn.TypeTkn, parser.LanguageSP) Then
@@ -1580,11 +1580,11 @@ Public Class TProject
             End If
 
             Select Case tkn.TypeTkn
-                Case EToken.eInt
-                Case EToken.eNL
-                Case EToken.eUnknown
-                Case EToken.eComment
-                Case EToken.eTab
+                Case EToken.Int
+                Case EToken.NL
+                Case EToken.Unknown
+                Case EToken.Comment
+                Case EToken.Tab
                 Case Else
                     If parser.vTknName.ContainsKey(tkn.TypeTkn) Then
                         txt = parser.vTknName(tkn.TypeTkn)
@@ -1598,35 +1598,35 @@ Public Class TProject
             End Select
 
             Select Case tkn.TypeTkn
-                Case EToken.eInt
+                Case EToken.Int
                     sw.Write(tkn.StrTkn)
 
-                Case EToken.eNL
+                Case EToken.NL
                     sw.WriteLine("")
 
-                Case EToken.eTab
+                Case EToken.Tab
                     Dim k As Integer
                     For k = 0 To tkn.TabTkn * 4 - 1
                         sw.Write(" ")
                     Next
 
-                Case EToken.eComment
+                Case EToken.Comment
                     If parser.LanguageSP = ELanguage.Basic Then
                         sw.Write("<span class=""comment"">{0}</span>", "'" + tkn.StrTkn)
                     Else
                         sw.Write("<span class=""comment"">{0}</span>", "//" + tkn.StrTkn)
                     End If
 
-                Case EToken.eAs, EToken.eTo, EToken.eIs, EToken.eIsNot, EToken.eIn, EToken.eInto, EToken.eWhere, EToken.eTake, EToken.eStep, EToken.eImplements, EToken.eParamArray
+                Case EToken.As_, EToken.To_, EToken.Is_, EToken.IsNot_, EToken.In_, EToken.Into_, EToken.Where_, EToken.Take_, EToken.Step_, EToken.Implements_, EToken.ParamArray_
                     sw.Write("<span class=""reserved"">{0}</span>", " " + txt + " ")
 
-                Case EToken.eThen
+                Case EToken.Then_
                     sw.Write("<span class=""reserved"">{0}</span>", " " + txt)
 
-                Case EToken.eChar, EToken.eString
+                Case EToken.Char_, EToken.String_
                     sw.Write("<span class=""string"">{0}</span>", tkn.StrTkn)
 
-                Case EToken.eUnknown
+                Case EToken.Unknown
                     If TypeOf tkn.ObjTkn Is TDot Then
                         With CType(tkn.ObjTkn, TDot)
                             sw.Write("<span class=""symbol"">.</span><span class=""reference"">{0}</span>", parser.TranslageReferenceName(CType(tkn.ObjTkn, TDot)))
@@ -1676,7 +1676,7 @@ Public Class TProject
 
             End Select
 
-            start_of_line = (tkn.TypeTkn = EToken.eNL OrElse tkn.TypeTkn = EToken.eTab)
+            start_of_line = (tkn.TypeTkn = EToken.NL OrElse tkn.TypeTkn = EToken.Tab)
         Next
 
         Return sw.ToString()

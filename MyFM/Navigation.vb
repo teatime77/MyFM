@@ -336,11 +336,11 @@ Public Class TNavi
             ElseIf TypeOf stmt1 Is TComment Then
             Else
                 Select Case stmt1.TypeStmt
-                    Case EToken.eExitDo
+                    Case EToken.ExitDo
 
-                    Case EToken.eExitFor
+                    Case EToken.ExitFor
 
-                    Case EToken.eExitSub
+                    Case EToken.ExitSub
 
                     Case Else
                         Debug.Assert(False)
@@ -710,7 +710,7 @@ Public Class TNaviMakeVirtualMethod
             If TypeOf (if_blc.CndIf) Is TApply Then
                 Dim app1 As TApply = CType(if_blc.CndIf, TApply)
 
-                If app1.TypeApp = EToken.eInstanceof AndAlso TypeOf app1.ArgApp(0) Is TReference Then
+                If app1.TypeApp = EToken.Instanceof AndAlso TypeOf app1.ArgApp(0) Is TReference Then
                     Dim ref1 As TReference = CType(app1.ArgApp(0), TReference)
 
                     If ref1.VarRef Is CurrentVar Then
