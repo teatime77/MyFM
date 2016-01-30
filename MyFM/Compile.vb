@@ -820,7 +820,7 @@ Partial Public Class TProject
                 fnc1.BlcFnc.AddStmtBlc(New TAssignment(New TDot(Nothing, parent_field), New TReference(parent_var)))
             End If
 
-            Dim strong_field_list = From c In super_class_list From f In c.FldCla Where f.ModVar.isStrong() AndAlso f.TypeVar.KndCla = EClass.eClassCla Select f
+            Dim strong_field_list = From c In super_class_list From f In c.FldCla Where f.ModVar.isStrong() AndAlso f.TypeVar.KndCla = EClass.ClassCla Select f
             For Each fld In strong_field_list
                 If ApplicationClassList.Contains(fld.TypeVar) Then
                     ' フィールドの型が単純クラスの場合

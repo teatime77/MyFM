@@ -164,7 +164,7 @@ Public Class TNaviMakeSourceCode
         If TypeOf self Is TClass Then
             With CType(self, TClass)
                 Select Case .KndCla
-                    Case EClass.eEnumCla
+                    Case EClass.EnumCla
                         '  列挙型の場合
 
                         tw.Fmt(EToken.Var, .NameVar, EToken.ASN, EToken.Function_, EToken.LP, EToken.RP, EToken.LC, EToken.RC, EToken.NL)
@@ -175,7 +175,7 @@ Public Class TNaviMakeSourceCode
                             idx += 1
                         Next
 
-                    Case EClass.eStructCla, EClass.eClassCla
+                    Case EClass.StructCla, EClass.ClassCla
                         ' 構造体かクラスの場合
 
                         If .SuperClassList.Count <> 0 AndAlso .SuperClassList(0).NameVar = "Attribute" Then
@@ -255,7 +255,7 @@ Public Class TNaviMakeSourceCode
                             JavaScriptClass(self, tw)
                         Else
                             Select Case .KndCla
-                                Case EClass.eEnumCla
+                                Case EClass.EnumCla
                                     '  列挙型の場合
 
                                     Select Case ParserMK.LanguageSP
@@ -279,7 +279,7 @@ Public Class TNaviMakeSourceCode
                                             tw.Fmt(EToken.RC, EToken.NL)
                                     End Select
 
-                                Case EClass.eDelegateCla
+                                Case EClass.DelegateCla
                                     ' デリゲートの場合
 
                                     If TypeOf self Is TDelegate Then
@@ -324,11 +324,11 @@ Public Class TNaviMakeSourceCode
                                     End If
 
                                     Select Case .KndCla
-                                        Case EClass.eClassCla
+                                        Case EClass.ClassCla
                                             tw.Fmt(EToken.Class_)
-                                        Case EClass.eStructCla
+                                        Case EClass.StructCla
                                             tw.Fmt(EToken.Struct)
-                                        Case EClass.eInterfaceCla
+                                        Case EClass.InterfaceCla
                                             tw.Fmt(EToken.Interface_)
                                         Case Else
                                             Debug.Assert(False)
@@ -379,11 +379,11 @@ Public Class TNaviMakeSourceCode
 
                                     If ParserMK.LanguageSP = ELanguage.Basic Then
                                         Select Case .KndCla
-                                            Case EClass.eClassCla
+                                            Case EClass.ClassCla
                                                 tw.Fmt(EToken.EndClass, EToken.NL)
-                                            Case EClass.eStructCla
+                                            Case EClass.StructCla
                                                 tw.Fmt(EToken.EndStruct, EToken.NL)
-                                            Case EClass.eInterfaceCla
+                                            Case EClass.InterfaceCla
                                                 tw.Fmt(EToken.EndInterface, EToken.NL)
                                         End Select
                                     Else
@@ -1171,7 +1171,7 @@ Public Class TNaviMakeSourceCode
                                     ' tp1 = .ArgApp[0].TypeTrm;
                                     ' tp2 = .ArgApp[1].TypeTrm;
                                 End If
-                                If ParserMK.LanguageSP <> ELanguage.Basic OrElse tp1 IsNot Nothing AndAlso (tp1.IsAtomType() OrElse tp1.KndCla = EClass.eStructCla) OrElse tp2 IsNot Nothing AndAlso (tp2.IsAtomType() OrElse tp2.KndCla = EClass.eStructCla) Then
+                                If ParserMK.LanguageSP <> ELanguage.Basic OrElse tp1 IsNot Nothing AndAlso (tp1.IsAtomType() OrElse tp1.KndCla = EClass.StructCla) OrElse tp2 IsNot Nothing AndAlso (tp2.IsAtomType() OrElse tp2.KndCla = EClass.StructCla) Then
                                     tw.Fmt(.TypeApp)
                                 Else
                                     If .TypeApp = EToken.NE Then
@@ -1274,13 +1274,13 @@ Public Class TNaviMakeSourceCode
                             tw.Fmt(")")
 
                             Select Case .FunctionAggr
-                                Case EAggregateFunction.eSum
+                                Case EAggregateFunction.Sum
                                     tw.Fmt(".Sum()")
-                                Case EAggregateFunction.eMax
+                                Case EAggregateFunction.Max
                                     tw.Fmt(".Max()")
-                                Case EAggregateFunction.eMin
+                                Case EAggregateFunction.Min
                                     tw.Fmt(".Min()")
-                                Case EAggregateFunction.eAverage
+                                Case EAggregateFunction.Average
                                     tw.Fmt(".Average()")
                                 Case Else
                                     Debug.Assert(False)
@@ -1297,13 +1297,13 @@ Public Class TNaviMakeSourceCode
                             tw.Fmt(EToken.Into_)
 
                             Select Case .FunctionAggr
-                                Case EAggregateFunction.eSum
+                                Case EAggregateFunction.Sum
                                     tw.Fmt("Sum")
-                                Case EAggregateFunction.eMax
+                                Case EAggregateFunction.Max
                                     tw.Fmt("Max")
-                                Case EAggregateFunction.eMin
+                                Case EAggregateFunction.Min
                                     tw.Fmt("Min")
-                                Case EAggregateFunction.eAverage
+                                Case EAggregateFunction.Average
                                     tw.Fmt("Average")
                                 Case Else
                                     Debug.Assert(False)
@@ -1413,7 +1413,7 @@ Public Class TNaviMakeSourceCode
                 End Select
 
                 For Each cla1 In .ClaSrc
-                    'If PrjMK.OutputNotUsed OrElse cla1.UsedVar OrElse cla1.KndCla = EClass.eDelegateCla Then
+                    'If PrjMK.OutputNotUsed OrElse cla1.UsedVar OrElse cla1.KndCla = EClass.DelegateCla Then
 
                     'End If
                     If cla1.TokenListCls Is Nothing Then
@@ -1470,8 +1470,8 @@ Public Class TNaviMakeSourceCode
                 If .TypeApp = EToken.AppCall Then
 
                     Select Case .KndApp
-                        Case EApply.eCallApp, EApply.eDictionaryApp
-                        Case EApply.eArrayApp, EApply.eStringApp, EApply.eListApp
+                        Case EApply.CallApp, EApply.DictionaryApp
+                        Case EApply.ArrayApp, EApply.StringApp, EApply.ListApp
                             is_list = True
                         Case Else
                             Debug.Assert(False)

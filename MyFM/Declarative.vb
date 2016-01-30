@@ -502,18 +502,18 @@ Public Class TSetRefDeclarative
                                     End If
                                 Else
                                     Select Case .KndApp
-                                        Case EApply.eCallApp
+                                        Case EApply.CallApp
                                             Debug.Assert(TypeOf .FncApp.TypeTrm Is TDelegate)
                                             .TypeTrm = CType(.FncApp.TypeTrm, TDelegate).RetDlg
-                                        Case EApply.eArrayApp
+                                        Case EApply.ArrayApp
                                             Debug.Assert(ref1.VarRef.TypeVar.GenCla IsNot Nothing AndAlso ref1.VarRef.TypeVar.GenCla.Count = 1)
                                             .TypeTrm = ref1.VarRef.TypeVar.GenCla(0)
-                                        Case EApply.eStringApp
+                                        Case EApply.StringApp
                                             .TypeTrm = .ProjectTrm.CharType
-                                        Case EApply.eListApp
+                                        Case EApply.ListApp
                                             Debug.Assert(ref1.VarRef.TypeVar.GenCla IsNot Nothing AndAlso ref1.VarRef.TypeVar.GenCla.Count = 1)
                                             .TypeTrm = ref1.VarRef.TypeVar.GenCla(0)
-                                        Case EApply.eDictionaryApp
+                                        Case EApply.DictionaryApp
                                             Debug.Assert(ref1.VarRef.TypeVar.GenCla IsNot Nothing AndAlso ref1.VarRef.TypeVar.GenCla.Count = 2)
                                             .TypeTrm = ref1.VarRef.TypeVar.GenCla(1)
                                         Case Else
@@ -794,10 +794,10 @@ Public Class TSetRefDeclarative
                                 If TypeOf .FncApp Is TReference AndAlso TypeOf CType(.FncApp, TReference).VarRef Is TFunction Then
                                     ' 関数呼び出しの場合
 
-                                    .KndApp = EApply.eCallApp
+                                    .KndApp = EApply.CallApp
 
                                 ElseIf TypeOf .FncApp Is TReference AndAlso TypeOf (CType(.FncApp, TReference).VarRef.TypeVar) Is TDelegate Then
-                                    .KndApp = EApply.eCallApp
+                                    .KndApp = EApply.CallApp
                                 Else
                                     ' 関数呼び出しでない場合
 
@@ -805,13 +805,13 @@ Public Class TSetRefDeclarative
                                     Debug.Assert(cla1 IsNot Nothing)
 
                                     If cla1.NameCla() = "String" Then
-                                        .KndApp = EApply.eStringApp
+                                        .KndApp = EApply.StringApp
                                     ElseIf cla1.IsArray() Then
-                                        .KndApp = EApply.eArrayApp
+                                        .KndApp = EApply.ArrayApp
                                     ElseIf cla1.IsList() Then
-                                        .KndApp = EApply.eListApp
+                                        .KndApp = EApply.ListApp
                                     ElseIf cla1.IsDictionary() Then
-                                        .KndApp = EApply.eDictionaryApp
+                                        .KndApp = EApply.DictionaryApp
                                     Else
                                         Debug.Print("想定外 1")
                                     End If
@@ -921,7 +921,7 @@ Public Class TNaviSetDefRef2
                         Debug.Assert(asn1.RelAsn.ArgApp(0).IsApp())
                         Dim app1 As TApply = CType(asn1.RelAsn.ArgApp(0), TApply)
 
-                        Debug.Assert(app1.KndApp = EApply.eArrayApp OrElse app1.KndApp = EApply.eListApp)
+                        Debug.Assert(app1.KndApp = EApply.ArrayApp OrElse app1.KndApp = EApply.ListApp)
 
                         If app1.FncApp Is self Then
 

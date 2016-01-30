@@ -411,7 +411,7 @@ Public Class TNaviSetDefRef
             Debug.Assert(asn1.RelAsn.ArgApp(0).IsApp())
             Dim app1 As TApply = CType(asn1.RelAsn.ArgApp(0), TApply)
 
-            Debug.Assert(app1.KndApp = EApply.eArrayApp OrElse app1.KndApp = EApply.eListApp)
+            Debug.Assert(app1.KndApp = EApply.ArrayApp OrElse app1.KndApp = EApply.ListApp)
             Debug.Assert(TypeOf app1.FncApp Is TReference)
 
             CType(app1.FncApp, TReference).DefRef = True

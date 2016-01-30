@@ -865,13 +865,13 @@ Public Class TScriptParser
         id2 = GetTkn(EToken.Id)
         Select Case id2.StrTkn
             Case "Sum"
-                aggr1.FunctionAggr = EAggregateFunction.eSum
+                aggr1.FunctionAggr = EAggregateFunction.Sum
             Case "Max"
-                aggr1.FunctionAggr = EAggregateFunction.eMax
+                aggr1.FunctionAggr = EAggregateFunction.Max
             Case "Min"
-                aggr1.FunctionAggr = EAggregateFunction.eMin
+                aggr1.FunctionAggr = EAggregateFunction.Min
             Case "Average"
-                aggr1.FunctionAggr = EAggregateFunction.eAverage
+                aggr1.FunctionAggr = EAggregateFunction.Average
             Case Else
                 Debug.Assert(False)
         End Select
@@ -1643,7 +1643,7 @@ Public Class TScriptParser
             Return fnc1
         End If
 
-        If cla1 Is Nothing OrElse cla1.KndCla <> EClass.eInterfaceCla Then
+        If cla1 Is Nothing OrElse cla1.KndCla <> EClass.InterfaceCla Then
             ' インターフェイスでない場合
 
             fnc1.BlcFnc = ReadBlock(fnc1)
@@ -1673,13 +1673,13 @@ Public Class TScriptParser
 
         Select Case tkn1.TypeTkn
             Case EToken.Delegate_
-                cla1.KndCla = EClass.eDelegateCla
+                cla1.KndCla = EClass.DelegateCla
             Case EToken.Class_
-                cla1.KndCla = EClass.eClassCla
+                cla1.KndCla = EClass.ClassCla
             Case EToken.Struct
-                cla1.KndCla = EClass.eStructCla
+                cla1.KndCla = EClass.StructCla
             Case EToken.Interface_
-                cla1.KndCla = EClass.eInterfaceCla
+                cla1.KndCla = EClass.InterfaceCla
         End Select
 
         If cla1.GenCla IsNot Nothing Then
@@ -1793,7 +1793,7 @@ Public Class TScriptParser
         Debug.Assert(cla1 IsNot Nothing)
         PrjParse.CurSrc.ClaSrc.Add(cla1)
 
-        cla1.KndCla = EClass.eEnumCla
+        cla1.KndCla = EClass.EnumCla
         cla1.SuperClassList.Add(PrjParse.ObjectType)
         type1 = cla1
 

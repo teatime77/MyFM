@@ -9,11 +9,11 @@ Public Enum ELanguage
 End Enum
 
 Public Enum EClass
-    eClassCla
-    eEnumCla
-    eStructCla
-    eInterfaceCla
-    eDelegateCla
+    ClassCla
+    EnumCla
+    StructCla
+    InterfaceCla
+    DelegateCla
 End Enum
 
 Public Enum EGeneric
@@ -25,19 +25,19 @@ Public Enum EGeneric
 End Enum
 
 Public Enum EApply
-    eUnknownApp
-    eCallApp
-    eArrayApp
-    eStringApp
-    eListApp
-    eDictionaryApp
+    UnknownApp
+    CallApp
+    ArrayApp
+    StringApp
+    ListApp
+    DictionaryApp
 End Enum
 
 Public Enum EAggregateFunction
-    eSum
-    eMax
-    eMin
-    eAverage
+    Sum
+    Max
+    Min
+    Average
 End Enum
 
 Public Enum EToken
@@ -448,7 +448,7 @@ Public Class TClass
     <_Weak()> Public GenTokenListCls As List(Of TToken)
 
     Public DimCla As Integer = 0
-    Public KndCla As EClass = EClass.eClassCla
+    Public KndCla As EClass = EClass.ClassCla
     Public IsParamCla As Boolean = False
     Public ContainsArgumentClass As Boolean = False
     Public GenericType As EGeneric
@@ -570,7 +570,7 @@ Public Class TClass
                 Return True
         End Select
 
-        If KndCla = EClass.eEnumCla Then
+        If KndCla = EClass.EnumCla Then
             Return True
         End If
 
@@ -840,7 +840,7 @@ Public Class TApply
     Public TypeApp As EToken = EToken.Unknown
     Public Negation As Boolean = False
     Public ArgApp As New TList(Of TTerm)
-    Public KndApp As EApply = EApply.eUnknownApp
+    Public KndApp As EApply = EApply.UnknownApp
     Public FncApp As TTerm
     Public IniApp As TArray
 
@@ -999,13 +999,13 @@ Public Class TDot
 
         If TypeOf VarRef Is TField Then
             fld = CType(VarRef, TField)
-            If fld.ClaFld IsNot Nothing AndAlso fld.ClaFld.KndCla = EClass.eEnumCla Then
+            If fld.ClaFld IsNot Nothing AndAlso fld.ClaFld.KndCla = EClass.EnumCla Then
                 ' ジェネリック型の場合ClaFldはNothing
                 Return True
             End If
         ElseIf TypeOf VarRef Is TFunction Then
             fnc = CType(VarRef, TFunction)
-            If fnc.ClaFnc IsNot Nothing AndAlso fnc.ClaFnc.KndCla = EClass.eEnumCla Then
+            If fnc.ClaFnc IsNot Nothing AndAlso fnc.ClaFnc.KndCla = EClass.EnumCla Then
                 Return True
             End If
         End If

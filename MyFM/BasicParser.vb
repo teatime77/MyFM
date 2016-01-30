@@ -165,11 +165,11 @@ Public Class TBasicParser
         stmt1.TypeStmt = EToken.Class_
         Select Case CurTkn.TypeTkn
             Case EToken.Class_
-                stmt1.KndClaStmt = EClass.eClassCla
+                stmt1.KndClaStmt = EClass.ClassCla
             Case EToken.Struct
-                stmt1.KndClaStmt = EClass.eStructCla
+                stmt1.KndClaStmt = EClass.StructCla
             Case EToken.Interface_
-                stmt1.KndClaStmt = EClass.eInterfaceCla
+                stmt1.KndClaStmt = EClass.InterfaceCla
         End Select
         GetTkn(EToken.Unknown)
         id1 = GetTkn(EToken.Id)
@@ -849,7 +849,7 @@ Public Class TBasicParser
         Debug.Assert(cla1 IsNot Nothing)
         PrjParse.CurSrc.ClaSrc.Add(cla1)
 
-        cla1.KndCla = EClass.eEnumCla
+        cla1.KndCla = EClass.EnumCla
         cla1.SuperClassList.Add(PrjParse.ObjectType)
         type1 = cla1
 
@@ -1109,7 +1109,7 @@ Public Class TBasicParser
         dlg1 = PrjParse.GetDelegate(stmt1.NameFncStmt)
         dlg1.Parsed = True
 
-        dlg1.KndCla = EClass.eDelegateCla
+        dlg1.KndCla = EClass.DelegateCla
         dlg1.RetDlg = stmt1.RetType
         dlg1.ArgDlg = stmt1.ArgumentFncStmt
         fnc1 = New TFunction("Invoke", stmt1.RetType)
@@ -1150,7 +1150,7 @@ Public Class TBasicParser
             Return fnc2
         End If
 
-        If cla1 Is Nothing OrElse cla1.KndCla <> EClass.eInterfaceCla Then
+        If cla1 Is Nothing OrElse cla1.KndCla <> EClass.InterfaceCla Then
             ' インターフェイスでない場合
 
             Dim blc1 As TBlock = BlcParse(fnc2)
@@ -2083,13 +2083,13 @@ Public Class TBasicParser
         id2 = GetTkn(EToken.Id)
         Select Case id2.StrTkn
             Case "Sum"
-                aggr1.FunctionAggr = EAggregateFunction.eSum
+                aggr1.FunctionAggr = EAggregateFunction.Sum
             Case "Max"
-                aggr1.FunctionAggr = EAggregateFunction.eMax
+                aggr1.FunctionAggr = EAggregateFunction.Max
             Case "Min"
-                aggr1.FunctionAggr = EAggregateFunction.eMin
+                aggr1.FunctionAggr = EAggregateFunction.Min
             Case "Average"
-                aggr1.FunctionAggr = EAggregateFunction.eAverage
+                aggr1.FunctionAggr = EAggregateFunction.Average
             Case Else
                 Debug.Assert(False)
         End Select
@@ -2405,7 +2405,7 @@ End Class
 
 Public Class TClassStatement
     Inherits TStatement
-    Public KndClaStmt As EClass = EClass.eClassCla
+    Public KndClaStmt As EClass = EClass.ClassCla
     Public ClaClaStmt As TClass
 End Class
 

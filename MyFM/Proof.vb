@@ -1146,7 +1146,7 @@ Public Class TNaviChangeableField
             fld1 = CType(dot1.VarRef, TField)
             dicFld.Add(dot1.VarRef.ToString(), fld1)
 
-            If fld1.ClaFld.KndCla = EClass.eClassCla OrElse fld1.ClaFld.KndCla = EClass.eStructCla Then
+            If fld1.ClaFld.KndCla = EClass.ClassCla OrElse fld1.ClaFld.KndCla = EClass.StructCla Then
 
                 Dim vref As TList(Of TReference)
                 vref = New TList(Of TReference)(From ref1 In dot1.VarRef.RefVar Where ref1.DefRef)
@@ -2228,7 +2228,7 @@ Public Class Sys
                     ' fld1のフィールドの要素の参照を作る。
                     Dim dot2 As New TDot(Nothing, fld1)
                     Dim app1 As TApply = TApply.MakeAppCall(dot2)
-                    app1.KndApp = EApply.eListApp
+                    app1.KndApp = EApply.ListApp
                     app1.ArgApp.Add(New TReference(idx_var))
 
                     ' fld1のフィールドの要素の参照に置き換える。
