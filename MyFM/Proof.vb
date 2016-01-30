@@ -1455,8 +1455,10 @@ Public Class Sys
             Return obj1
         ElseIf TypeOf obj1 Is TVariable Then
             Return UpStmt(CType(obj1, TVariable).UpVar)
+        ElseIf TypeOf obj1 Is TProject Then
+            Return Nothing
         Else
-            Debug.WriteLine("@i")
+            Debug.Assert(False)
             Return Nothing
         End If
     End Function
@@ -1471,6 +1473,17 @@ Public Class Sys
         up_obj = UpStmt(obj1)
         If TypeOf up_obj Is TStatement Then
             Return CType(up_obj, TStatement)
+        Else
+            Return Nothing
+        End If
+    End Function
+
+    Public Shared Function UpStatementFunction(obj1 As Object) As Object
+        Dim up_obj As Object
+
+        up_obj = UpStmt(obj1)
+        If TypeOf up_obj Is TStatement OrElse TypeOf up_obj Is TFunction Then
+            Return up_obj
         Else
             Return Nothing
         End If
@@ -1626,6 +1639,7 @@ Public Class Sys
                 Else
                     Debug.Assert(False)
                 End If
+                trm2.CastType = trm1.CastType
             Catch ex As TError
                 Debug.Assert(False)
             End Try

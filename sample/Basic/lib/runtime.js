@@ -18,14 +18,25 @@ TRuntime.prototype.SetMouseEvent = function (ev) {
     this.App.MousePosition.Y = ev.clientY - rc.top; // ev.y - (y + rc.top);
 };
 
+TRuntime.prototype.SetTouchEvent = function (ev) {
+    console.log("SetMouseEvent");
+    var rc = this.Canvas.getBoundingClientRect();
+    var x = (window.pageXOffset !== undefined) ? window.pageXOffset : (document.documentElement || document.body.parentNode || document.body)["scrollLeft"];
+    var y = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body)["scrollTop"];
+    console.log("SetMouseEvent:" + rc.left + " " + window.pageXOffset + " " + document.documentElement.scrollLeft);
+    this.App.MousePosition.X = ev.changedTouches[0].pageX - rc.left; // ev.x - (x + rc.left);
+    this.App.MousePosition.Y = ev.changedTouches[0].pageY - rc.top; // ev.y - (y + rc.top);
+};
+
 TRuntime.prototype.RuntimeInitialize = function () {
     var _this = this;
     this.App.Size.X = this.Canvas.width;
     this.App.Size.Y = this.Canvas.height;
     this.Graphics = new TGraphics(this.Canvas);
     this.Canvas.onmousedown = function (ev) {
-        _this.SetMouseEvent(ev);
-        console.log("onmousedown:" + ev.clientX + " " + ev.clientY);
+        ev.preventDefault();
+        //_this.SetMouseEvent(ev);
+        //console.log("onmousedown:" + ev.clientX + " " + ev.clientY);
     };
     this.Canvas.onmouseenter = function (ev) {
         //this.SetMouseEvent(ev);
@@ -55,6 +66,16 @@ TRuntime.prototype.RuntimeInitialize = function () {
         //this.SetMouseEvent(ev);
         //console.log("onmousewheel");
     };
+    this.Canvas.ontouchmove = function (ev) {
+        ev.preventDefault(); // タッチによる画面スクロールを止める
+        _this.SetTouchEvent(ev);
+    };
+
+    this.Canvas.addEventListener('touchmove', function (event) {
+        event.preventDefault(); // タッチによる画面スクロールを止める
+        _this.SetTouchEvent(ev);
+    }, false);
+
     this.App.AppInitialize();
     if (this.App.__SetParent) {
         this.App.__SetParent(this.App, undefined);
@@ -261,6 +282,19 @@ function $Query(v, cnd, sel) {
                 n = Math.min(n, this.Result[i]);
             }
             return n;
+        }
+        ,
+        Average: function () {
+            this.ToArray();
+
+            if (this.Result.length == 0) {
+                return undefined;
+            }
+            var n = 0;
+            for (var i = 0; i < this.Result.length; i++) {
+                n += this.Result[i];
+            }
+            return n / this.Result.length;
         }
     };
 

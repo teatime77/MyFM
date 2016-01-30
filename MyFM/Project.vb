@@ -1418,7 +1418,7 @@ Public Class TProject
     End Sub
 
     Public Function TokenListToString(parser As TSourceParser, v As List(Of TToken)) As String
-        Dim sw As New TStringWriter
+        Dim sw As New TStringWriter, start_of_line As Boolean = True
 
         For Each tkn In v
             Dim txt As String = ""
@@ -1448,6 +1448,12 @@ Public Class TProject
                 Case EToken.eNL
                     sw.WriteLine("")
 
+                Case EToken.eTab
+                    Dim k As Integer
+                    For k = 0 To tkn.TabTkn * 4 - 1
+                        sw.Write(" ")
+                    Next
+
                 Case EToken.eComment
                     If parser.LanguageSP = ELanguage.Basic Then
                         sw.Write("'" + tkn.StrTkn)
@@ -1460,6 +1466,9 @@ Public Class TProject
 
                 Case EToken.eThen
                     sw.Write(" " + txt)
+
+                Case EToken.eChar, EToken.eString
+                    sw.Write(tkn.StrTkn)
 
                 Case EToken.eUnknown
                     If TypeOf tkn.ObjTkn Is TDot Then
@@ -1502,11 +1511,172 @@ Public Class TProject
                                 sw.Write(" " + txt + " ")
                         End Select
                     Else
-                        sw.Write(" " + txt + " ")
+                        If start_of_line Then
+                            sw.Write(txt + " ")
+                        Else
+                            sw.Write(" " + txt + " ")
+                        End If
                     End If
 
             End Select
 
+            start_of_line = (tkn.TypeTkn = EToken.eNL OrElse tkn.TypeTkn = EToken.eTab)
+        Next
+
+        Return sw.ToString()
+    End Function
+
+    Public Function IsReserved(e As EToken, lang As ELanguage) As Boolean
+        Select Case e
+            Case EToken.ePublic, EToken.eClass, EToken.eFunction, EToken.eAs, EToken.eReturn, EToken.eEndFunction, EToken.eEndClass
+                Return True
+            Case EToken.eSub, EToken.eEndSub, EToken.eOf, EToken.eShared, EToken.eStruct, EToken.eExtends, EToken.eEndStruct, EToken.eNew
+                Return True
+            Case EToken.eAbstract, EToken.eVirtual, EToken.eOverride, EToken.eEnum, EToken.eEnd, EToken.eConst, EToken.eImports, EToken.eOperator, EToken.eVar
+                Return True
+            Case EToken.eEndOperator, EToken.eIf, EToken.eThen, EToken.eEndIf, EToken.eInterface, EToken.eEndInterface, EToken.eFor, EToken.eTo, EToken.eStep, EToken.eNext, EToken.eReDim, EToken.eEach
+                Return True
+            Case EToken.eIn, EToken.eInstanceof, EToken.eIs, EToken.eCType, EToken.eElseIf, EToken.eSelect, EToken.eCase, EToken.eEndSelect, EToken.eElse, EToken.eWith, EToken.eIsNot
+                Return True
+            Case EToken.eEndWith, EToken.eExitSub, EToken.eFrom, EToken.eMustOverride, EToken.eDo, EToken.eWhile, EToken.eExitDo, EToken.eLoop, EToken.eThrow, EToken.eTry, EToken.eCatch, EToken.eEndTry
+                Return True
+            Case EToken.eExitFor, EToken.eAddressOf, EToken.eBase, EToken.eWhere, EToken.eGetType, EToken.eIterator, EToken.eYield, EToken.eAggregate, EToken.eInto, EToken.eParamArray
+                Return True
+
+            Case EToken.eNot, EToken.eMOD
+                If lang = ELanguage.Basic Then
+                    Return True
+                End If
+
+            Case EToken.eLP, EToken.eRP, EToken.eComma, EToken.eEq, EToken.eDot, EToken.eMUL, EToken.eADD, EToken.eMns, EToken.eAnd, EToken.eNE, EToken.eOR, EToken.eDIV, EToken.eLE
+            Case EToken.eLC, EToken.eRC, EToken.eASN, EToken.eADDEQ, EToken.eLT, EToken.eGT, EToken.eGE, EToken.eSM, EToken.eMULEQ, EToken.eLB, EToken.eRB, EToken.eSUBEQ
+
+            Case EToken.eUnknown, EToken.eNL, EToken.eTab, EToken.eComment
+            Case EToken.eInt, EToken.eChar, EToken.eString
+
+            Case Else
+                Debug.Assert(False)
+        End Select
+
+        Return False
+    End Function
+
+    Public Function TokenListToHTML(parser As TSourceParser, v As List(Of TToken)) As String
+        Dim sw As New TStringWriter, start_of_line As Boolean = True
+
+        For Each tkn In v
+            Dim txt As String = ""
+
+            Dim style As String
+
+            'If tkn.TypeTkn = EToken.ePublic Then
+            '    Debug.Print("")
+            'End If
+            If IsReserved(tkn.TypeTkn, parser.LanguageSP) Then
+                style = "class=""reserved"""
+            Else
+                style = "class=""text"""
+
+            End If
+
+            Select Case tkn.TypeTkn
+                Case EToken.eInt
+                Case EToken.eNL
+                Case EToken.eUnknown
+                Case EToken.eComment
+                Case EToken.eTab
+                Case Else
+                    If parser.vTknName.ContainsKey(tkn.TypeTkn) Then
+                        txt = parser.vTknName(tkn.TypeTkn)
+                    Else
+                        txt = "未登録語 : " + tkn.TypeTkn.ToString()
+                        parser.vTknName.Add(tkn.TypeTkn, txt)
+                        Debug.Print(txt)
+                        '                        Debug.Assert(False)
+                    End If
+
+            End Select
+
+            Select Case tkn.TypeTkn
+                Case EToken.eInt
+                    sw.Write(tkn.StrTkn)
+
+                Case EToken.eNL
+                    sw.WriteLine("")
+
+                Case EToken.eTab
+                    Dim k As Integer
+                    For k = 0 To tkn.TabTkn * 4 - 1
+                        sw.Write(" ")
+                    Next
+
+                Case EToken.eComment
+                    If parser.LanguageSP = ELanguage.Basic Then
+                        sw.Write("<span class=""comment"">{0}</span>", "'" + tkn.StrTkn)
+                    Else
+                        sw.Write("<span class=""comment"">{0}</span>", "//" + tkn.StrTkn)
+                    End If
+
+                Case EToken.eAs, EToken.eTo, EToken.eIs, EToken.eIsNot, EToken.eIn, EToken.eInto, EToken.eWhere, EToken.eTake, EToken.eStep, EToken.eImplements, EToken.eParamArray
+                    sw.Write("<span class=""reserved"">{0}</span>", " " + txt + " ")
+
+                Case EToken.eThen
+                    sw.Write("<span class=""reserved"">{0}</span>", " " + txt)
+
+                Case EToken.eChar, EToken.eString
+                    sw.Write("<span class=""string"">{0}</span>", tkn.StrTkn)
+
+                Case EToken.eUnknown
+                    If TypeOf tkn.ObjTkn Is TDot Then
+                        With CType(tkn.ObjTkn, TDot)
+                            sw.Write("<span class=""symbol"">.</span><span class=""reference"">{0}</span>", parser.TranslageReferenceName(CType(tkn.ObjTkn, TDot)))
+
+                        End With
+
+                    ElseIf TypeOf tkn.ObjTkn Is TReference Then
+                        With CType(tkn.ObjTkn, TReference)
+                            sw.Write("<span class=""reference"">{0}</span>", parser.TranslageReferenceName(CType(tkn.ObjTkn, TReference)))
+                        End With
+
+                    ElseIf TypeOf tkn.ObjTkn Is TClass Then
+                        With CType(tkn.ObjTkn, TClass)
+                            sw.Write("<span class=""class"">{0}</span>", .NameVar)
+
+                        End With
+
+                    ElseIf TypeOf tkn.ObjTkn Is TVariable Then
+                        With CType(tkn.ObjTkn, TVariable)
+                            sw.Write("<span class=""variable"">{0}</span>", .NameVar)
+
+                        End With
+
+                    ElseIf TypeOf tkn.ObjTkn Is String Then
+                        sw.Write("<span class=""text"">{0}</span>", CType(tkn.ObjTkn, String))
+
+                    Else
+                        Debug.Print("{0}", tkn.ObjTkn.GetType())
+
+                    End If
+
+                Case Else
+                    If txt.Length = 1 Then
+                        Select Case txt(0)
+                            Case "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c
+                                sw.Write("<span class=""symbol"">{0}</span>", txt)
+                            Case Else
+                                sw.Write("<span class="""">{0}</span>", " " + txt + " ")
+                        End Select
+                    Else
+                        If start_of_line Then
+                            sw.Write("<span {0}>{1}</span>", style, txt + " ")
+                        Else
+                            sw.Write("<span {0}>{1}</span>", style, " " + txt + " ")
+                        End If
+                    End If
+
+            End Select
+
+            start_of_line = (tkn.TypeTkn = EToken.eNL OrElse tkn.TypeTkn = EToken.eTab)
         Next
 
         Return sw.ToString()
@@ -1543,9 +1713,13 @@ Public Class TProject
             navi_make_source_code.NaviSourceFile(src_f)
 
             Dim src_path As String = String.Format("{0}\{1}{2}", out_dir, TPath.GetFileNameWithoutExtension(src_f.FileSrc), FileExtension(parser.LanguageSP))
-            Dim src_txt2 As String = TokenListToString(parser, src_f.TokenListSrc)
-            TFile.WriteAllText(src_path, src_txt2)
+            Dim src_txt As String = TokenListToString(parser, src_f.TokenListSrc)
+            TFile.WriteAllText(src_path, src_txt)
 
+            Dim html_head As String = "<!DOCTYPE html PUBLIC ""-//W3C//DTD XHTML 1.0 Transitional//EN"" ""http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"">" + vbCr + vbLf + "<html xmlns=""http://www.w3.org/1999/xhtml"" >" + vbCr + vbLf + "<head>" + vbCr + vbLf + "<meta charset=""utf-8"" />" + vbCr + vbLf + "<title>Untitled Page</title>" + vbCr + vbLf + "<style type=""text/css"">" + vbCr + vbLf + ".reserved {" + vbCr + vbLf + vbTab + "color: blue;" + vbCr + vbLf + "}" + vbCr + vbLf + ".class {" + vbCr + vbLf + vbTab + "color: Teal;" + vbCr + "" + vbLf + "}" + vbCr + vbLf + ".string {" + vbCr + vbLf + vbTab + "color: red;" + vbCr + vbLf + "}" + vbCr + vbLf + ".comment {" + vbCr + vbLf + vbTab + "color: #008000;" + vbCr + vbLf + "}" + vbCr + vbLf + "</style>" + vbCr + vbLf + "</head>" + vbCr + vbLf + "<body>"
+            Dim html_path As String = String.Format("{0}\{1}.html", out_dir, TPath.GetFileNameWithoutExtension(src_f.FileSrc))
+            Dim html_txt As String = TokenListToHTML(parser, src_f.TokenListSrc)
+            TFile.WriteAllText(html_path, html_head + "<pre><code>" + html_txt + "</code></pre></body></html>")
 
             CurSrc = Nothing
         Next

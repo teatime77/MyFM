@@ -354,6 +354,7 @@ Public Class TNavi
     Public Overridable Sub NaviFunction(fnc1 As TFunction, arg1 As Object)
         arg1 = StartFunction(fnc1, arg1)
 
+        NaviStatement(fnc1.ComVar, arg1)
         NaviLocalVariableList(fnc1.ArgFnc, arg1)
         If fnc1.BlcFnc IsNot Nothing Then
             NaviStatement(fnc1.BlcFnc, arg1)
