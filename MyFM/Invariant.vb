@@ -178,7 +178,7 @@ Public Class TNaviMakeSourceCode
                     Case EClass.StructCla, EClass.ClassCla
                         ' 構造体かクラスの場合
 
-                        If .SuperClassList.Count <> 0 AndAlso .SuperClassList(0).NameVar = "Attribute" Then
+                        If .DirectSuperClassList.Count <> 0 AndAlso .DirectSuperClassList(0).NameVar = "Attribute" Then
                         Else
                             '  すべてのメソッドに対し
                             For Each fnc1 In .FncCla
@@ -341,8 +341,8 @@ Public Class TNaviMakeSourceCode
                                         tw.Fmt(EToken.NL)
                                     End If
 
-                                    If .SuperClassList.Count <> 0 AndAlso .SuperClassList(0) IsNot PrjMK.ObjectType Then
-                                        tw.Fmt(EToken.Extends, .SuperClassList(0).TokenListVar)
+                                    If .DirectSuperClassList.Count <> 0 AndAlso .DirectSuperClassList(0) IsNot PrjMK.ObjectType Then
+                                        tw.Fmt(EToken.Extends, .DirectSuperClassList(0).TokenListVar)
 
                                         If ParserMK.LanguageSP = ELanguage.Basic Then
                                             tw.Fmt(EToken.NL)
@@ -535,11 +535,11 @@ Public Class TNaviMakeSourceCode
                         If ParserMK.LanguageSP = ELanguage.JavaScript AndAlso .TypeFnc = EToken.New_ Then
                             ' JavaScriptのコンストラクタの場合
 
-                            If .ClaFnc.SuperClassList.Count <> 0 AndAlso .ClaFnc.SuperClassList(0) IsNot PrjMK.ObjectType Then
+                            If .ClaFnc.DirectSuperClassList.Count <> 0 AndAlso .ClaFnc.DirectSuperClassList(0) IsNot PrjMK.ObjectType Then
                                 ' 親クラスがObjectでない場合
 
                                 ' 親クラスを継承する。
-                                tw.Fmt("Inherits", EToken.LP, .ClaFnc.NameVar, EToken.Comma, .ClaFnc.SuperClassList(0).NameVar, EToken.RP, EToken.EOL)
+                                tw.Fmt("Inherits", EToken.LP, .ClaFnc.NameVar, EToken.Comma, .ClaFnc.DirectSuperClassList(0).NameVar, EToken.RP, EToken.EOL)
                             End If
                         End If
 

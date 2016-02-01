@@ -164,8 +164,8 @@ Partial Public Class TProject
 
         ' サブクラスをセットする
         For Each cls1 In SimpleParameterizedSpecializedClassList
-            For Each super_class In cls1.SuperClassList
-                super_class.SubClassList.Add(cls1)
+            For Each super_class In cls1.DirectSuperClassList
+                super_class.DirectSubClassList.Add(cls1)
             Next
         Next
 
@@ -187,7 +187,7 @@ Partial Public Class TProject
                 Dim set_dependency As New TNaviSetDependency
                 set_dependency.NaviFunction(rule)
 
-                Dim use_parent_class_list As List(Of TClass) = RefPath(rule)
+                Dim use_parent_class_list As TList(Of TClass) = RefPath(rule)
 
                 ' クラスの場合分けのIf文を探す。
                 Dim set_virtualizable_if As New TNaviSetVirtualizableIf
@@ -248,7 +248,7 @@ Partial Public Class TProject
 
     Public Sub AddRuleCall(fnc1 As TFunction, cla1 As TClass)
         ' RuleのCall文を作る。
-        Dim rule_fnc_list = From c In Sys.ThisAncestorSuperClassList(cla1).Distinct() From f In c.FncCla Where f.ModVar.isInvariant Select f
+        Dim rule_fnc_list = From c In Sys.SuperClassList(cla1).Distinct() From f In c.FncCla Where f.ModVar.isInvariant Select f
         If rule_fnc_list.Any() Then
 
             Dim rule_fnc As TFunction = rule_fnc_list.First()
@@ -282,39 +282,39 @@ Partial Public Class TProject
 
     Public Function MakeWalkedFieldListTable(dt As TUseDefineAnalysis) As Dictionary(Of TClass, List(Of TField))
         Dim walked_field_list_table As New Dictionary(Of TClass, List(Of TField))
-        Dim reachable_from_bottom_pending As New TList(Of TField)
+        Dim reachable_from_bottom_field_pending As New TList(Of TField)
         Dim reachable_from_bottom_processed As New List(Of TField)
-
-        Dim reachable_from_top_pending As New TList(Of TField)
-        Dim reachable_from_top_processed As New List(Of TField)
 
         For Each virtualizable_class In dt.VirtualizableClassList
 
             ' virtualizable_classとそのスーパークラスのリスト
-            Dim virtualizable_super_class_list = Enumerable.Distinct(Sys.ThisAncestorSuperClassList(virtualizable_class))
+            Dim virtualizable_super_class_list = Enumerable.Distinct(Sys.SuperClassList(virtualizable_class))
 
             ' 型がvirtualizable_classかスーパークラスであるフィールドのリスト
             Dim parent_field_list = From parent_field In SimpleFieldList Where parent_field.ModVar.isStrong() AndAlso virtualizable_super_class_list.Contains(FieldElementType(parent_field))
 
-            ' reachable_from_bottom_pendingに入っていないparent_fieldを追加する。
-            reachable_from_bottom_pending.DistinctAddRange(parent_field_list)
+            ' reachable_from_bottom_field_pendingに入っていないparent_fieldを追加する。
+            reachable_from_bottom_field_pending.DistinctAddRange(parent_field_list)
         Next
 
         Dim parent_to_child_field_list_table As New Dictionary(Of TField, List(Of TField))
 
-        Do While reachable_from_bottom_pending.Count <> 0
-            Dim current_field = reachable_from_bottom_pending.Pop()
+        ' トップから到達可能のフィールドの未処理リスト
+        Dim reachable_from_top_field_pending As New TList(Of TField)
+
+        Do While reachable_from_bottom_field_pending.Count <> 0
+            Dim current_field = reachable_from_bottom_field_pending.Pop()
             reachable_from_bottom_processed.Add(current_field)
 
-            If Sys.ThisAncestorSuperClassList(MainClass).Contains(current_field.ClaFld) Then
+            If Sys.SuperClassList(MainClass).Contains(current_field.ClaFld) Then
                 ' current_fieldが属するクラスが、メインクラスかそのスーパークラスの場合
 
                 ' メインクラスからアクセス可能
-                reachable_from_top_pending.Add(current_field)
+                reachable_from_top_field_pending.Add(current_field)
             End If
 
             ' current_fieldが属するクラスとそのスーパークラスのリスト
-            Dim current_field_super_class_list = Enumerable.Distinct(Sys.ThisAncestorSuperClassList(current_field.ClaFld))
+            Dim current_field_super_class_list = Enumerable.Distinct(Sys.SuperClassList(current_field.ClaFld))
 
             ' 型がcurrent_fieldが属するクラスかスーパークラスであるフィールドのリスト
             Dim parent_field_list = From parent_field In SimpleFieldList Where parent_field.ModVar.isStrong() AndAlso current_field_super_class_list.Contains(FieldElementType(parent_field))
@@ -337,13 +337,16 @@ Partial Public Class TProject
             ' 未処理のフィールド
             Dim not_processed_parent_field_list = From parent_field In parent_field_list Where Not reachable_from_bottom_processed.Contains(parent_field)
 
-            reachable_from_bottom_pending.DistinctAddRange(not_processed_parent_field_list)
+            reachable_from_bottom_field_pending.DistinctAddRange(not_processed_parent_field_list)
         Loop
 
-        Do While reachable_from_top_pending.Count <> 0
-            ' reachable_from_top_pendingからcurrent_fieldを取り出し、reachable_from_top_processedに追加する。
-            Dim current_field = reachable_from_top_pending.Pop()
-            reachable_from_top_processed.Add(current_field)
+        ' トップから到達可能のフィールドの処理済みリスト
+        Dim reachable_from_top_field_processed As New List(Of TField)
+
+        Do While reachable_from_top_field_pending.Count <> 0
+            ' reachable_from_top_field_pendingからcurrent_fieldを取り出し、reachable_from_top_field_processedに追加する。
+            Dim current_field = reachable_from_top_field_pending.Pop()
+            reachable_from_top_field_processed.Add(current_field)
 
             Dim walked_field_list As List(Of TField)
             If walked_field_list_table.ContainsKey(current_field.ClaFld) Then
@@ -358,9 +361,9 @@ Partial Public Class TProject
                 Dim child_field_list As List(Of TField) = parent_to_child_field_list_table(current_field)
 
                 ' 未処理のフィールド
-                Dim not_processed_chile_field_list = From chile_field In child_field_list Where Not reachable_from_top_processed.Contains(chile_field)
+                Dim not_processed_chile_field_list = From chile_field In child_field_list Where Not reachable_from_top_field_processed.Contains(chile_field)
 
-                reachable_from_top_pending.DistinctAddRange(not_processed_chile_field_list)
+                reachable_from_top_field_pending.DistinctAddRange(not_processed_chile_field_list)
             End If
         Loop
 
@@ -486,25 +489,20 @@ Partial Public Class TProject
             ' 仮想メソッド内のすべての参照のリストを得る。
             Dim parent_dot_list = From d In Sys.GetAllReference(fnc1.BlcFnc) Where TypeOf d Is TDot Select CType(d, TDot)
 
-            ' クラス内のすべてのフィールドに対し
+            ' 仮想メソッドが属するクラス内のすべてのフィールドに対し
             For Each fld1 In Sys.AllFieldList(fnc1.ClaFnc)
                 ' フィールドの型
                 Dim element_type As TClass = FieldElementType(fld1)
 
                 ' フィールドの型/スーパークラスで仮想化クラスのリスト
-                Dim virtualizable_this_super_class_list = From c In virtualized_all_class_list Where Sys.DistinctThisAncestorSuperClassList(c).Contains(element_type)
-                If virtualizable_this_super_class_list.Any() Then
+                If (From c In virtualized_all_class_list Where Sys.SuperClassList(c).Contains(element_type)).Any() Then
                     ' フィールドの型/スーパークラスで仮想化クラスがある場合
 
-                    ' フィールドの型のサブクラスで仮想化クラスのリスト
-                    Dim virtualized_sub_class_list = Sys.DescendantSubClassList(element_type).Intersect(virtualized_all_class_list)
+                    ' フィールドの型の広義サブクラスで仮想化クラスのリスト
+                    Dim virtualized_sub_class_list = Sys.SubClassList(element_type).Intersect(virtualized_all_class_list)
 
-                    ' フィールドの型/スーパークラス/サブクラスで仮想化クラスのリスト
-                    Dim virtualized_class_list As New TList(Of TClass)(virtualizable_this_super_class_list)
-                    virtualized_class_list.AddRange(virtualized_sub_class_list)
-
-                    ' フィールドの型/スーパークラス/サブクラスの仮想化クラスに対し
-                    For Each cls1 In virtualized_class_list
+                    ' フィールドの型の広義サブクラスの仮想化クラスに対し
+                    For Each cls1 In virtualized_sub_class_list
                         ' 子の仮想メソッド(fnc2 = fnc1の場合もありうる)
                         Dim fnc2 As TFunction = (From f In use_def.VirtualizedMethodList Where f.ClaFnc Is cls1).First()
 
@@ -526,9 +524,7 @@ Partial Public Class TProject
                             cnd1.UpTrm = dot1_up_stmt
 
                             ' 元の仮想メソッドで参照パスが共通の定義参照のリストを得る。
-                            Dim child_parent_overlap_dot_list = From d In child_parent_dot_list Where Sys.OverlapRefPath(dot1, CType(d.UpTrm, TDot))
-                            For Each dot2 In child_parent_overlap_dot_list
-
+                            For Each dot2 In (From d In child_parent_dot_list Where Sys.OverlapRefPath(dot1, CType(d.UpTrm, TDot)))
 
                                 ' dot2を含む文の余分な条件を取り除いた前提条件
                                 Dim dot2_up_stmt As TStatement = Sys.UpStmtProper(dot2)
@@ -641,27 +637,24 @@ Partial Public Class TProject
         Next
     End Sub
 
-    Public Function RefPath(rule As TFunction) As List(Of TClass)
-        Dim result_class_list As New List(Of TClass)
+    Public Function RefPath(rule As TFunction) As TList(Of TClass)
+        Dim result_class_list As New TList(Of TClass)
 
-        ' 関数内のフィールド参照のリストAndAlso Not TypeOf CType(d, TDot).TrmDot Is TDot
+        ' 関数内のフィールド参照のリスト
         Dim dot_list = From d In rule.RefFnc Where TypeOf d.VarRef Is TField AndAlso TypeOf d Is TDot Select CType(d, TDot)
 
-        ' 関数内の代入のフィールド参照の最も内側のドットのリスト
+        ' 関数内のフィールド定義参照の最も内側のドットのリスト
         Dim def_inner_most_dot_list = From d In dot_list Where d.DefRef Select Sys.InnerMostDot(d)
 
-        ' 関数内の値使用のフィールド参照の最も内側のドットのリスト
-        Dim use_inner_most_dot_list = From d In dot_list Where Not d.DefRef Select Sys.InnerMostDot(d)
-
-        ' 関数内の値使用のフィールド参照の最も内側のドットに対し
-        For Each dot1 In use_inner_most_dot_list
+        ' 関数内のフィールド使用参照の最も内側のドットに対し
+        For Each dot1 In (From d In dot_list Where Not d.DefRef Select Sys.InnerMostDot(d))
 
             If dot1.TrmDot Is Nothing AndAlso dot1.VarRef.ModVar.isParent AndAlso TypeOf dot1.UpTrm Is TDot Then
                 ' 親のフィールドを参照している場合
 
                 Dim parent_dot As TDot = CType(dot1.UpTrm, TDot)
 
-                ' パスが一致する代入のフィールド参照の最も内側のドットのリスト
+                ' パスが一致するフィールド定義参照の最も内側のドットのリスト
                 Dim equal_def_inner_most_dot_list = From d In def_inner_most_dot_list Where d.TrmDot Is Nothing AndAlso Sys.OverlapRefPath(d, parent_dot)
 
                 If equal_def_inner_most_dot_list.Any() Then
@@ -670,10 +663,10 @@ Partial Public Class TProject
                     ' 親の不変条件を適用してから、子の不変条件を適用する必要がある。
 
                     ' 親のフィールドをメンバーとして持つクラスのリスト
-                    Dim parent_field_class_list = Sys.ThisDescendantSubClassList(CType(parent_dot.VarRef, TField).ClaFld).Distinct()
+                    Dim parent_field_class_list = Sys.SubClassList(CType(parent_dot.VarRef, TField).ClaFld).Distinct()
 
                     ' 親のフィールドを参照するドットの処理対象クラスとそのスーパークラスのリスト
-                    Dim super_class_list = Sys.ThisAncestorSuperClassList(dot1.TypeDot).Distinct()
+                    Dim super_class_list = Sys.SuperClassList(dot1.TypeDot).Distinct()
 
                     ' 上記のスーパークラスの型のフィールドのリスト
                     Dim parent_field_list = From parent_field In Prj.SimpleFieldList Where parent_field.ModVar.isStrong() AndAlso super_class_list.Contains(FieldElementType(parent_field))
@@ -684,8 +677,7 @@ Partial Public Class TProject
                     ' 親のフィールドをメンバーとして持ち、親のフィールドを参照するドットの処理対象クラスの型のフィールドを持つクラスの共通集合
                     Dim parent_field_class_list_3 = parent_field_class_list.Intersect(parent_field_class_list_2)
 
-                    result_class_list.AddRange(parent_field_class_list_3)
-                    result_class_list = result_class_list.Distinct().ToList()
+                    result_class_list.DistinctAddRange(parent_field_class_list_3)
                 End If
             End If
         Next
@@ -822,13 +814,16 @@ Partial Public Class TProject
 
             Dim strong_field_list = From c In super_class_list From f In c.FldCla Where f.ModVar.isStrong() AndAlso f.TypeVar.KndCla = EClass.ClassCla Select f
             For Each fld In strong_field_list
+
+                Dim field_element_type As TClass = FieldElementType(fld)
                 If ApplicationClassList.Contains(fld.TypeVar) Then
                     ' フィールドの型が単純クラスの場合
 
-                    If (From c In Sys.ThisAncestorSuperClassList(fld.TypeVar) From f In c.FldCla Where f.ModVar.isParent Select f).Any() Then
+                    Debug.Assert(field_element_type Is fld.TypeVar)
+                    If (From c In Sys.SuperClassList(fld.TypeVar) From f In c.FldCla Where f.ModVar.isParent Select f).Any() Then
 
                         ' このフィールドの型およびその子孫のサブクラスで未処理のものを得る。
-                        Dim pending_this_descendant_sub_class_list = From c In Sys.ThisDescendantSubClassList(fld.TypeVar) Where ApplicationClassList.Contains(c) AndAlso Not pending_class_list.Contains(c) AndAlso Not processed_class_list.Contains(c)
+                        Dim pending_this_descendant_sub_class_list = From c In Sys.SubClassList(fld.TypeVar) Where ApplicationClassList.Contains(c) AndAlso Not pending_class_list.Contains(c) AndAlso Not processed_class_list.Contains(c)
 
                         ' 未処理のクラスのリストに追加する。
                         pending_class_list.AddRange(pending_this_descendant_sub_class_list)
@@ -856,13 +851,14 @@ Partial Public Class TProject
                     ' フィールドの型がリストの場合
 
                     Dim element_type = ElementType(fld.TypeVar)
+                    Debug.Assert(field_element_type Is element_type)
 
                     If ApplicationClassList.Contains(element_type) Then
 
-                        If (From c In Sys.ThisAncestorSuperClassList(element_type) From f In c.FldCla Where f.ModVar.isParent Select f).Any() Then
+                        If (From c In Sys.SuperClassList(element_type) From f In c.FldCla Where f.ModVar.isParent Select f).Any() Then
 
                             ' このフィールドの型およびその子孫のサブクラスで未処理のものを得る。
-                            Dim pending_this_descendant_sub_class_list = From c In Sys.ThisDescendantSubClassList(element_type) Where ApplicationClassList.Contains(c) AndAlso Not pending_class_list.Contains(c) AndAlso Not processed_class_list.Contains(c)
+                            Dim pending_this_descendant_sub_class_list = From c In Sys.SubClassList(element_type) Where ApplicationClassList.Contains(c) AndAlso Not pending_class_list.Contains(c) AndAlso Not processed_class_list.Contains(c)
 
                             ' 未処理のクラスのリストに追加する。
                             pending_class_list.AddRange(pending_this_descendant_sub_class_list)
@@ -952,7 +948,7 @@ Partial Public Class TProject
         Dim i As Integer
         For i = function_list.Count - 1 To 0 Step -1
             Dim fnc1 As TFunction = function_list(i)
-            If Sys.AncestorSuperClassList(fnc1.ClaFnc).Intersect(implemented_class_list_2).Any() Then
+            If Sys.ProperSuperClassList(fnc1.ClaFnc).Intersect(implemented_class_list_2).Any() Then
                 ' 先祖のクラスで実装されている場合
 
                 If fnc1.BlcFnc.StmtBlc.Count = 0 Then

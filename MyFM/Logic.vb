@@ -439,9 +439,9 @@ Public Class TClass
     <_Weak()> Public ProjectCla As TProject
     <_Weak()> Public OrgCla As TClass
     <_Weak()> Public GenCla As TList(Of TClass)
-    <_Weak()> Public SuperClassList As New TList(Of TClass)
-    <_Weak()> Public SubClassList As New TList(Of TClass)
-    <_Weak()> Public AllSuperClassList As TList(Of TClass)
+    <_Weak()> Public DirectSuperClassList As New TList(Of TClass)
+    <_Weak()> Public DirectSubClassList As New TList(Of TClass)
+    <_Weak()> Public ProperSuperClassListOLD As TList(Of TClass)
     <_Weak()> Public InterfaceList As New TList(Of TClass)
     <_Weak()> Public SrcCla As TSourceFile
     <_Weak()> Public TokenListCls As List(Of TToken)
@@ -491,10 +491,10 @@ Public Class TClass
     End Sub
 
     Public Sub AllSuperCla2(vcla As TList(Of TClass))
-        vcla.AddRange(SuperClassList)
+        vcla.AddRange(DirectSuperClassList)
         vcla.AddRange(InterfaceList)
-        ' for Each cla1 In SuperClassList Call cla1
-        For Each cla1 In SuperClassList
+        ' for Each cla1 In DirectSuperClassList Call cla1
+        For Each cla1 In DirectSuperClassList
             cla1.AllSuperCla2(vcla)
         Next
 
@@ -505,23 +505,23 @@ Public Class TClass
     End Sub
 
     Public Sub SetAllSuperClass()
-        AllSuperClassList = New TList(Of TClass)()
-        AllSuperCla2(AllSuperClassList)
+        ProperSuperClassListOLD = New TList(Of TClass)()
+        AllSuperCla2(ProperSuperClassListOLD)
     End Sub
 
     ' このクラスが引数のクラスのサブクラスならTrueを返す
     Public Function IsSubcla(cla1 As TClass) As Boolean
-        If AllSuperClassList.Contains(cla1) Then
+        If ProperSuperClassListOLD.Contains(cla1) Then
             Return True
         End If
 
         If cla1.GenericType = EGeneric.SpecializedClass Then
-            Dim vcla = From cla2 In AllSuperClassList Where cla2.GenericType = EGeneric.SpecializedClass AndAlso cla2.OrgCla Is cla1.OrgCla AndAlso Not (From idx In Sys.IndexList(cla1.GenCla) Where Not cla2.GenCla(idx).IsSubcla(cla1.GenCla(idx))).Any()
+            Dim vcla = From cla2 In ProperSuperClassListOLD Where cla2.GenericType = EGeneric.SpecializedClass AndAlso cla2.OrgCla Is cla1.OrgCla AndAlso Not (From idx In Sys.IndexList(cla1.GenCla) Where Not cla2.GenCla(idx).IsSubcla(cla1.GenCla(idx))).Any()
             If vcla.Any() Then
                 Return True
             End If
 
-            For Each cla2 In AllSuperClassList
+            For Each cla2 In ProperSuperClassListOLD
                 If cla2.GenericType = EGeneric.SpecializedClass AndAlso cla2.OrgCla Is cla1.OrgCla Then
 
                     If Not (From idx In Sys.IndexList(cla1.GenCla) Where Not cla2.GenCla(idx).IsSubcla(cla1.GenCla(idx))).Any() Then
@@ -535,8 +535,18 @@ Public Class TClass
     End Function
 
     ' このクラスが引数のクラスと同じかサブクラスならTrueを返す
-    Public Function IsSubsetOf(cla1 As TClass) As Boolean
-        Return cla1 Is Me OrElse AllSuperClassList.Contains(cla1)
+    Public Function IsSubClassOf(cla1 As TClass) As Boolean
+        Return cla1 Is Me OrElse ProperSuperClassListOLD.Contains(cla1)
+    End Function
+
+    ' このクラスが引数のクラスとスーパークラスかサブクラスならTrueを返す
+    Public Function IsSuperClassOf(cla1 As TClass) As Boolean
+        Return Sys.SuperClassList(cla1).Contains(Me)
+    End Function
+
+    ' このクラスが引数のクラスとスーパークラスかサブクラスならTrueを返す
+    Public Function IsSuperOrSubClassOf(cla1 As TClass) As Boolean
+        Return cla1 Is Me OrElse Sys.ProperSuperClassList(cla1).Contains(Me) OrElse Sys.ProperSubClassList(cla1).Contains(Me)
     End Function
 
     Public Function IsArray() As Boolean

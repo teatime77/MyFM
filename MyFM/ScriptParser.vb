@@ -1722,7 +1722,7 @@ Public Class TScriptParser
                 GetTkn(EToken.Extends)
 
                 Dim spr_cla As TClass = ReadType(False)
-                cla1.SuperClassList.Add(spr_cla)
+                cla1.DirectSuperClassList.Add(spr_cla)
             End If
 
             If CurTkn.TypeTkn = EToken.Implements_ Then
@@ -1740,8 +1740,8 @@ Public Class TScriptParser
                 Loop
             End If
 
-            If PrjParse.ObjectType IsNot cla1 AndAlso cla1.SuperClassList.Count = 0 Then
-                cla1.SuperClassList.Add(PrjParse.ObjectType)
+            If PrjParse.ObjectType IsNot cla1 AndAlso cla1.DirectSuperClassList.Count = 0 Then
+                cla1.DirectSuperClassList.Add(PrjParse.ObjectType)
             End If
 
             GetTkn(EToken.LC)
@@ -1794,7 +1794,7 @@ Public Class TScriptParser
         PrjParse.CurSrc.ClaSrc.Add(cla1)
 
         cla1.KndCla = EClass.EnumCla
-        cla1.SuperClassList.Add(PrjParse.ObjectType)
+        cla1.DirectSuperClassList.Add(PrjParse.ObjectType)
         type1 = cla1
 
         Do While CurTkn.TypeTkn = EToken.Id

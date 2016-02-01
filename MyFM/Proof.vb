@@ -827,7 +827,7 @@ Public Class TDataflow
             End If
         Next
 
-        For Each cla_f In cls1.SuperClassList
+        For Each cla_f In cls1.DirectSuperClassList
             fld1 = GetFieldBy相対位置(cla_f, rel_pos)
             If fld1 IsNot Nothing Then
                 Return fld1
@@ -892,7 +892,7 @@ Public Class TUseDefineAnalysis
     Public UseDefineChainTable As New Dictionary(Of TReference, TUseDefine)
     Public StatementConditionTable As New Dictionary(Of TStatement, TApply)
 
-    Public UseParentClassList As List(Of TClass)
+    Public UseParentClassList As TList(Of TClass)
     Public VirtualizableClassList As TList(Of TClass)
     Public NaviFunctionList As New List(Of TFunction)
 End Class
@@ -1305,31 +1305,31 @@ Public Class Sys
     End Function
 
     Public Shared Function AncestorSuperClassList2(cla1 As TClass) As IEnumerable(Of TClass)
-        Return From x In (From y In cla1.SuperClassList Select AncestorSuperClassList2(y))
+        Return From x In (From y In cla1.DirectSuperClassList Select AncestorSuperClassList2(y))
     End Function
 
     Public Shared Function AncestorInterfaceList2(cla1 As TClass) As IEnumerable(Of TClass)
         Return From x In (From y In cla1.InterfaceList Select AncestorInterfaceList2(y))
     End Function
 
-    Public Shared Iterator Function AncestorSuperClassList(cla1 As TClass) As IEnumerable(Of TClass)
-        For Each cla2 In cla1.SuperClassList
+    Public Shared Iterator Function ProperSuperClassList(cla1 As TClass) As IEnumerable(Of TClass)
+        For Each cla2 In cla1.DirectSuperClassList
             Yield cla2
-            For Each cla3 In AncestorSuperClassList(cla2)
+            For Each cla3 In ProperSuperClassList(cla2)
                 Yield cla3
             Next
         Next
     End Function
 
     Public Shared Iterator Function DistinctThisAncestorSuperClassList(cla1 As TClass) As IEnumerable(Of TClass)
-        For Each cla2 In Enumerable.Distinct(ThisAncestorSuperClassList(cla1))
+        For Each cla2 In Enumerable.Distinct(SuperClassList(cla1))
             Yield cla2
         Next
     End Function
 
-    Public Shared Iterator Function ThisAncestorSuperClassList(cla1 As TClass) As IEnumerable(Of TClass)
+    Public Shared Iterator Function SuperClassList(cla1 As TClass) As IEnumerable(Of TClass)
         Yield cla1
-        For Each cla2 In AncestorSuperClassList(cla1)
+        For Each cla2 In ProperSuperClassList(cla1)
             Yield cla2
         Next
     End Function
@@ -1341,19 +1341,30 @@ Public Class Sys
         Next
     End Function
 
-    Public Shared Iterator Function ThisDescendantSubClassList(cla1 As TClass) As IEnumerable(Of TClass)
+    Public Shared Iterator Function SubClassList(cla1 As TClass) As IEnumerable(Of TClass)
         Yield cla1
-        For Each cla2 In DescendantSubClassList(cla1)
+        For Each cla2 In ProperSubClassList(cla1)
             Yield cla2
         Next
     End Function
 
-    Public Shared Iterator Function DescendantSubClassList(cla1 As TClass) As IEnumerable(Of TClass)
-        For Each cla2 In cla1.SubClassList
+    Public Shared Iterator Function ProperSubClassList(cla1 As TClass) As IEnumerable(Of TClass)
+        For Each cla2 In cla1.DirectSubClassList
             Yield cla2
-            For Each cla3 In DescendantSubClassList(cla2)
+            For Each cla3 In ProperSubClassList(cla2)
                 Yield cla3
             Next
+        Next
+    End Function
+
+    Public Shared Iterator Function NearestSuperSubClassList(cla1 As TClass) As IEnumerable(Of TClass)
+        Dim super_class_list As IEnumerable(Of TClass) = SuperClassList(cla1)
+
+        If super_class_list.Any() Then
+            Yield super_class_list.First()
+        End If
+        For Each cla2 In ProperSubClassList(cla1)
+            Yield cla2
         Next
     End Function
 
@@ -2346,8 +2357,8 @@ Public Class Sys
                 A = CType(P.ArgApp(1), TReference).VarRef
                 B = CType(Q.ArgApp(1), TReference).VarRef
 
-                A_subset_B = A.IsSubsetOf(B)
-                B_subset_A = B.IsSubsetOf(A)
+                A_subset_B = A.IsSubClassOf(B)
+                B_subset_A = B.IsSubClassOf(A)
                 If Not P.Negation Then
                     If Not Q.Negation Then
                         '     a ∊ A ,     a ∊ B		A=Bならa ∊ Bは不要、A ⋂ B = ∅ なら矛盾、A ⊆ B ならa ∊ Bは不要、B ⊆ A ならa ∊ Aは不要

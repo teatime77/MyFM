@@ -850,7 +850,7 @@ Public Class TBasicParser
         PrjParse.CurSrc.ClaSrc.Add(cla1)
 
         cla1.KndCla = EClass.EnumCla
-        cla1.SuperClassList.Add(PrjParse.ObjectType)
+        cla1.DirectSuperClassList.Add(PrjParse.ObjectType)
         type1 = cla1
 
         Do While CurStmt.TypeStmt <> EToken.EndEnum
@@ -901,7 +901,7 @@ Public Class TBasicParser
                 Next
                 spr_cla = PrjParse.GetAddSpecializedClass(instmt.ClassNameInheritsStmt, vtp)
             End If
-            cla1.SuperClassList.Add(spr_cla)
+            cla1.DirectSuperClassList.Add(spr_cla)
 
         End If
 
@@ -934,8 +934,8 @@ Public Class TBasicParser
                 PrjParse.WaitHandleType = cla1
         End Select
 
-        If PrjParse.ObjectType IsNot cla1 AndAlso cla1.SuperClassList.Count = 0 Then
-            cla1.SuperClassList.Add(PrjParse.ObjectType)
+        If PrjParse.ObjectType IsNot cla1 AndAlso cla1.DirectSuperClassList.Count = 0 Then
+            cla1.DirectSuperClassList.Add(PrjParse.ObjectType)
         End If
 
         Do While CurStmt.TypeStmt <> EToken.EndClass AndAlso CurStmt.TypeStmt <> EToken.EndStruct AndAlso CurStmt.TypeStmt <> EToken.EndInterface

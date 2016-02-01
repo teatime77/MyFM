@@ -752,12 +752,12 @@ Public Class TSetRefDeclarative
                                     Return
 
                                 Case EToken.BaseCall
-                                    .VarRef = TProject.FindFieldFunction(.FunctionTrm.ClaFnc.SuperClassList(0), .NameRef, app1.ArgApp)
+                                    .VarRef = TProject.FindFieldFunction(.FunctionTrm.ClaFnc.DirectSuperClassList(0), .NameRef, app1.ArgApp)
                                     Debug.Assert(.VarRef IsNot Nothing AndAlso TypeOf .VarRef Is TFunction)
                                     Return
 
                                 Case EToken.BaseNew
-                                    .VarRef = TProject.FindNew(.FunctionTrm.ClaFnc.SuperClassList(0), app1.ArgApp)
+                                    .VarRef = TProject.FindNew(.FunctionTrm.ClaFnc.DirectSuperClassList(0), app1.ArgApp)
                                     If .VarRef Is Nothing Then
                                         If app1.ArgApp.Count <> 0 Then
 
