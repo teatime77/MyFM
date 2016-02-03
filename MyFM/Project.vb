@@ -82,6 +82,10 @@ Public Class TProject
         Prj = CType(Me, TProject)
     End Sub
 
+    Public Function IsSystemClass(cls As TClass) As Boolean
+        Return cls Is TypeType OrElse cls Is SystemType OrElse cls Is BoolType OrElse cls Is ObjectType OrElse cls Is DoubleType OrElse cls Is CharType OrElse cls Is IntType OrElse cls Is StringType
+    End Function
+
     Public Sub OutputSourceFile()
         For Each lang In OutputLanguageList
             Debug.WriteLine("ソース 生成 {0} --------------------------------------------------------------------------------------------", lang)

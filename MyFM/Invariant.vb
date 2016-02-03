@@ -1148,10 +1148,11 @@ Public Class TNaviMakeSourceCode
                                 tw.Fmt(EToken.If_, EToken.LP, .ArgApp(0).TokenList, EToken.Comma, .ArgApp(1).TokenList, EToken.Comma, .ArgApp(2).TokenList, EToken.RP)
 
                             Case EToken.Instanceof
+                                Dim test_class As TClass = CType(CType(.ArgApp(1), TReference).VarRef, TClass)
                                 If ParserMK.LanguageSP = ELanguage.Basic Then
-                                    tw.Fmt(EToken.Instanceof, .ArgApp(0).TokenList, EToken.Is_, CType(.ArgApp(1), TReference).VarRef.TokenListVar)
+
+                                    tw.Fmt(EToken.Instanceof, .ArgApp(0).TokenList, EToken.Is_, test_class.TokenListVar)
                                 Else
-                                    Dim test_class As TClass = CType(CType(.ArgApp(1), TReference).VarRef, TClass)
                                     If test_class.OrgCla IsNot Nothing Then
                                         tw.Fmt("Array", EToken.Dot, "isArray", EToken.LP, .ArgApp(0).TokenList, EToken.RP)
                                     Else

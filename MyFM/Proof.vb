@@ -1334,9 +1334,18 @@ Public Class Sys
         Next
     End Function
 
-    Public Shared Iterator Function AllFieldList(cla1 As TClass) As IEnumerable(Of TField)
-        Dim field_list = From c In DistinctThisAncestorSuperClassList(cla1) From f In c.FldCla Select f
-        For Each fld In field_list
+    Public Shared Iterator Function SuperClassFieldList(cla1 As TClass) As IEnumerable(Of TField)
+        For Each fld In (From c In SuperClassList(cla1) From f In c.FldCla Select f)
+            Yield fld
+        Next
+    End Function
+
+    Public Shared Iterator Function SuperSubClassFieldList(cla1 As TClass) As IEnumerable(Of TField)
+        For Each fld In (From c In SuperClassList(cla1) From f In c.FldCla Select f)
+            Yield fld
+        Next
+
+        For Each fld In (From c In ProperSubClassList(cla1) From f In c.FldCla Select f)
             Yield fld
         Next
     End Function
