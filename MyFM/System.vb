@@ -170,6 +170,53 @@ Public Class TList(Of T)
             End If
         Next
     End Sub
+
+    Public Iterator Function Union(v1 As IEnumerable(Of T)) As IEnumerable(Of T)
+        For Each x In Me
+            Yield x
+        Next
+
+        For Each x In v1
+            If Not Contains(x) Then
+
+                Yield x
+            End If
+        Next
+    End Function
+End Class
+
+Public Class TMap(Of T, U)
+    ' ElementTypeでTMapの要素の型として、最初のフィールドdtの型の2番目のパラメータを使う。
+    Public dt As Dictionary(Of T, List(Of U))
+
+    Public Sub New()
+        dt = New Dictionary(Of T, List(Of U))
+    End Sub
+
+    Public Iterator Function Keys() As IEnumerable(Of T)
+        For Each k In dt.Keys
+            Yield k
+        Next
+    End Function
+
+
+    Public Function ContainsKey(key As T) As Boolean
+        Return dt.ContainsKey(key)
+    End Function
+
+    Public Sub Add(x As T, y As U)
+        If dt.ContainsKey(x) Then
+            Dim v As List(Of U) = dt(x)
+            If Not v.Contains(y) Then
+                v.Add(y)
+            End If
+        Else
+            Dim v As New List(Of U)
+            v.Add(y)
+            dt.Add(x, v)
+        End If
+    End Sub
+
 End Class
 
 ' -------------------------------------------------------------------------------- TSys

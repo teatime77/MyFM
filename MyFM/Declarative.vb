@@ -515,7 +515,12 @@ Public Class TSetRefDeclarative
                                             .TypeTrm = ref1.VarRef.TypeVar.GenCla(0)
                                         Case EApply.DictionaryApp
                                             Debug.Assert(ref1.VarRef.TypeVar.GenCla IsNot Nothing AndAlso ref1.VarRef.TypeVar.GenCla.Count = 2)
-                                            .TypeTrm = ref1.VarRef.TypeVar.GenCla(1)
+                                            If ref1.VarRef.TypeVar.NameVar = "TMap" Then
+
+                                                .TypeTrm = .ProjectTrm.ElementType(ref1.VarRef.TypeVar)
+                                            Else
+                                                .TypeTrm = ref1.VarRef.TypeVar.GenCla(1)
+                                            End If
                                         Case Else
                                             Debug.Assert(False)
                                     End Select
@@ -1451,6 +1456,101 @@ Public Class TNaviSetRefPath
 
                 End If
 
+            End With
+        End If
+    End Sub
+End Class
+
+
+' -------------------------------------------------------------------------------- TNaviMakeVirtualizableIfMethod
+' クラスの場合分けのIf文からクラスごとのメソッドを作る。
+Public Class TNaviMakeVirtualizableIfMethod
+    Inherits TDeclarative
+    Public UDA As TUseDefineAnalysis
+
+    Public Function CopyAncestorBlock(if1 As TIf, blc1 As TBlock, cpy As TCopy) As TBlock
+        Dim up_blc As TBlock = Sys.UpBlock(if1)
+        Dim up_blc_copy As New TBlock
+
+        ' up_blcの変数をup_blc_copyにコピーする。
+        Dim vvar1 = From var1 In up_blc.VarBlc Select Sys.CopyVar(var1, cpy)
+        up_blc_copy.VarBlc.AddRange(vvar1)
+
+        ' up_blcの子の文をup_blc_copyにコピーする。
+        up_blc_copy.StmtBlc.AddRange(From x In up_blc.StmtBlc Select CType(If(x Is if1, blc1, Sys.CopyStatement(x, cpy)), TStatement))
+
+        If up_blc.UpTrm Is if1.FunctionTrm Then
+            ' メソッドの直下のブロックの場合
+
+            Return up_blc_copy
+        Else
+            ' メソッドの直下のブロックでない場合
+
+            ' １つ上のIf文を得る。
+            Dim if_blc As TIfBlock = CType(Sys.UpStmtProper(up_blc.UpTrm), TIfBlock)
+            Dim if2 As TIf = CType(if_blc.UpTrm, TIf)
+
+            ' １つ上のif文を囲むブロックをコピーする。
+            Return CopyAncestorBlock(if2, up_blc_copy, cpy)
+        End If
+    End Function
+
+    Public Overrides Sub StartCondition(self As Object)
+        If TypeOf self Is TIfBlock Then
+            With CType(self, TIfBlock)
+                Dim if1 As TIf = CType(.UpTrm, TIf)
+                If if1.VirtualizableIf Then
+
+                    Dim fnc1 As New TFunction
+                    Dim blc_if_copy As New TBlock
+                    Dim cpy As New TCopy
+
+                    cpy.CurFncCpy = fnc1
+
+                    ' 関数のthisをコピーする。
+                    fnc1.ThisFnc = Sys.CopyVar(.FunctionTrm.ThisFnc, cpy)
+
+                    ' 関数の引数をコピーする。
+                    Dim varg_var = From var1 In .FunctionTrm.ArgFnc Select Sys.CopyVar(var1, cpy)
+                    fnc1.ArgFnc.AddRange(varg_var)
+
+                    ' .BlcIfの変数をblc_if_copyにコピーする。
+                    Dim vvar1 = From var1 In .BlcIf.VarBlc Select Sys.CopyVar(var1, cpy)
+                    blc_if_copy.VarBlc.AddRange(vvar1)
+
+                    ' このif文を囲むブロックの変数をコピーする。
+                    Dim vvar2 = (From blc In Sys.AncestorList(if1) Where TypeOf blc Is TBlock From var1 In CType(blc, TBlock).VarBlc Select Sys.CopyVar(var1, cpy)).ToList()
+
+                    ' .BlcIfの子の文をblc_if_copyにコピーする。
+                    blc_if_copy.StmtBlc.AddRange(From x In .BlcIf.StmtBlc Where Not x.VirtualizableIf Select Sys.CopyStatement(x, cpy))
+
+                    ' このif文を囲むブロックをコピーする。
+                    fnc1.BlcFnc = CopyAncestorBlock(if1, blc_if_copy, cpy)
+
+                    ' クラスにメソッドを追加する。
+                    Dim app1 As TApply = CType(.CndIf, TApply)
+                    Dim ref1 As TReference = CType(app1.ArgApp(1), TReference)
+                    Dim virtualizable_class As TClass = CType(ref1.VarRef, TClass)
+
+                    fnc1.NameVar = .FunctionTrm.NameVar
+                    fnc1.ModVar = New TModifier()
+                    fnc1.ModVar.isInvariant = True
+                    fnc1.TypeFnc = .FunctionTrm.TypeFnc
+                    fnc1.ClaFnc = virtualizable_class
+                    fnc1.ClaFnc.FncCla.Add(fnc1)
+                    fnc1.WithFnc = virtualizable_class
+
+                    Debug.Print("Make Rule {0}.{1}", virtualizable_class.NameVar, fnc1.NameVar)
+
+                    'fnc1.__SetParent(fnc1, fnc1.ClaFnc.FncCla)
+                    Dim set_parent_stmt As New TNaviSetParentStmt
+                    set_parent_stmt.NaviFunction(fnc1, Nothing)
+
+                    Dim set_up_trm As New TNaviSetUpTrm
+                    set_up_trm.NaviFunction(fnc1, Nothing)
+
+                    UDA.VirtualizedMethodList.Add(fnc1)
+                End If
             End With
         End If
     End Sub

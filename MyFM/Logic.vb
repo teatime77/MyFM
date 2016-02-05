@@ -563,7 +563,7 @@ Public Class TClass
     End Function
 
     Public Function IsDictionary() As Boolean
-        Return NameType() = "Dictionary"
+        Return NameType() = "Dictionary" OrElse NameType() = "TMap"
     End Function
 
     Public Function HasIndex() As Boolean

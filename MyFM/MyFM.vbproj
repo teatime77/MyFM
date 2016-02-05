@@ -84,8 +84,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BasicParser.vb" />
-    <Compile Include="Compile.vb" />
     <Compile Include="Declarative.vb" />
+    <Compile Include="External.vb" />
     <Compile Include="Generated.vb" />
     <Compile Include="Graph.vb" />
     <Compile Include="Invariant.vb" />
