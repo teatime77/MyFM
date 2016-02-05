@@ -5,6 +5,7 @@ Public MustInherit Class TSourceParser
     Public PrjParse As TProject
     Public vTknName As Dictionary(Of EToken, String)
     Public ThisName As String
+    Public SystemClassNameList As List(Of String)
     Public TranslationTable As New Dictionary(Of String, String)
 
     Public MustOverride Function Lex(src_text As String) As TList(Of TToken)
@@ -35,7 +36,6 @@ End Class
 Public Class TBasicParser
     Inherits TSourceParser
 
-
     Public vTkn As New Dictionary(Of String, EToken)
     Public CurBlc As TBlock
     Public CurPos As Integer
@@ -51,6 +51,7 @@ Public Class TBasicParser
     Public Sub New(prj1 As TProject)
         LanguageSP = ELanguage.Basic
         ThisName = "Me"
+        SystemClassNameList = New List(Of String) From {"Byte", "Char", "Short", "Integer", "Boolean", "Single", "Double", "Object", "System", "String", "Type", "Exception", "Enumerable", "IList", "Math", "Attribute", "_Weak", "_Invariant", "_Parent", "_Prev", "_Next"}
         PrjParse = prj1
         RegTkn()
     End Sub

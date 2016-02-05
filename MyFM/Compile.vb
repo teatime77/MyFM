@@ -215,6 +215,10 @@ Partial Public Class TProject
 
         SetTokenListClsAll(ParsePrj)
 
+        AppClassList = New TList(Of TClass)(From c In SimpleParameterizedClassList Where c.KndCla = EClass.ClassCla AndAlso c.GenericType = EGeneric.SimpleClass AndAlso Not IsSystemClass(c))
+        AppFieldList = New TList(Of TField)(From c In AppClassList From f In c.FldCla Select f)
+        AppStrongFieldList = New TList(Of TField)(From f In AppFieldList Where f.ModVar.isStrong())
+
         If MainClass IsNot Nothing Then
 
             MakeReachableFieldMap()
@@ -260,7 +264,7 @@ Partial Public Class TProject
                 dt.UseParentClassList = use_parent_class_list
                 dt.VirtualizableClassList = set_virtualizable_if.VirtualizableClassList
 
-                Dim walked_field_list_table As TMap(Of TClass, TField) = MakeWalkedFieldListTable(dt)
+                Dim walked_field_list_table As TMap(Of TClass, TField) = MakeWalkedFieldListTable(dt.VirtualizableClassList)
 
                 MakeNaviFunctionList(rule, dt, walked_field_list_table)
 
@@ -271,6 +275,7 @@ Partial Public Class TProject
             Next
         End If
 
+        MakeSetParentNew()
         MakeSetParent()
 
         ' オーバーロード関数をセットする
@@ -354,19 +359,21 @@ Partial Public Class TProject
         Return fnc1
     End Function
 
-    Public Function MakeWalkedFieldListTable(dt As TUseDefineAnalysis) As TMap(Of TClass, TField)
-        Dim walked_field_list_table As New TMap(Of TClass, TField)
+    Public Function MakeWalkedFieldListTable(target_class_list As TList(Of TClass)) As TMap(Of TClass, TField)
         Dim reachable_from_bottom_field_pending As New TList(Of TField)
-        Dim reachable_from_bottom_processed As New List(Of TField)
 
-        For Each virtualizable_class In dt.VirtualizableClassList
+        For Each target_class In target_class_list
 
-            ' 型がvirtualizable_classかスーパークラスであるフィールドのリスト
-            Dim parent_field_list = From parent_field In SimpleFieldList Where parent_field.ModVar.isStrong() AndAlso FieldElementType(parent_field).IsSuperClassOf(virtualizable_class)
+            ' 型がtarget_classかスーパークラスであるフィールドのリスト
+            Dim parent_field_list = From parent_field In AppStrongFieldList Where FieldElementType(parent_field).IsSuperOrSubClassOf(target_class)
 
             ' reachable_from_bottom_field_pendingに入っていないparent_fieldを追加する。
             reachable_from_bottom_field_pending.DistinctAddRange(parent_field_list)
         Next
+
+        Dim walked_field_list_table As New TMap(Of TClass, TField)
+        Dim reachable_from_bottom_processed As New List(Of TField)
+
 
         Dim parent_to_child_field_list_table As New TMap(Of TField, TField)
 
@@ -375,7 +382,8 @@ Partial Public Class TProject
             reachable_from_bottom_processed.Add(current_field)
 
             ' 型がcurrent_fieldが属するクラスかスーパークラスであるフィールドのリスト
-            Dim parent_field_list = From parent_field In SimpleFieldList Where Not IsSystemClass(parent_field.ClaFld) AndAlso parent_field.ModVar.isStrong() AndAlso FieldElementType(parent_field).IsSuperClassOf(current_field.ClaFld)
+            'Dim parent_field_list = From parent_field In AppFieldList Where Not IsSystemClass(parent_field.ClaFld) AndAlso parent_field.ModVar.isStrong() AndAlso FieldElementType(parent_field).IsSuperClassOf(current_field.ClaFld)
+            Dim parent_field_list = From parent_field In AppStrongFieldList Where FieldElementType(parent_field).IsSuperOrSubClassOf(current_field.ClaFld)
 
             For Each parent_field In parent_field_list
                 parent_to_child_field_list_table.Add(parent_field, current_field)
@@ -835,6 +843,32 @@ Partial Public Class TProject
 
         Return if1
     End Function
+
+    Public Sub MakeSetParentNew()
+        Dim target_class_list As New TList(Of TClass)(From c In AppClassList Where (From f In c.FldCla Where f.ModVar.isParent OrElse f.ModVar.isPrev).Any())
+
+        Dim walked_field_list_table As TMap(Of TClass, TField) = MakeWalkedFieldListTable(target_class_list)
+
+
+        Dim navi_needed_class_list As New TList(Of TClass)
+
+        For Each cla1 In walked_field_list_table.Keys()
+            Dim walked_field_list As List(Of TField) = walked_field_list_table(cla1)
+
+            For Each walked_field In walked_field_list
+
+                navi_needed_class_list.DistinctAdd(FieldElementType(walked_field))
+            Next
+        Next
+
+        For Each cla1 In navi_needed_class_list
+            If Not walked_field_list_table.Keys().Contains(cla1) Then
+
+            End If
+        Next
+
+
+    End Sub
 
     Public Sub MakeSetParent()
         If MainClass Is Nothing Then

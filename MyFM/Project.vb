@@ -55,6 +55,9 @@ Public Class TProject
     <XmlIgnoreAttribute(), _Weak()> Public PendingSpecializedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute(), _Weak()> Public SimpleParameterizedSpecializedClassList As New TList(Of TClass)
     <XmlIgnoreAttribute(), _Weak()> Public SimpleFieldList As List(Of TField)    ' 単純クラスのフィールドのリスト
+    <XmlIgnoreAttribute(), _Weak()> Public AppClassList As TList(Of TClass)
+    <XmlIgnoreAttribute(), _Weak()> Public AppFieldList As TList(Of TField)
+    <XmlIgnoreAttribute(), _Weak()> Public AppStrongFieldList As TList(Of TField)
     <XmlIgnoreAttribute(), _Weak()> Public vAllFnc As New TList(Of TFunction)
     <XmlIgnoreAttribute(), _Weak()> Public vAllFld As New TList(Of TField)    ' すべてのフィールド
     <XmlIgnoreAttribute(), _Weak()> Public CurSrc As TSourceFile ' 現在のソース
@@ -83,7 +86,7 @@ Public Class TProject
     End Sub
 
     Public Function IsSystemClass(cls As TClass) As Boolean
-        Return cls Is TypeType OrElse cls Is SystemType OrElse cls Is BoolType OrElse cls Is ObjectType OrElse cls Is DoubleType OrElse cls Is CharType OrElse cls Is IntType OrElse cls Is StringType
+        Return ParsePrj.SystemClassNameList.Contains(cls.NameVar)
     End Function
 
     Public Sub OutputSourceFile()

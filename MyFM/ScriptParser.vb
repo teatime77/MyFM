@@ -19,6 +19,7 @@ Public Class TScriptParser
     Public Sub New(prj1 As TProject, lang As ELanguage)
         LanguageSP = lang
         ThisName = "this"
+        SystemClassNameList = New List(Of String) From {"byte", "char", "short", "int", "bool", "float", "double", "Object", "System", "string", "Type", "Exception", "Enumerable", "IList", "Math", "Attribute", "_Weak", "_Invariant", "_Parent", "_Prev", "_Next"}
         PrjParse = prj1
         RegTkn()
 
