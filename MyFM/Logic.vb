@@ -534,17 +534,22 @@ Public Class TClass
         Return False
     End Function
 
-    ' このクラスが引数のクラスと同じかサブクラスならTrueを返す
+    ' このクラスが引数の広義サブクラスならTrueを返す
     Public Function IsSubClassOf(cla1 As TClass) As Boolean
         Return cla1 Is Me OrElse ProperSuperClassListOLD.Contains(cla1)
     End Function
 
-    ' このクラスが引数のクラスとスーパークラスかサブクラスならTrueを返す
+    ' このクラスが引数の広義スーパークラスならTrueを返す
     Public Function IsSuperClassOf(cla1 As TClass) As Boolean
         Return Sys.SuperClassList(cla1).Contains(Me)
     End Function
 
-    ' このクラスが引数のクラスとスーパークラスかサブクラスならTrueを返す
+    ' このクラスが引数の狭義スーパークラスならTrueを返す
+    Public Function IsProperSuperClassOf(cla1 As TClass) As Boolean
+        Return Sys.ProperSuperClassList(cla1).Contains(Me)
+    End Function
+
+    ' このクラスが引数の広義スーパークラスか広義サブクラスならTrueを返す
     Public Function IsSuperOrSubClassOf(cla1 As TClass) As Boolean
         Return cla1 Is Me OrElse Sys.ProperSuperClassList(cla1).Contains(Me) OrElse Sys.ProperSubClassList(cla1).Contains(Me)
     End Function

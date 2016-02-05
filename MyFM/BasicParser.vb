@@ -51,7 +51,7 @@ Public Class TBasicParser
     Public Sub New(prj1 As TProject)
         LanguageSP = ELanguage.Basic
         ThisName = "Me"
-        SystemClassNameList = New List(Of String) From {"Byte", "Char", "Short", "Integer", "Boolean", "Single", "Double", "Object", "System", "String", "Type", "Exception", "Enumerable", "IList", "Math", "Attribute", "_Weak", "_Invariant", "_Parent", "_Prev", "_Next"}
+        SystemClassNameList = New List(Of String)() From {"Byte", "Char", "Short", "Integer", "Boolean", "Single", "Double", "Object", "System", "String", "Type", "Exception", "Enumerable", "IList", "Math", "Attribute", "_Weak", "_Invariant", "_Parent", "_Prev", "_Next"}
         PrjParse = prj1
         RegTkn()
     End Sub

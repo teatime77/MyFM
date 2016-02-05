@@ -203,16 +203,16 @@ Public Class TNaviMakeSourceCode
 
                     If TypeOf stmt1 Is TIfBlock Then
                         If CType(stmt1, TIfBlock).WithIf IsNot Nothing Then
-                            .TabStmt = stmt1.TabStmt + 1
+                            .TabStmt = stmt1.TabStmt + 2
                         Else
-                            .TabStmt = stmt1.TabStmt
+                            .TabStmt = stmt1.TabStmt + 1
                         End If
                     ElseIf TypeOf stmt1 Is TFor OrElse TypeOf stmt1 Is TCase Then
                         .TabStmt = stmt1.TabStmt + 1
                     ElseIf TypeOf stmt1 Is TIf OrElse TypeOf stmt1 Is TSelect OrElse TypeOf stmt1 Is TTry Then
                         .TabStmt = stmt1.TabStmt
                     Else
-                        .TabStmt = stmt1.TabStmt
+                        Debug.Assert(False)
                     End If
 
                 ElseIf TypeOf obj Is TFunction Then
@@ -521,11 +521,13 @@ Public Class TNaviMakeSourceCode
                                         ' JavaScriptのコンストラクタの場合
 
                                         ' InstanceInitializerを再帰的に呼ぶ。CallInstanceInitializer(this, this);
+                                        tw.TAB(2)
                                         tw.Fmt("CallInstanceInitializer", EToken.LP, ParserMK.ThisName, EToken.Comma, ParserMK.ThisName, EToken.RP, EToken.EOL)
                                     End If
 
                                     tw.Fmt(.BlcFnc.TokenList)
 
+                                    tw.TAB(1)
                                     tw.Fmt(EToken.RC, EToken.NL)
                                 End If
                             End If
@@ -539,6 +541,7 @@ Public Class TNaviMakeSourceCode
                                 ' 親クラスがObjectでない場合
 
                                 ' 親クラスを継承する。
+                                tw.TAB(1)
                                 tw.Fmt("Inherits", EToken.LP, .ClaFnc.NameVar, EToken.Comma, .ClaFnc.DirectSuperClassList(0).NameVar, EToken.RP, EToken.EOL)
                             End If
                         End If
@@ -865,6 +868,8 @@ Public Class TNaviMakeSourceCode
                                     ' var x = v[$i];
                                     tw.TAB(.TabStmt)
                                     tw.Fmt(EToken.For_, EToken.LP, EToken.Var, "$i", EToken.ASN, 0, EToken.SM, "$i", EToken.LT, .InTrmFor.TokenList, EToken.Dot, "length", EToken.SM, "$i++", EToken.RP, EToken.LC, EToken.NL)
+
+                                    tw.TAB(.TabStmt + 1)
                                     tw.Fmt(EToken.Var, .InVarFor.NameVar, EToken.ASN, .InTrmFor.TokenList, EToken.LB, "$i", EToken.RB, EToken.EOL)
 
                                     tw.Fmt(.BlcFor.TokenList)
