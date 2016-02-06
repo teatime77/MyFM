@@ -1277,6 +1277,13 @@ Public Class TNaviMakeSourceCode
                                 tw.Fmt(", undefined")
                             End If
 
+                            If .IntoAggr IsNot Nothing Then
+
+                                tw.Fmt(", function(", .VarQry.NameVar, "){ return ", .IntoAggr.TokenList, "; }")
+                            Else
+                                tw.Fmt(", undefined")
+                            End If
+
                             tw.Fmt(")")
 
                             Select Case .FunctionAggr

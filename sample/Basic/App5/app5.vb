@@ -112,8 +112,8 @@ Public Class TMyApplication
                     End If
                 Else
 
-                    .Center.X = Aggregate x In (From y In .Children Select y.Center.X) Into Average(x)
-                    .Center.Y = (Aggregate x In (From y In .Children Select y.Center.Y) Into Average(x)) - 100
+                    .Center.X = Aggregate x In .Children Into Average(x.Center.X)
+                    .Center.Y = (Aggregate x In .Children Into Average(x.Center.Y)) - 100
                 End If
 
                 .Rotation = 0

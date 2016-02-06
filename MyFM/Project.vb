@@ -1072,13 +1072,12 @@ Public Class TProject
                                 If Sys.Consistent2(cnd1, nrm_cnd) Then
                                     ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾しない場合
 
-                                    Debug.Print("Dot定義 {0}:{2} {1}", dot1.NameRef, MakeStatementText(dot1_up_stmt), dot1.IdxAtm)
-                                    Debug.Print("前提条件1 {0}", MakeTermText(cnd1))
+                                    'Debug.Print("親Dot定義 {0}:{2} {1}", dot1.NameRef, MakeStatementText(dot1_up_stmt), dot1.IdxAtm)
+                                    'Debug.Print("前提条件1 {0}", MakeTermText(cnd1))
 
-                                    Debug.Print("Dot使用 {0}:{2} {1}", dot2.NameRef, MakeStatementText(dot2_up_stmt), dot2.IdxAtm)
-                                    Debug.Print("前提条件2 {0}", MakeTermText(cnd2))
-                                    Debug.Print("--------------------------------------------------------------------------------")
-
+                                    'Debug.Print("親Dot使用 {0}:{2} {1}", dot2.NameRef, MakeStatementText(dot2_up_stmt), dot2.IdxAtm)
+                                    'Debug.Print("前提条件2 {0}", MakeTermText(cnd2))
+                                    'Debug.Print("--------------------------------------------------------------------------------")
                                 End If
                             Next
                         Next
@@ -1090,15 +1089,18 @@ Public Class TProject
                         ' 子の仮想メソッド内の定義参照に対し
                         For Each dot1 In child_def_dot_list
 
-                            ' dot1を含む文の余分な条件を取り除いた前提条件
-                            Dim dot_up_stmt As TStatement = Sys.UpStmtProper(dot1)
-                            Dim cnd1 As TApply = Sys.GetPreConditionClean(dot_up_stmt)
-                            If cnd1.ArgApp.Count <> 0 AndAlso cnd1.ArgApp(0) Is Nothing Then
-                                cnd1 = Sys.GetPreConditionClean(dot_up_stmt)
-                            End If
+                            ' dot1を含む文
+                            Dim dot1_up_stmt As TStatement = Sys.UpStmtProper(dot1)
+
+                            ' 余分な条件を取り除いた前提条件
+                            Dim cnd1 As TApply = Sys.GetCachedPreConditionClean(dot1_up_stmt, dic)
+
+                            'If cnd1.ArgApp.Count <> 0 AndAlso cnd1.ArgApp(0) Is Nothing Then
+                            '    cnd1 = Sys.GetPreConditionClean(dot1_up_stmt)
+                            'End If
 
                             ' CopyでUpTrmを使う。
-                            cnd1.UpTrm = dot_up_stmt
+                            cnd1.UpTrm = dot1_up_stmt
 
                             ' 前提条件cnd1で親のフィールド参照を自身のフィールド参照に変換する。
                             Dim nrm_cnd As TApply = Sys.NormalizeReference(Me, cnd1, fld1)
@@ -1115,18 +1117,28 @@ Public Class TProject
                                 ' フィールドがリストの場合
 
                                 ' 親の仮想メソッド内でfld1の使用参照のリストを求める。
-                                parent_use_dot_list = (From d In parent_dot_list Where Sys.ChildElementDot(d, fld1) AndAlso Sys.OverlapRefPath(dot1, CType(d.UpTrm, TDot))).ToList()
+                                parent_use_dot_list = (From d In parent_dot_list Where Sys.ChildElementDot(d, fld1) AndAlso Sys.OverlapRefPath(dot1, d)).ToList()
                             End If
 
                             ' 親の仮想メソッド内でfld1の使用参照に対し
                             For Each dot2 In parent_use_dot_list
 
-                                ' dot2を含む文の余分な条件を取り除いた前提条件
-                                Dim cnd2 As TApply = Sys.GetTermPreConditionClean(dot2)
+                                ' dot2を含む文
+                                Dim dot2_up_stmt As TStatement = Sys.UpStmtProper(dot2)
+
+                                ' 余分な条件を取り除いた前提条件
+                                Dim cnd2 As TApply = Sys.GetCachedPreConditionClean(dot2_up_stmt, dic)
 
                                 If Sys.Consistent2(nrm_cnd, cnd2) Then
                                     ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾しない場合
 
+                                    Debug.Print("子Dot定義 {0}:{2} {1}", dot1.NameRef, MakeStatementText(dot1_up_stmt), dot1.IdxAtm)
+                                    Debug.Print("前提条件1 {0}", MakeTermText(cnd1))
+                                    Debug.Print("前提条件 正規化 {0}", MakeTermText(nrm_cnd))
+
+                                    Debug.Print("子Dot使用 {0}:{2} {1}", dot2.NameRef, MakeStatementText(dot2_up_stmt), dot2.IdxAtm)
+                                    Debug.Print("前提条件2 {0}", MakeTermText(cnd2))
+                                    Debug.Print("--------------------------------------------------------------------------------")
                                 End If
                             Next
                         Next
@@ -1282,7 +1294,6 @@ Public Class TProject
             reachable_from_bottom_processed.Add(current_field)
 
             ' 型がcurrent_fieldが属するクラスかスーパークラスであるフィールドのリスト
-            'Dim parent_field_list = From parent_field In AppFieldList Where Not IsSystemClass(parent_field.ClaFld) AndAlso parent_field.ModVar.isStrong() AndAlso FieldElementType(parent_field).IsSuperClassOf(current_field.ClaFld)
             Dim parent_field_list = From parent_field In AppStrongFieldList Where FieldElementType(parent_field).IsSuperOrSubClassOf(current_field.ClaFld)
 
             For Each parent_field In parent_field_list
