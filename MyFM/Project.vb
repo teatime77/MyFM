@@ -971,14 +971,7 @@ Public Class TProject
                 Dim ref1_up_stmt As TStatement = Sys.UpStmtProper(ref1)
 
                 ' 余分な条件を取り除いた前提条件
-                Dim cnd1 As TApply
-
-                If dic.ContainsKey(ref1_up_stmt) Then
-                    cnd1 = dic(ref1_up_stmt)
-                Else
-                    cnd1 = Sys.GetPreConditionClean(ref1_up_stmt)
-                    dic.Add(ref1_up_stmt, cnd1)
-                End If
+                Dim cnd1 As TApply = Sys.GetCachedPreConditionClean(ref1_up_stmt, dic)
 
                 ' CopyでUpTrmを使う。
                 cnd1.UpTrm = ref1_up_stmt
@@ -992,24 +985,17 @@ Public Class TProject
                     Dim ref2_up_stmt As TStatement = Sys.UpStmtProper(ref2)
 
                     ' 余分な条件を取り除いた前提条件
-                    Dim cnd2 As TApply
-
-                    If dic.ContainsKey(ref2_up_stmt) Then
-                        cnd2 = dic(ref2_up_stmt)
-                    Else
-                        cnd2 = Sys.GetPreConditionClean(ref2_up_stmt)
-                        dic.Add(ref2_up_stmt, cnd2)
-                    End If
+                    Dim cnd2 As TApply = Sys.GetCachedPreConditionClean(ref2_up_stmt, dic)
 
                     If Sys.Consistent2(cnd1, cnd2) Then
                         ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾しない場合
 
-                        Debug.Print("ref1 up stmt {0} {1}", ref1.NameRef, MakeStatementText(ref1_up_stmt))
-                        Debug.Print("前提条件1 {0}", MakeTermText(cnd1))
+                        'Debug.Print("ref1 up stmt {0} {1}", ref1.NameRef, MakeStatementText(ref1_up_stmt))
+                        'Debug.Print("前提条件1 {0}", MakeTermText(cnd1))
 
-                        Debug.Print("ref2 up stmt {0}:{1} {2}", ref2.NameRef, ref2.IdxAtm, MakeStatementText(ref2_up_stmt))
-                        Debug.Print("前提条件2 {0}", MakeTermText(cnd2))
-                        Debug.Print("--------------------------------------------------------------------------------")
+                        'Debug.Print("ref2 up stmt {0}:{1} {2}", ref2.NameRef, ref2.IdxAtm, MakeStatementText(ref2_up_stmt))
+                        'Debug.Print("前提条件2 {0}", MakeTermText(cnd2))
+                        'Debug.Print("--------------------------------------------------------------------------------")
                     End If
                 Next
             Next
@@ -1019,16 +1005,21 @@ Public Class TProject
 
     ' 親や子のフィールドの使用参照と定義参照の依存関係を求める。
     Public Sub VirtualizedMethodParentChildDefUseDependency(use_def As TUseDefineAnalysis)
+        Dim dic As New Dictionary(Of TStatement, TApply)
+
         ' 仮想化メソッドのクラスのリスト
         Dim virtualized_all_class_list = From f In use_def.VirtualizedMethodList Select f.ClaFnc
 
         ' すべての仮想メソッドに対し
         For Each fnc1 In use_def.VirtualizedMethodList
+            Debug.Print("メソッド {0} --------------------------------------------------------------------------------------------------------", fnc1.FullName())
             ' 仮想メソッド内のすべての参照のリストを得る。
             Dim parent_dot_list = From d In Sys.GetAllReference(fnc1.BlcFnc) Where TypeOf d Is TDot Select CType(d, TDot)
 
             ' 仮想メソッドが属するクラス内のすべてのフィールドに対し
-            For Each fld1 In Sys.SuperClassFieldList(fnc1.ClaFnc)
+            Dim super_class_strong_field_list = From f In Sys.SuperClassFieldList(fnc1.ClaFnc) Where f.ModVar.isStrong
+            For Each fld1 In super_class_strong_field_list
+                Debug.Print("フィールド {0} --------------------------------------------------------------------------------------------------------", fld1.FullFldName())
                 ' フィールドの型
                 Dim element_type As TClass = FieldElementType(fld1)
 
@@ -1041,6 +1032,7 @@ Public Class TProject
 
                     ' フィールドの型の広義サブクラスの仮想化クラスに対し
                     For Each cls1 In virtualized_sub_class_list
+                        Debug.Print("クラス {0} --------------------------------------------------------------------------------------------------------", cls1.NameVar)
                         ' 子の仮想メソッド(fnc2 = fnc1の場合もありうる)
                         Dim fnc2 As TFunction = (From f In use_def.VirtualizedMethodList Where f.ClaFnc Is cls1).First()
 
@@ -1052,21 +1044,24 @@ Public Class TProject
                         Dim child_parent_dot_list = From d In child_dot_list Where d.IsParentField()
 
                         ' 親の仮想メソッド内のフィールドの定義参照に対し
+                        Debug.Assert(parent_dot_list.Count() = Enumerable.Distinct(parent_dot_list).Count())
                         For Each dot1 In From d In parent_dot_list Where d.TrmDot Is Nothing AndAlso d.DefRef
 
                             ' dot1を含む文の余分な条件を取り除いた前提条件
                             Dim dot1_up_stmt As TStatement = Sys.UpStmtProper(dot1)
-                            Dim cnd1 As TApply = Sys.GetPreConditionClean(dot1_up_stmt)
+                            Dim cnd1 As TApply = Sys.GetCachedPreConditionClean(dot1_up_stmt, dic)
 
                             ' CopyでUpTrmを使う。
                             cnd1.UpTrm = dot1_up_stmt
 
                             ' 元の仮想メソッドで参照パスが共通の定義参照のリストを得る。
+                            Debug.Assert(child_parent_dot_list.Count() = Enumerable.Distinct(child_parent_dot_list).Count())
                             For Each dot2 In (From d In child_parent_dot_list Where Sys.OverlapRefPath(dot1, CType(d.UpTrm, TDot)))
+                                Debug.Assert(Not dot2.DefRef)
 
                                 ' dot2を含む文の余分な条件を取り除いた前提条件
                                 Dim dot2_up_stmt As TStatement = Sys.UpStmtProper(dot2)
-                                Dim cnd2 As TApply = Sys.GetPreConditionClean(dot2_up_stmt)
+                                Dim cnd2 As TApply = Sys.GetCachedPreConditionClean(dot2_up_stmt, dic)
 
                                 ' CopyでUpTrmを使う。
                                 cnd2.UpTrm = dot2_up_stmt
@@ -1076,6 +1071,13 @@ Public Class TProject
 
                                 If Sys.Consistent2(cnd1, nrm_cnd) Then
                                     ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾しない場合
+
+                                    Debug.Print("Dot定義 {0}:{2} {1}", dot1.NameRef, MakeStatementText(dot1_up_stmt), dot1.IdxAtm)
+                                    Debug.Print("前提条件1 {0}", MakeTermText(cnd1))
+
+                                    Debug.Print("Dot使用 {0}:{2} {1}", dot2.NameRef, MakeStatementText(dot2_up_stmt), dot2.IdxAtm)
+                                    Debug.Print("前提条件2 {0}", MakeTermText(cnd2))
+                                    Debug.Print("--------------------------------------------------------------------------------")
 
                                 End If
                             Next

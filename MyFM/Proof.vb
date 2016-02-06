@@ -2550,6 +2550,19 @@ Public Class Sys
         Return pre_cond
     End Function
 
+    Public Shared Function GetCachedPreConditionClean(stmt As TStatement, dic As Dictionary(Of TStatement, TApply)) As TApply
+        Dim cnd1 As TApply
+
+        If dic.ContainsKey(stmt) Then
+            cnd1 = dic(stmt)
+        Else
+            cnd1 = GetPreConditionClean(stmt)
+            dic.Add(stmt, cnd1)
+        End If
+
+        Return cnd1
+    End Function
+
     Public Shared Function Consistent(P As TApply) As Boolean
         Dim i1 As Integer, i2 As Integer, app1 As TApply, app2 As TApply, inf As EBinomialInference
 
