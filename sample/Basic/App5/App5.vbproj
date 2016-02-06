@@ -69,7 +69,7 @@
     <Compile Include="..\lib\web.vb">
       <Link>web.vb</Link>
     </Compile>
-    <Compile Include="app.vb" />
+    <Compile Include="app5.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>

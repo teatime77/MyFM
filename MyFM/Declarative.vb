@@ -24,8 +24,6 @@ Public Class TDeclarative
     End Sub
 
     Public Overridable Sub NaviDot(dot1 As TDot)
-        StartCondition(dot1)
-
         NaviTerm(dot1.TrmDot)
 
         EndCondition(dot1)
@@ -201,7 +199,6 @@ Public Class TDeclarative
     End Sub
 
     Public Overridable Sub NaviAssignment(asn1 As TAssignment)
-        StartCondition(asn1)
         NaviTerm(asn1.RelAsn)
     End Sub
 
@@ -1053,6 +1050,7 @@ Public Class TNaviSetRefStmt
 
                         Dim outer_most_dot As TDot = Sys.OuterMostDot(CType(self, TDot))
                         .DefRef = outer_most_dot.DefRef
+                        Debug.Assert(Not CurrentStatement.RefStmt.Contains(CType(self, TDot)))
                         CurrentStatement.RefStmt.Add(CType(self, TDot))
                     End If
                 Else
@@ -1063,6 +1061,7 @@ Public Class TNaviSetRefStmt
         ElseIf TypeOf self Is TReference Then
             With CType(self, TReference)
                 If CurrentStatement IsNot Nothing Then
+                    Debug.Assert(Not CurrentStatement.RefStmt.Contains(CType(self, TReference)))
                     CurrentStatement.RefStmt.Add(CType(self, TReference))
                 Else
                     Debug.Assert(False)

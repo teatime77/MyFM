@@ -957,6 +957,7 @@ Public Class TProject
 
     ' 仮想メソッド内の使用参照と定義参照の依存関係を求める。
     Public Sub VirtualizedMethodDefUseDependency(use_def As TUseDefineAnalysis)
+        Dim dic As New Dictionary(Of TStatement, TApply)
 
         ' すべての仮想メソッドに対し
         For Each fnc1 In use_def.VirtualizedMethodList
@@ -966,13 +967,18 @@ Public Class TProject
             ' メソッド内の定義参照に対し
             For Each ref1 In def_list
 
-                ' ref1を含む文の余分な条件を取り除いた前提条件
+                ' ref1を含む文
                 Dim ref1_up_stmt As TStatement = Sys.UpStmtProper(ref1)
 
-                Debug.Print("ref up stmt {0}", MakeStatementText(ref1_up_stmt))
+                ' 余分な条件を取り除いた前提条件
+                Dim cnd1 As TApply
 
-                Dim cnd1 As TApply = Sys.GetPreConditionClean(ref1_up_stmt)
-                Debug.Print("前提条件 {0}", MakeTermText(cnd1))
+                If dic.ContainsKey(ref1_up_stmt) Then
+                    cnd1 = dic(ref1_up_stmt)
+                Else
+                    cnd1 = Sys.GetPreConditionClean(ref1_up_stmt)
+                    dic.Add(ref1_up_stmt, cnd1)
+                End If
 
                 ' CopyでUpTrmを使う。
                 cnd1.UpTrm = ref1_up_stmt
@@ -980,13 +986,30 @@ Public Class TProject
                 ' メソッド内でref11と同じ変数に対する局所変数か自身のフィールドの定義参照のリスト
                 Dim use_list = From r In Sys.GetAllReference(fnc1.BlcFnc) Where Sys.OverlapRefPath(ref1, r) AndAlso Not r.DefRef AndAlso (Not TypeOf r Is TDot OrElse CType(r, TDot).IsSelfField())
 
+                'Dim use_list2 = Enumerable.Distinct(use_list)
                 For Each ref2 In use_list
-                    ' ref2を含む文の余分な条件を取り除いた前提条件
-                    Dim cnd2 As TApply = Sys.GetTermPreConditionClean(ref2)
+                    ' ref2を含む文
+                    Dim ref2_up_stmt As TStatement = Sys.UpStmtProper(ref2)
+
+                    ' 余分な条件を取り除いた前提条件
+                    Dim cnd2 As TApply
+
+                    If dic.ContainsKey(ref2_up_stmt) Then
+                        cnd2 = dic(ref2_up_stmt)
+                    Else
+                        cnd2 = Sys.GetPreConditionClean(ref2_up_stmt)
+                        dic.Add(ref2_up_stmt, cnd2)
+                    End If
 
                     If Sys.Consistent2(cnd1, cnd2) Then
                         ' 使用参照の文のAnd条件と定義参照の文のAnd条件が矛盾しない場合
 
+                        Debug.Print("ref1 up stmt {0} {1}", ref1.NameRef, MakeStatementText(ref1_up_stmt))
+                        Debug.Print("前提条件1 {0}", MakeTermText(cnd1))
+
+                        Debug.Print("ref2 up stmt {0}:{1} {2}", ref2.NameRef, ref2.IdxAtm, MakeStatementText(ref2_up_stmt))
+                        Debug.Print("前提条件2 {0}", MakeTermText(cnd2))
+                        Debug.Print("--------------------------------------------------------------------------------")
                     End If
                 Next
             Next
@@ -1407,26 +1430,26 @@ Public Class TProject
             function_list.Add(fnc1)
 
             ' 親フィールドを得る。
-            Dim parent_field_list = From f In cls1.FldCla Where f.ModVar.isParent
-            If parent_field_list.Any() Then
-                ' 親フィールドがある場合
+            For Each parent_field In (From f In cls1.FldCla Where f.ModVar.isParent)
 
-                Dim parent_field As TField = parent_field_list.First()
+                Dim if1 As TIf = MakeNotNullIf(TApply.NewTypeOf(New TReference(parent_var), parent_field.TypeVar))
 
                 ' 親フィールドに親の値を代入する。
-                fnc1.BlcFnc.AddStmtBlc(New TAssignment(New TDot(Nothing, parent_field), New TReference(parent_var)))
-            End If
+                if1.IfBlc(0).BlcIf.StmtBlc.Add(New TAssignment(New TDot(Nothing, parent_field), New TReference(parent_var)))
+
+                fnc1.BlcFnc.AddStmtBlc(if1)
+            Next
 
             ' 直前フィールドを得る。
-            Dim prev_field_list = From f In cls1.FldCla Where f.ModVar.isPrev
-            If prev_field_list.Any() Then
-                ' 親フィールドがある場合
+            For Each prev_field In (From f In cls1.FldCla Where f.ModVar.isPrev)
 
-                Dim prev_field As TField = prev_field_list.First()
+                Dim if1 As TIf = MakeNotNullIf(TApply.NewTypeOf(New TReference(prev_var), prev_field.TypeVar))
 
-                ' 直前フィールドに親の値を代入する。
-                fnc1.BlcFnc.AddStmtBlc(New TAssignment(New TDot(Nothing, prev_field), New TReference(prev_var)))
-            End If
+                ' 直前フィールドに直前の値を代入する。
+                if1.IfBlc(0).BlcIf.StmtBlc.Add(New TAssignment(New TDot(Nothing, prev_field), New TReference(prev_var)))
+
+                fnc1.BlcFnc.AddStmtBlc(if1)
+            Next
 
             If walked_field_list_table.ContainsKey(cls1) Then
 

@@ -1,5 +1,7 @@
 ﻿Public Class TCat
     Inherits TPicture
+    <_Parent()> Public ParentCat As TCat = Nothing
+    <_Prev()> Public PrevCat As TCat = Nothing
     Public Children As New TList(Of TCat)
 
     Public Overrides Sub Draw(gr As TGraphics)
@@ -105,8 +107,8 @@ Public Class TMyApplication
                         .Center.Y = app.MousePosition.Y
                     Else
 
-                        .Center.X = CType(.Prev, TCat).Center.X + 100
-                        .Center.Y = CType(.Prev, TCat).Center.Y
+                        .Center.X = .PrevCat.Center.X + 100
+                        .Center.Y = .PrevCat.Center.Y
                     End If
                 Else
 

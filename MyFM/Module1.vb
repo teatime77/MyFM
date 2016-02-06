@@ -16,6 +16,7 @@ Module Module1
 
         ' プロジェクトファイルのリスト
         Dim project_file_list As String() = {"MyFM\MyFM.xml", "sample\Basic\App5\App5.xml", "sample\Basic\App4\App4.xml", "sample\Basic\App1\App1.xml", "sample\Basic\App2\App2.xml", "sample\Basic\App3\App3.xml"}
+        'Dim project_file_list As String() = {"sample\Basic\App4\App4.xml", "sample\Basic\App5\App5.xml"}
 
         For Each project_file In project_file_list
 

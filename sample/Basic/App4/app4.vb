@@ -100,7 +100,7 @@ Public Class TMyApplication
                 app.cnt += 1
                 .ImageIm = .ImageList(Math.Floor(app.cnt / 40) Mod 2)
 
-                If Not TypeOf .ParentCat Is TCat Then
+                If .ParentCat Is Nothing Then
                     If .AbsCenter.X < app.MousePosition.X Then
                         .Velocity.X = 2
                     Else
@@ -116,19 +116,16 @@ Public Class TMyApplication
                     .Center.X += .Velocity.X
                     .Center.Y += .Velocity.Y
 
-                    .Center.X = app.MousePosition.X
-                    .Center.Y = app.MousePosition.Y
-
+                    '.Center.X = app.MousePosition.X
+                    '.Center.Y = app.MousePosition.Y
                 Else
-                    Dim p As TCat = CType(.ParentCat, TCat)
 
-                    .Center.Y = p.Center.Y + 100
+                    .Center.Y = .ParentCat.Center.Y + 100
 
                     If .PrevCat Is Nothing Then
-                        .Center.X = p.Center.X
+                        .Center.X = .ParentCat.Center.X
                     Else
-
-                        .Center.X = CType(.PrevCat, TCat).Center.X + 100
+                        .Center.X = .PrevCat.Center.X + 100
                     End If
                 End If
 
