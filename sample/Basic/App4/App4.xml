@@ -10,6 +10,7 @@
   <Dataflow>false</Dataflow>
   <OutputLanguageList>
     <ELanguage>JavaScript</ELanguage>
+    <ELanguage>Basic</ELanguage>
   </OutputLanguageList>
   <LibraryList>
     <TLibrary>

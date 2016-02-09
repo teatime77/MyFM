@@ -93,41 +93,24 @@ Public Class TMyApplication
         Mama.Children.push(Kitty3)
     End Sub
 
-    <_Invariant()> Public Overrides Sub Rule(self As Object, app As TMyApplication)
+    Public Sub NotUsed(self As Object, app As TMyApplication)
         If TypeOf self Is TCat Then
+
             With CType(self, TCat)
+                'If .AbsCenter.X < app.MousePosition.X Then
+                '    .Velocity.X = 2
+                'Else
+                '    .Velocity.X = -2
+                'End If
 
-                app.cnt += 1
-                .ImageIm = .ImageList(Math.Floor(app.cnt / 40) Mod 2)
+                'If .AbsCenter.Y < app.MousePosition.Y Then
+                '    .Velocity.Y = 2
+                'Else
+                '    .Velocity.Y = -2
+                'End If
 
-                If .ParentCat Is Nothing Then
-                    If .AbsCenter.X < app.MousePosition.X Then
-                        .Velocity.X = 2
-                    Else
-                        .Velocity.X = -2
-                    End If
-
-                    If .AbsCenter.Y < app.MousePosition.Y Then
-                        .Velocity.Y = 2
-                    Else
-                        .Velocity.Y = -2
-                    End If
-
-                    .Center.X += .Velocity.X
-                    .Center.Y += .Velocity.Y
-
-                    '.Center.X = app.MousePosition.X
-                    '.Center.Y = app.MousePosition.Y
-                Else
-
-                    .Center.Y = .ParentCat.Center.Y + 100
-
-                    If .PrevCat Is Nothing Then
-                        .Center.X = .ParentCat.Center.X
-                    Else
-                        .Center.X = .PrevCat.Center.X + 100
-                    End If
-                End If
+                '.Center.X += .Velocity.X
+                '.Center.Y += .Velocity.Y
 
 
                 'If .AbsCenter.Distance(app.MousePosition) <= .Radius Then
@@ -146,8 +129,44 @@ Public Class TMyApplication
                 'Else
                 '    .Rotation += 5 * Math.PI / 180
                 'End If
+            End With
+        End If
+
+    End Sub
+
+    <_Invariant()> Public Overrides Sub Rule(self As Object, app As TMyApplication)
+        If TypeOf self Is TCat Then
+            With CType(self, TCat)
+                app.cnt += 1
+                .ImageIm = .ImageList(Math.Floor(app.cnt / 40) Mod 2)
+
+                If .ParentCat Is Nothing Then
+                    ' 親がいない場合
+
+                    ' 位置はマウスの位置
+                    .Center.X = app.MousePosition.X
+                    .Center.Y = app.MousePosition.Y
+                Else
+                    ' 親がいない場合
+
+                    ' Y位置 = 親のY位置 + 100
+                    .Center.Y = .ParentCat.Center.Y + 100
+
+                    If .PrevCat Is Nothing Then
+                        ' 子の先頭の場合
+
+                        ' X位置 = 親のX位置
+                        .Center.X = .ParentCat.Center.X
+                    Else
+                        ' 子の先頭の場合
+
+                        ' X位置 = 直前のX位置 + 100
+                        .Center.X = .PrevCat.Center.X + 100
+                    End If
+                End If
 
             End With
         End If
     End Sub
 End Class
+
