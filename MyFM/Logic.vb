@@ -688,7 +688,7 @@ Public Class TFunction
     Public Const ImplicitNewName As String = "__ImplicitNew"
     Public TypeFnc As EToken
     Public IsNew As Boolean = False
-    Public IsTreeWalker As Boolean = False
+    Public IsSetParent As Boolean = False
     Public OpFnc As EToken = EToken.Unknown
     <_Weak()> Public ClaFnc As TClass
     <_Weak()> Public RetType As TClass

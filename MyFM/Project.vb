@@ -1249,7 +1249,7 @@ Public Class TProject
         fnc1.ThisFnc = New TLocalVariable(ParsePrj.ThisName, cls1)
         fnc1.BlcFnc = New TBlock()
         fnc1.IsNew = False
-        fnc1.IsTreeWalker = True
+        fnc1.IsSetParent = True
         fnc1.WithFnc = cls1
 
         Dim self_var As New TLocalVariable("self", ObjectType)
@@ -1271,7 +1271,7 @@ Public Class TProject
         Return if1
     End Function
 
-    Public Function MakeWalkedFieldListTable(target_class_list As TList(Of TClass)) As TMap(Of TClass, TField)
+    Public Function MakeNavigationFieldListTable(target_class_list As TList(Of TClass)) As TMap(Of TClass, TField)
         Dim reachable_from_bottom_field_pending As New TList(Of TField)
 
         For Each target_class In target_class_list
@@ -1283,7 +1283,7 @@ Public Class TProject
             reachable_from_bottom_field_pending.DistinctAddRange(parent_field_list)
         Next
 
-        Dim walked_field_list_table As New TMap(Of TClass, TField)
+        Dim navigation_field_list_table As New TMap(Of TClass, TField)
         Dim reachable_from_bottom_processed As New List(Of TField)
 
 
@@ -1317,7 +1317,7 @@ Public Class TProject
             Dim current_field = reachable_from_top_field_pending.Pop()
             reachable_from_top_field_processed.Add(current_field)
 
-            walked_field_list_table.Add(current_field.ClaFld, current_field)
+            navigation_field_list_table.Add(current_field.ClaFld, current_field)
 
             If parent_to_child_field_list_table.ContainsKey(current_field) Then
                 Dim child_field_list As List(Of TField) = parent_to_child_field_list_table(current_field)
@@ -1332,22 +1332,22 @@ Public Class TProject
         'Debug.Print("-----------------------------------")
         'For Each f In parent_to_child_field_list_table.Keys()
         '    For Each f2 In parent_to_child_field_list_table(f)
-        '        Debug.Print("Walked Field {0} {1}", f, f2)
+        '        Debug.Print("Navigation Field {0} {1}", f, f2)
         '    Next
         'Next
 
-        Return walked_field_list_table
+        Return navigation_field_list_table
     End Function
 
-    Public Sub MakeNaviFunctionList(rule As TFunction, dt As TUseDefineAnalysis, walked_field_list_table As TMap(Of TClass, TField))
+    Public Sub MakeNaviFunctionList(rule As TFunction, dt As TUseDefineAnalysis, navigation_field_list_table As TMap(Of TClass, TField))
 
         Dim function_name As String = "Navigate_" + rule.NameVar
 
         Dim dummy_function As New TFunction(function_name, Nothing)
         Dim navi_needed_class_list As New TList(Of TClass)
 
-        For Each cla1 In walked_field_list_table.Keys()
-            Dim walked_field_list As List(Of TField) = walked_field_list_table(cla1)
+        For Each cla1 In navigation_field_list_table.Keys()
+            Dim navigation_field_list As List(Of TField) = navigation_field_list_table(cla1)
             Dim fnc1 As TFunction = InitNavigateFunction(function_name, cla1, dt)
 
             If dt.UseParentClassList.Contains(cla1) Then
@@ -1361,14 +1361,14 @@ Public Class TProject
 
             Debug.Print("Rule {0}", cla1.NameVar)
 
-            For Each walked_field In walked_field_list
-                If walked_field.TypeVar.OrgCla IsNot Nothing Then
+            For Each navigation_field In navigation_field_list
+                If navigation_field.TypeVar.OrgCla IsNot Nothing Then
                     ' リストの場合
 
                     ' ループを作る。
                     Dim for1 As New TFor
                     for1.InVarFor = New TLocalVariable("x", Nothing)
-                    for1.InTrmFor = New TDot(Nothing, walked_field)
+                    for1.InTrmFor = New TDot(Nothing, navigation_field)
                     for1.BlcFor = New TBlock()
 
                     ' リスト内の各要素に対しメソッドを呼ぶ。
@@ -1379,20 +1379,20 @@ Public Class TProject
 
                     fnc1.BlcFnc.AddStmtBlc(for1)
 
-                    Debug.Print("For Each x in .{0}" + vbCrLf + "x.{1}()" + vbCrLf + "Next", walked_field.NameVar, function_name)
+                    Debug.Print("For Each x in .{0}" + vbCrLf + "x.{1}()" + vbCrLf + "Next", navigation_field.NameVar, function_name)
                 Else
                     ' リストでない場合
 
                     ' フィールドに対しメソッドを呼ぶ。
-                    Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TDot(Nothing, walked_field), dummy_function))
-                    app1.ArgApp.Add(New TDot(Nothing, walked_field))
+                    Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TDot(Nothing, navigation_field), dummy_function))
+                    app1.ArgApp.Add(New TDot(Nothing, navigation_field))
                     app1.ArgApp.Add(New TReference(app_var))
                     fnc1.BlcFnc.AddStmtBlc(New TCall(app1))
 
                     Debug.Print(".{0}()", function_name)
                 End If
 
-                navi_needed_class_list.DistinctAdd(FieldElementType(walked_field))
+                navi_needed_class_list.DistinctAdd(FieldElementType(navigation_field))
             Next
 
             If Not dt.UseParentClassList.Contains(cla1) Then
@@ -1404,7 +1404,7 @@ Public Class TProject
 
         navi_needed_class_list.DistinctAddRange(dt.VirtualizableClassList)
         For Each cla1 In navi_needed_class_list
-            If Not walked_field_list_table.Keys().Contains(cla1) Then
+            If Not navigation_field_list_table.Keys().Contains(cla1) Then
 
                 Dim fnc1 As TFunction = InitNavigateFunction(function_name, cla1, dt)
                 AddRuleCall(fnc1, cla1)
@@ -1423,17 +1423,17 @@ Public Class TProject
 
         Dim target_class_list As New TList(Of TClass)(From c In AppClassList Where (From f In c.FldCla Where f.ModVar.isParent OrElse f.ModVar.isPrev).Any())
 
-        Dim walked_field_list_table As TMap(Of TClass, TField) = MakeWalkedFieldListTable(target_class_list)
+        Dim navigation_field_list_table As TMap(Of TClass, TField) = MakeNavigationFieldListTable(target_class_list)
 
         Dim set_parent_name As String = "__SetParent"
         Dim dummy_function As New TFunction(set_parent_name, Nothing)
 
         Dim navi_needed_class_list As New TList(Of TClass)
 
-        '        Dim target_walked_class_list As New TList(Of TClass)(Sys.Union(Of TClass)(target_class_list, walked_field_list_table.Keys()))
-        Dim target_walked_class_list As New TList(Of TClass)(target_class_list.Union(walked_field_list_table.Keys()))
+        '        Dim target_navigation_class_list As New TList(Of TClass)(Sys.Union(Of TClass)(target_class_list, navigation_field_list_table.Keys()))
+        Dim target_navigation_class_list As New TList(Of TClass)(target_class_list.Union(navigation_field_list_table.Keys()))
 
-        For Each cls1 In target_walked_class_list
+        For Each cls1 In target_navigation_class_list
 
             Dim fnc1 As TFunction = MakeSetParentSub(set_parent_name, cls1)
             Dim self_var As TVariable = fnc1.ArgFnc(0)
@@ -1464,37 +1464,37 @@ Public Class TProject
                 fnc1.BlcFnc.AddStmtBlc(if1)
             Next
 
-            If walked_field_list_table.ContainsKey(cls1) Then
+            If navigation_field_list_table.ContainsKey(cls1) Then
 
-                Dim walked_field_list As List(Of TField) = walked_field_list_table(cls1)
-                For Each walked_field In walked_field_list
+                Dim navigation_field_list As List(Of TField) = navigation_field_list_table(cls1)
+                For Each navigation_field In navigation_field_list
 
-                    Dim field_element_type As TClass = FieldElementType(walked_field)
+                    Dim field_element_type As TClass = FieldElementType(navigation_field)
 
                     navi_needed_class_list.DistinctAdd(field_element_type)
 
-                    If ApplicationClassList.Contains(walked_field.TypeVar) Then
+                    If ApplicationClassList.Contains(navigation_field.TypeVar) Then
                         ' フィールドの型が単純クラスの場合
 
                         ' SetParentのCall文を作る。
-                        Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TDot(Nothing, walked_field), dummy_function))
-                        app1.AddInArg(New TDot(Nothing, walked_field))
+                        Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TDot(Nothing, navigation_field), dummy_function))
+                        app1.AddInArg(New TDot(Nothing, navigation_field))
                         app1.AddInArg(New TReference(self_var))
                         app1.ArgApp.Add(New TReference("Nothing"))
 
-                        Dim if1 As TIf = MakeNotNullIf(TApply.NewOpr2(EToken.IsNot_, New TDot(Nothing, walked_field), New TReference(ParsePrj.NullName())))
+                        Dim if1 As TIf = MakeNotNullIf(TApply.NewOpr2(EToken.IsNot_, New TDot(Nothing, navigation_field), New TReference(ParsePrj.NullName())))
                         if1.IfBlc(0).BlcIf.StmtBlc.Add(New TCall(app1))
 
                         fnc1.BlcFnc.AddStmtBlc(if1)
 
-                    ElseIf walked_field.TypeVar.NameVar = "TList" Then
+                    ElseIf navigation_field.TypeVar.NameVar = "TList" Then
                         ' フィールドの型がリストの場合
 
-                        Dim if1 As TIf = MakeNotNullIf(TApply.NewOpr2(EToken.IsNot_, New TDot(Nothing, walked_field), New TReference(ParsePrj.NullName())))
+                        Dim if1 As TIf = MakeNotNullIf(TApply.NewOpr2(EToken.IsNot_, New TDot(Nothing, navigation_field), New TReference(ParsePrj.NullName())))
 
                         ' リストの親フィールドに親の値を代入する。
-                        Dim list_parent_field As TField = (From f In walked_field.TypeVar.OrgCla.FldCla Where f.ModVar.isParent).First()
-                        if1.IfBlc(0).BlcIf.AddStmtBlc(New TAssignment(New TDot(New TDot(Nothing, walked_field), list_parent_field), New TReference(self_var)))
+                        Dim list_parent_field As TField = (From f In navigation_field.TypeVar.OrgCla.FldCla Where f.ModVar.isParent).First()
+                        if1.IfBlc(0).BlcIf.AddStmtBlc(New TAssignment(New TDot(New TDot(Nothing, navigation_field), list_parent_field), New TReference(self_var)))
 
                         ' 直前のフィールドのリストを得る。
                         Dim element_prev_field_list = From f In Sys.SuperSubClassFieldList(field_element_type) Where f.ModVar.isPrev
@@ -1512,7 +1512,7 @@ Public Class TProject
 
                         Dim for1 As New TFor
                         for1.InVarFor = New TLocalVariable("x", field_element_type)
-                        for1.InTrmFor = New TDot(Nothing, walked_field)
+                        for1.InTrmFor = New TDot(Nothing, navigation_field)
                         for1.BlcFor = New TBlock()
 
                         Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TReference(for1.InVarFor), dummy_function))
@@ -1526,7 +1526,7 @@ Public Class TProject
                         Else
 
                             ' 親はリスト
-                            app1.ArgApp.Add(New TDot(Nothing, walked_field))
+                            app1.ArgApp.Add(New TDot(Nothing, navigation_field))
                         End If
 
                         If element_prev_field_list.Any() Then
@@ -1559,7 +1559,7 @@ Public Class TProject
         Next
 
         ' 実装済みのクラスのリスト
-        Dim implemented_class_list As New TList(Of TClass)(target_walked_class_list)
+        Dim implemented_class_list As New TList(Of TClass)(target_navigation_class_list)
 
         For Each cls1 In navi_needed_class_list
 
@@ -1862,9 +1862,9 @@ Public Class TProject
                 dt.UseParentClassList = use_parent_class_list
                 dt.VirtualizableClassList = set_virtualizable_if.VirtualizableClassList
 
-                Dim walked_field_list_table As TMap(Of TClass, TField) = MakeWalkedFieldListTable(dt.VirtualizableClassList)
+                Dim navigation_field_list_table As TMap(Of TClass, TField) = MakeNavigationFieldListTable(dt.VirtualizableClassList)
 
-                MakeNaviFunctionList(rule, dt, walked_field_list_table)
+                MakeNaviFunctionList(rule, dt, navigation_field_list_table)
 
                 ' ナビゲート メソッドの整合性を保つ。
                 For Each fnc1 In dt.NaviFunctionList

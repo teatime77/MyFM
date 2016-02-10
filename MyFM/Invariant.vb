@@ -370,7 +370,7 @@ Public Class TNaviMakeSourceCode
 
                                     '  すべてのメソッドに対し
                                     For Each fnc1 In .FncCla
-                                        If fnc1.IsTreeWalker OrElse fnc1.IsInitializer() Then
+                                        If fnc1.IsSetParent OrElse fnc1.IsInitializer() Then
                                             gen_tw.Fmt(fnc1.TokenListVar)
                                         Else
                                             tw.Fmt(fnc1.TokenListVar)
