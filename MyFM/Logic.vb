@@ -146,7 +146,7 @@ Public Enum EToken
     LowLine
     LP
     LT
-    MMB
+    Colon
     Mns
     MOD_
     MODEQ
@@ -182,7 +182,7 @@ Public Enum EToken
     Select_
     Set_
     Shared_
-    SM
+    SemiColon
     Step_
     String_
     Struct

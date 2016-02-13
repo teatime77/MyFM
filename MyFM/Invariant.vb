@@ -61,7 +61,7 @@ Public Class TTokenWriter
                         Select Case ParserTW.LanguageSP
                             Case ELanguage.Basic
                             Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
-                                AddToken(EToken.SM, ObjTlm)
+                                AddToken(EToken.SemiColon, ObjTlm)
                         End Select
                     End If
 
@@ -204,7 +204,7 @@ Public Class TNaviMakeSourceCode
                     If TypeOf stmt1 Is TBlock Then
                         .TabStmt = stmt1.TabStmt + 1
                     ElseIf TypeOf stmt1 Is TIfBlock Then
-                        If CType(stmt1, TIfBlock).WithIf IsNot Nothing Then
+                        If ParserMK.LanguageSP = ELanguage.Basic AndAlso CType(stmt1, TIfBlock).WithIf IsNot Nothing Then
                             .TabStmt = stmt1.TabStmt + 2
                         Else
                             .TabStmt = stmt1.TabStmt + 1
@@ -224,7 +224,7 @@ Public Class TNaviMakeSourceCode
                         .TabStmt = 1
                     Else
 
-                        If fnc.WithFnc IsNot Nothing Then
+                        If ParserMK.LanguageSP = ELanguage.Basic AndAlso fnc.WithFnc IsNot Nothing Then
                             .TabStmt = 3
                         Else
                             .TabStmt = 2
@@ -747,13 +747,14 @@ Public Class TNaviMakeSourceCode
 
                             Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
                                 If Not .DefaultCase Then
-                                    tw.Fmt(EToken.Case_, Laminate((From trm In .TrmCase Select trm.TokenList), New TToken(EToken.Comma, self)), EToken.MMB, EToken.NL)
+                                    tw.Fmt(EToken.Case_, Laminate((From trm In .TrmCase Select trm.TokenList), New TToken(EToken.Comma, self)), EToken.Colon, EToken.NL)
                                 Else
                                     tw.Fmt(EToken.Default_, EToken.NL)
                                 End If
 
                                 tw.Fmt(.BlcCase.TokenList)
 
+                                tw.TAB(.TabStmt + 1)
                                 tw.Fmt(EToken.Break_, EToken.EOL)
                         End Select
 
@@ -869,7 +870,7 @@ Public Class TNaviMakeSourceCode
                                     ' for(var $i = 0; $i < v.length; $i++)
                                     ' var x = v[$i];
                                     tw.TAB(.TabStmt)
-                                    tw.Fmt(EToken.For_, EToken.LP, EToken.Var, "$i", EToken.ASN, 0, EToken.SM, "$i", EToken.LT, .InTrmFor.TokenList, EToken.Dot, "length", EToken.SM, "$i++", EToken.RP, EToken.LC, EToken.NL)
+                                    tw.Fmt(EToken.For_, EToken.LP, EToken.Var, "$i", EToken.ASN, 0, EToken.SemiColon, "$i", EToken.LT, .InTrmFor.TokenList, EToken.Dot, "length", EToken.SemiColon, "$i++", EToken.RP, EToken.LC, EToken.NL)
 
                                     tw.TAB(.TabStmt + 1)
                                     tw.Fmt(EToken.Var, .InVarFor.NameVar, EToken.ASN, .InTrmFor.TokenList, EToken.LB, "$i", EToken.RB, EToken.EOL)
@@ -886,7 +887,7 @@ Public Class TNaviMakeSourceCode
 
                                 Case ELanguage.TypeScript, ELanguage.JavaScript, ELanguage.CSharp, ELanguage.Java
                                     tw.TAB(.TabStmt)
-                                    tw.Fmt(EToken.For_, EToken.LP, EToken.Var, .IdxVarFor, EToken.SM, .CndFor.TokenList, EToken.SM, .StepStmtFor.TokenList, EToken.RP, EToken.LC, EToken.NL)
+                                    tw.Fmt(EToken.For_, EToken.LP, EToken.Var, .IdxVarFor, EToken.SemiColon, .CndFor.TokenList, EToken.SemiColon, .StepStmtFor.TokenList, EToken.RP, EToken.LC, EToken.NL)
 
                                     tw.Fmt(.BlcFor.TokenList)
 

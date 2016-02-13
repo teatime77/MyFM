@@ -170,7 +170,7 @@ Public Class TScriptParser
         Dim tkn1 As TToken
 
         Select Case CurTkn.TypeTkn
-            Case EToken.SM
+            Case EToken.SemiColon
                 Return ""
 
             Case EToken.LineComment
@@ -326,8 +326,8 @@ Public Class TScriptParser
         dic1.Add(",", EToken.Comma)
         dic1.Add(".", EToken.Dot)
         dic1.Add("/", EToken.DIV)
-        dic1.Add(":", EToken.MMB)
-        dic1.Add(";", EToken.SM)
+        dic1.Add(":", EToken.Colon)
+        dic1.Add(";", EToken.SemiColon)
         dic1.Add("?", EToken.Question)
         dic1.Add("[", EToken.LB)
         dic1.Add("]", EToken.RB)
@@ -1211,13 +1211,13 @@ Public Class TScriptParser
         Dim ret1 As TReturn
 
         GetTkn(type_tkn)
-        If CurTkn.TypeTkn = EToken.SM Then
+        If CurTkn.TypeTkn = EToken.SemiColon Then
 
             ret1 = New TReturn(Nothing, type_tkn = EToken.Yield_)
         Else
             ret1 = New TReturn(TermExpression(), type_tkn = EToken.Yield_)
         End If
-        GetTkn(EToken.SM)
+        GetTkn(EToken.SemiColon)
 
         Return ret1
     End Function
@@ -1290,10 +1290,10 @@ Public Class TScriptParser
             GetTkn(EToken.Var)
 
             for1.IdxVarFor = ReadVariable()
-            GetTkn(EToken.SM)
+            GetTkn(EToken.SemiColon)
 
             for1.CndFor = TermExpression()
-            GetTkn(EToken.SM)
+            GetTkn(EToken.SemiColon)
 
             for1.StepStmtFor = AssignmentExpression()
             GetTkn(EToken.RP)
@@ -1355,7 +1355,7 @@ Public Class TScriptParser
                     GetTkn(EToken.Comma)
                 Loop
             End If
-            GetTkn(EToken.MMB)
+            GetTkn(EToken.Colon)
 
             sel2.CaseSel.Add(case2)
             case2.BlcCase = ReadCaseBlock(sel2)
@@ -1417,7 +1417,7 @@ Public Class TScriptParser
         Loop
 
         stmt1.TailCom = ReadTailCom()
-        GetTkn(EToken.SM)
+        GetTkn(EToken.SemiColon)
 
         Return stmt1
     End Function
@@ -1492,7 +1492,7 @@ Public Class TScriptParser
 
             Case EToken.Id, EToken.Base, EToken.CType_, EToken.Dot
                 stmt1 = AssignmentExpression()
-                GetTkn(EToken.SM)
+                GetTkn(EToken.SemiColon)
 
             Case EToken.Try_
                 stmt1 = ReadTry()
@@ -1524,9 +1524,9 @@ Public Class TScriptParser
         id1 = GetTkn(EToken.Id)
         var1.NameVar = id1.StrTkn
 
-        If CurTkn.TypeTkn = EToken.MMB Then
+        If CurTkn.TypeTkn = EToken.Colon Then
 
-            GetTkn(EToken.MMB)
+            GetTkn(EToken.Colon)
 
             If CurTkn.TypeTkn = EToken.New_ Then
                 app1 = NewExpression()
@@ -1554,7 +1554,7 @@ Public Class TScriptParser
 
     Function ReadField() As TField
         Dim fld As TField = CType(ReadVariableField(True), TField)
-        GetTkn(EToken.SM)
+        GetTkn(EToken.SemiColon)
 
         Return fld
     End Function
@@ -1622,8 +1622,8 @@ Public Class TScriptParser
 
         ReadFunctionArgument(fnc1.ArgFnc)
 
-        If CurTkn.TypeTkn = EToken.MMB Then
-            GetTkn(EToken.MMB)
+        If CurTkn.TypeTkn = EToken.Colon Then
+            GetTkn(EToken.Colon)
             fnc1.RetType = ReadType(False)
         End If
 
@@ -1709,7 +1709,7 @@ Public Class TScriptParser
 
             ReadFunctionArgument(dlg1.ArgDlg)
 
-            GetTkn(EToken.MMB)
+            GetTkn(EToken.Colon)
             dlg1.RetDlg = ReadType(False)
 
             Dim fnc1 As New TFunction("Invoke", dlg1.RetDlg)
@@ -1758,7 +1758,7 @@ Public Class TScriptParser
 
                     Debug.Assert(CurTkn.TypeTkn = EToken.Id)
                     Select Case NxtTkn.TypeTkn
-                        Case EToken.MMB
+                        Case EToken.Colon
                             Dim fld1 As TField = ReadField()
                             fld1.ModVar = mod2
                             cla1.AddFld(fld1)
@@ -1905,7 +1905,7 @@ Public Class TScriptParser
             sb1.Append(id1.StrTkn)
 
             Select Case CurTkn.TypeTkn
-                Case EToken.SM
+                Case EToken.SemiColon
                     Exit Do
                 Case EToken.Dot
                     tkn1 = GetTkn(EToken.Dot)

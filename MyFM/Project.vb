@@ -1016,6 +1016,8 @@ Public Class TProject
             ' 仮想メソッド内のすべての参照のリストを得る。
             Dim parent_dot_list = From d In Sys.GetAllReference(fnc1.BlcFnc) Where TypeOf d Is TDot Select CType(d, TDot)
 
+            Debug.Assert(parent_dot_list.Count() = Enumerable.Distinct(parent_dot_list).Count())
+
             ' 仮想メソッドが属するクラス内のすべてのフィールドに対し
             Dim super_class_strong_field_list = From f In Sys.SuperClassFieldList(fnc1.ClaFnc) Where f.ModVar.isStrong
             For Each fld1 In super_class_strong_field_list
@@ -1044,22 +1046,6 @@ Public Class TProject
                         Dim child_parent_dot_list = From d In child_dot_list Where d.IsParentField()
 
                         ' 親の仮想メソッド内のフィールドの定義参照に対し
-                        If parent_dot_list.Count() <> Enumerable.Distinct(parent_dot_list).Count() Then
-                            Dim v As New List(Of TDot)(parent_dot_list)
-                            Dim i1 As Integer, i2 As Integer
-                            For i1 = 0 To v.Count - 1
-                                Dim dot1 As TDot = v(i1)
-                                For i2 = i1 + 1 To v.Count - 1
-                                    Dim dot2 As TDot = v(i2)
-                                    If v(i1) Is v(i2) Then
-
-                                        Debug.Print("重複 Dot定義1 {0}:{2} {1}", dot1.NameRef, MakeStatementText(Sys.UpStmtProper(dot1)), dot1.IdxAtm)
-                                        Debug.Print("重複 Dot定義2 {0}:{2} {1}", dot2.NameRef, MakeStatementText(Sys.UpStmtProper(dot2)), dot2.IdxAtm)
-                                    End If
-                                Next
-                            Next
-                        End If
-                        Debug.Assert(parent_dot_list.Count() = Enumerable.Distinct(parent_dot_list).Count())
                         For Each dot1 In From d In parent_dot_list Where d.TrmDot Is Nothing AndAlso d.DefRef
 
                             ' dot1を含む文の余分な条件を取り除いた前提条件
@@ -2577,7 +2563,7 @@ Public Class TProject
                 Return True
             Case EToken.EndOperator, EToken.If_, EToken.Then_, EToken.EndIf_, EToken.Interface_, EToken.EndInterface, EToken.For_, EToken.To_, EToken.Step_, EToken.Next_, EToken.ReDim_, EToken.Each_
                 Return True
-            Case EToken.In_, EToken.Instanceof, EToken.Is_, EToken.CType_, EToken.ElseIf_, EToken.Select_, EToken.Case_, EToken.EndSelect, EToken.Else_, EToken.With_, EToken.IsNot_
+            Case EToken.In_, EToken.Instanceof, EToken.Is_, EToken.CType_, EToken.ElseIf_, EToken.Select_, EToken.Switch, EToken.Case_, EToken.Break_, EToken.EndSelect, EToken.Else_, EToken.With_, EToken.IsNot_
                 Return True
             Case EToken.EndWith, EToken.ExitSub, EToken.From_, EToken.MustOverride_, EToken.Do_, EToken.While_, EToken.ExitDo, EToken.Loop_, EToken.Throw_, EToken.Try_, EToken.Catch_, EToken.EndTry
                 Return True
@@ -2590,7 +2576,7 @@ Public Class TProject
                 End If
 
             Case EToken.LP, EToken.RP, EToken.Comma, EToken.Eq, EToken.Dot, EToken.MUL, EToken.ADD, EToken.Mns, EToken.And_, EToken.NE, EToken.OR_, EToken.DIV, EToken.LE
-            Case EToken.LC, EToken.RC, EToken.ASN, EToken.ADDEQ, EToken.LT, EToken.GT, EToken.GE, EToken.SM, EToken.MULEQ, EToken.LB, EToken.RB, EToken.SUBEQ
+            Case EToken.LC, EToken.RC, EToken.ASN, EToken.ADDEQ, EToken.LT, EToken.GT, EToken.GE, EToken.MULEQ, EToken.LB, EToken.RB, EToken.SUBEQ, EToken.SemiColon, EToken.Colon
 
             Case EToken.Unknown, EToken.NL, EToken.Tab, EToken.Comment
             Case EToken.Int, EToken.Char_, EToken.String_

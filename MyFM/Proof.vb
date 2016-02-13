@@ -1238,6 +1238,12 @@ End Class
 Public Class TCopy
     Public dctVar As New Dictionary(Of TVariable, TVariable)
     Public CurFncCpy As TFunction
+
+    Public Sub AddOuterVariable(var1 As TVariable)
+        If var1 IsNot Nothing Then
+            dctVar.Add(var1, var1)
+        End If
+    End Sub
 End Class
 
 Public Class Sys
@@ -1981,28 +1987,24 @@ Public Class Sys
         Return fnc2
     End Function
 
-    Public Shared Sub CopyAncestorVar(obj1 As Object, cpy As TCopy)
+    Public Shared Sub RegisterOuterVariable(obj1 As Object, cpy As TCopy)
         For Each obj2 In AncestorList(obj1)
-            If TypeOf obj2 Is TFrom Then
-                With CType(obj2, TFrom)
-                    CopyVar(.VarQry, cpy)
-                End With
+            If TypeOf obj2 Is TQuery Then
+                With CType(obj2, TQuery)
 
-            ElseIf TypeOf obj2 Is TAggregate Then
-                With CType(obj2, TAggregate)
-                    CopyVar(.VarQry, cpy)
+                    cpy.AddOuterVariable(.VarQry)
                 End With
 
             ElseIf TypeOf obj2 Is TFor Then
                 With CType(obj2, TFor)
-                    CopyVar(.IdxVarFor, cpy)
-                    CopyVar(.InVarFor, cpy)
+                    cpy.AddOuterVariable(.IdxVarFor)
+                    cpy.AddOuterVariable(.InVarFor)
                 End With
 
             ElseIf TypeOf obj2 Is TBlock Then
                 With CType(obj2, TBlock)
                     For Each var1 In .VarBlc
-                        CopyVar(var1, cpy)
+                        cpy.AddOuterVariable(var1)
                     Next
 
                 End With
@@ -2010,33 +2012,29 @@ Public Class Sys
             ElseIf TypeOf obj2 Is TFunction Then
                 With CType(obj2, TFunction)
                     For Each var1 In .ArgFnc
-                        CopyVar(var1, cpy)
+                        cpy.AddOuterVariable(var1)
                     Next
-                    CopyVar(.ThisFnc, cpy)
+                    cpy.AddOuterVariable(.ThisFnc)
                 End With
 
             End If
         Next
     End Sub
 
-    Public Shared Function CopyAny(obj As Object) As Object
-        If TypeOf obj Is TFunction Then
-            Return CopyFunction(CType(obj, TFunction))
+    Public Shared Function CopyTermWithOuterVariable(trm As TTerm) As TTerm
+        Dim cpy As New TCopy
+
+        RegisterOuterVariable(trm, cpy)
+
+        If TypeOf trm Is TStatement Then
+            Return CopyStatement(CType(trm, TStatement), cpy)
+
+        ElseIf TypeOf trm Is TTerm Then
+            Return CopyTerm(trm, cpy)
+
         Else
-            Dim cpy As New TCopy
-
-            CopyAncestorVar(obj, cpy)
-
-            If TypeOf obj Is TStatement Then
-                Return CopyStatement(CType(obj, TStatement), cpy)
-
-            ElseIf TypeOf obj Is TTerm Then
-                Return CopyTerm(CType(obj, TTerm), cpy)
-
-            Else
-                Debug.Assert(False)
-                Return Nothing
-            End If
+            Debug.Assert(False)
+            Return Nothing
         End If
     End Function
 
@@ -2233,13 +2231,14 @@ Public Class Sys
 
     ' Parent -> self
     ' self -> .F or .F(index)
-    Public Shared Function NormalizeReference(prj1 As TProject, obj As Object, fld1 As TField) As Object
+    Public Shared Function NormalizeReference(prj1 As TProject, cnd1 As TApply, fld1 As TField) As TApply
         Dim idx_var As New TVariable("__index", prj1.IntType)
-        Dim copy_obj As Object = CopyAny(obj)
 
-        SetParent(copy_obj, Nothing)
+        Dim copy_cnd As TApply = CType(CopyTermWithOuterVariable(cnd1), TApply)
 
-        Dim dot_list = From d In GetAllReference(copy_obj) Where TypeOf d Is TDot Select CType(d, TDot)
+        SetParent(copy_cnd, Nothing)
+
+        Dim dot_list = From d In GetAllReference(copy_cnd) Where TypeOf d Is TDot Select CType(d, TDot)
         For Each dot1 In dot_list
             If dot1.IsParentField() Then
                 ' 親のフィールド参照の場合
@@ -2274,7 +2273,7 @@ Public Class Sys
             End If
         Next
 
-        Return copy_obj
+        Return copy_cnd
     End Function
 
     ' 条件を追加する
@@ -2284,9 +2283,10 @@ Public Class Sys
         If TypeOf up_stmt Is TBlock Then
             With CType(up_stmt, TBlock)
                 For Each x In .StmtBlc
-                    If x IsNot stmt1 Then
+                    If x IsNot stmt1 AndAlso TypeOf x Is TAssignment Then
+                        ' 自分以外の代入文の場合。 ( If文などは条件が複雑になるので当面は含まない )
 
-                        '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                        and1.ArgApp.Add(Sys.CopyTerm(x, cpy))
+                        and1.ArgApp.Add(Sys.CopyTerm(x, cpy))
                     End If
                 Next
             End With
@@ -2579,10 +2579,11 @@ Public Class Sys
 
         ' 文を実行する前提条件を返す
         pre_cond = TApply.NewOpr(EToken.And_)
-        CalcPreCondition(stmt, pre_cond, Nothing)
-        If pre_cond.ArgApp.Count <> pre_cond.ArgApp.Distinct().Count() Then
-            Debug.Print("")
-        End If
+
+        Dim cpy As New TCopy
+        RegisterOuterVariable(stmt, cpy)
+        CalcPreCondition(stmt, pre_cond, cpy)
+        Debug.Assert(pre_cond.ArgApp.Count = pre_cond.ArgApp.Distinct().Count())
 
         ' 余分な条件を取り除く
         CleanCondition(pre_cond)

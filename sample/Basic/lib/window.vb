@@ -99,7 +99,7 @@ End Class
 '-------------------------------------------------------------------------------- TPanel
 Public Class TPanel
     Inherits TControl
-    Public Children As New List(Of TControl)
+    Public Children As New TList(Of TControl)
 
     Public HorizontalPadding As Double
     Public VerticalPadding As Double
@@ -192,7 +192,7 @@ End Class
 
 '-------------------------------------------------------------------------------- TListBox
 Public Class TListBox
-    Public Items As New List(Of TView)
+    Public Items As New TList(Of TView)
 End Class
 
 '-------------------------------------------------------------------------------- TTreeViewItem
@@ -202,7 +202,7 @@ Public Class TTreeViewItem
     Public Indent As Double
     Public Expanded As Boolean
 
-    Public ChildrenTVI As New List(Of TTreeViewItem)
+    Public ChildrenTVI As New TList(Of TTreeViewItem)
 End Class
 
 '-------------------------------------------------------------------------------- TTreeView
@@ -226,7 +226,7 @@ End Class
 
 '-------------------------------------------------------------------------------- TTabControl
 Public Class TTabControl
-    Public TabPages As New List(Of TTabPage)
+    Public TabPages As New TList(Of TTabPage)
 
 End Class
 

@@ -191,8 +191,6 @@ Public Class TDeclarative
     End Sub
 
     Public Overridable Sub NaviCase(cas1 As TCase)
-        StartCondition(cas1)
-
         NaviTermList(cas1.TrmCase)
         NaviStatement(cas1.BlcCase)
     End Sub
