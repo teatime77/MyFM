@@ -186,3 +186,19 @@ Public Class console
     Shared Sub log(msg As String)
     End Sub
 End Class
+
+'-------------------------------------------------------------------------------- TFont
+Public Class TFont
+    Public EmSize As Double
+
+    'Public FontTypeFace As Typeface
+
+    Public Function MeasureText(text As String) As TPoint
+        'Dim formatted_text As FormattedText
+
+        'formatted_text = New FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, FontTypeFace, EmSize, Brushes.Black)
+
+        'Return New Size(formatted_text.Width, formatted_text.Height)
+        Return New TPoint()
+    End Function
+End Class

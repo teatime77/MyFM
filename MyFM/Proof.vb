@@ -118,7 +118,7 @@ Public Class TDataflow
             Dim up_if As TIf, eq_after As Boolean = False
 
             ' Ifブロックを含むIf文を得る
-            up_if = CType(Sys.UpStmt(stmt.UpTrm), TIf)
+            up_if = CType(Sys.ParentNotBlockStmt(stmt.UpTrm), TIf)
 
             ' If文は影響され得る
             may_be_affected_stmt.Add(up_if)
@@ -198,7 +198,7 @@ Public Class TDataflow
                         ' 代入の場合
 
                         ' 有効な文が局所変数の値を参照する場合、局所変数への代入文も有効とする。
-                        asn_stmt = CType(Sys.UpStmt(ref_f), TAssignment)
+                        asn_stmt = CType(Sys.ParentNotBlockStmt(ref_f), TAssignment)
                         If Not valid_stmt.ContainsKey(asn_stmt) Then
                             ' 未処理の場合
 
@@ -206,7 +206,7 @@ Public Class TDataflow
                             vwork_stmt.Add(asn_stmt)
 
                             ' 局所変数の宣言文も有効とする。
-                            Dim decl_stmt = Sys.UpStmt(var_f)
+                            Dim decl_stmt = Sys.ParentNotBlockStmt(var_f)
                             Debug.Assert(decl_stmt IsNot Nothing AndAlso TypeOf decl_stmt Is TVariableDeclaration)
                             If Not valid_stmt.ContainsKey(CType(decl_stmt, TVariableDeclaration)) Then
 
@@ -278,7 +278,7 @@ Public Class TDataflow
                     NormalizedCondition = NormalizeValueChangedCondition(Change, ref1, ref_type)
 
                     ' 変数参照を含む文
-                    RefChangeableUpStmt = Sys.UpStmt(ref1)
+                    RefChangeableUpStmt = Sys.ParentNotBlockStmt(ref1)
 
                     If NormalizedCondition Is Nothing Then
                         ' 代入時の条件がない場合
@@ -615,7 +615,7 @@ Public Class TDataflow
 
             For Each ref1 In sync_fld.RefVar
                 If ref1.FunctionTrm Is RuleCp Then
-                    Dim stmt1 As TStatement = Sys.UpStmt(ref1)
+                    Dim stmt1 As TStatement = Sys.ParentNotBlockStmt(ref1)
                     If ref1.DefRef Then
                         Debug.Assert(TypeOf stmt1 Is TAssignment)
 
@@ -1176,7 +1176,7 @@ Public Class TFindSyncField
     Public Overrides Function StartDot(dot1 As TDot, arg1 As Object) As Object
         Dim stmt1 As TStatement, ref_type As ERefPathType, fld1 As TField
 
-        stmt1 = Sys.UpStmt(dot1)
+        stmt1 = Sys.ParentNotBlockStmt(dot1)
         If ValidStmt.ContainsKey(stmt1) Then
             ' 有効な文の中の場合
 
@@ -1457,29 +1457,37 @@ Public Class Sys
         Return all_ref_stmt.RefStmtList
     End Function
 
-    Public Shared Function UpStmt(obj1 As Object) As Object
+    Public Shared Function ParentStmt(obj1 As Object) As Object
         If obj1 Is Nothing Then
             '            Debug.WriteLine("")
             Return Nothing
         End If
 
-        If TypeOf obj1 Is TBlock Then
-            Return UpStmt(CType(obj1, TBlock).UpTrm)
-        ElseIf TypeOf obj1 Is TStatement Then
+        If TypeOf obj1 Is TStatement Then
             Return CType(obj1, TStatement)
         ElseIf TypeOf obj1 Is TTerm Then
-            Return UpStmt(CType(obj1, TTerm).UpTrm)
+            Return ParentStmt(CType(obj1, TTerm).UpTrm)
         ElseIf TypeOf obj1 Is IUpList Then
-            Return UpStmt(CType(obj1, IUpList).GetUpList())
+            Return ParentStmt(CType(obj1, IUpList).GetUpList())
         ElseIf TypeOf obj1 Is TFunction Then
             Return obj1
         ElseIf TypeOf obj1 Is TVariable Then
-            Return UpStmt(CType(obj1, TVariable).UpVar)
+            Return ParentStmt(CType(obj1, TVariable).UpVar)
         ElseIf TypeOf obj1 Is TProject Then
             Return Nothing
         Else
             Debug.Assert(False)
             Return Nothing
+        End If
+    End Function
+
+    Public Shared Function ParentNotBlockStmt(obj1 As Object) As Object
+        Dim obj2 As Object = ParentStmt(obj1)
+
+        If TypeOf obj2 Is TBlock Then
+            Return ParentStmt(CType(obj2, TBlock).UpTrm)
+        Else
+            Return obj2
         End If
     End Function
 
@@ -1490,7 +1498,7 @@ Public Class Sys
     Public Shared Function UpStmtProper(obj1 As Object) As TStatement
         Dim up_obj As Object
 
-        up_obj = UpStmt(obj1)
+        up_obj = ParentNotBlockStmt(obj1)
         If TypeOf up_obj Is TStatement Then
             Return CType(up_obj, TStatement)
         Else
@@ -1501,7 +1509,7 @@ Public Class Sys
     Public Shared Function UpStatementFunction(obj1 As Object) As Object
         Dim up_obj As Object
 
-        up_obj = UpStmt(obj1)
+        up_obj = ParentNotBlockStmt(obj1)
         If TypeOf up_obj Is TStatement OrElse TypeOf up_obj Is TFunction Then
             Return up_obj
         Else
@@ -1656,6 +1664,8 @@ Public Class Sys
                     trm2 = CopyFrom(CType(trm1, TFrom), cpy)
                 ElseIf TypeOf trm1 Is TAggregate Then
                     trm2 = CopyAggregate(CType(trm1, TAggregate), cpy)
+                ElseIf TypeOf trm1 Is TStatement Then
+                    trm2 = CopyStatement(CType(trm1, TStatement), cpy)
                 Else
                     Debug.Assert(False)
                 End If
@@ -2268,24 +2278,27 @@ Public Class Sys
     End Function
 
     ' 条件を追加する
-    Public Shared Sub AddCondition(stmt1 As TStatement, up_stmt As TStatement, and1 As TApply)
-        Dim if_blc As TIfBlock, case1 As TCase, if1 As TIf, not1 As TApply, cnd1 As TTerm
+    Public Shared Sub AddCondition(stmt1 As TStatement, up_stmt As TStatement, and1 As TApply, cpy As TCopy)
+        Dim if_blc As TIfBlock, if1 As TIf, not1 As TApply, cnd1 As TTerm
 
         If TypeOf up_stmt Is TBlock Then
             With CType(up_stmt, TBlock)
                 For Each x In .StmtBlc
-                    and1.ArgApp.Add(x)
+                    If x IsNot stmt1 Then
+
+                        '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                        and1.ArgApp.Add(Sys.CopyTerm(x, cpy))
+                    End If
                 Next
             End With
+
         ElseIf TypeOf up_stmt Is TIf Then
             Debug.Assert(TypeOf stmt1 Is TIfBlock)
-            if_blc = CType(stmt1, TIfBlock)
 
         ElseIf TypeOf up_stmt Is TIfBlock Then
             if_blc = CType(up_stmt, TIfBlock)
-            if1 = CType(Sys.UpStmt(up_stmt.UpTrm), TIf)
+            if1 = CType(Sys.ParentNotBlockStmt(up_stmt.UpTrm), TIf)
             For Each _child In if1.IfBlc
-                cnd1 = Sys.CopyTerm(_child.CndIf, Nothing)
+                cnd1 = Sys.CopyTerm(_child.CndIf, cpy)
 
                 If _child IsNot if_blc Then
                     ' 手前のIfブロックの場合
@@ -2311,15 +2324,38 @@ Public Class Sys
 
         ElseIf TypeOf up_stmt Is TSelect Then
             Debug.Assert(TypeOf stmt1 Is TCase)
-            case1 = CType(stmt1, TCase)
 
         ElseIf TypeOf up_stmt Is TCase Then
+            Dim case1 As TCase = CType(up_stmt, TCase)
+            Dim sel1 As TSelect = CType(Sys.ParentNotBlockStmt(up_stmt.UpTrm), TSelect)
+
+            If case1.DefaultCase Then
+                Debug.Assert(False)
+            Else
+                If case1.TrmCase.Count = 1 Then
+                    Dim eq1 As TApply = TApply.NewOpr2(EToken.Eq, Sys.CopyTerm(sel1.TrmSel, cpy), Sys.CopyTerm(case1.TrmCase(0), cpy))
+
+                    and1.AddInArg(eq1)
+                Else
+                    Dim opr1 As TApply = TApply.NewOpr(EToken.OR_)
+
+                    For Each trm1 In case1.TrmCase
+                        Dim eq1 As TApply = TApply.NewOpr2(EToken.Eq, Sys.CopyTerm(sel1.TrmSel, cpy), Sys.CopyTerm(trm1, cpy))
+
+                        opr1.AddInArg(eq1)
+                    Next
+
+                    and1.AddInArg(opr1)
+                End If
+            End If
+
         ElseIf TypeOf up_stmt Is TFor Then
+            Debug.Assert(False)
         End If
     End Sub
 
     ' 文を実行する前提条件を返す
-    Public Shared Sub CalcPreCondition(stmt1 As TStatement, and1 As TApply)
+    Public Shared Sub CalcPreCondition(stmt1 As TStatement, and1 As TApply, cpy As TCopy)
         Dim up_stmt As TStatement, up_obj As Object
 
         If TypeOf stmt1 Is TAssignment Then
@@ -2329,6 +2365,7 @@ Public Class Sys
         ElseIf TypeOf stmt1 Is TSelect Then
         ElseIf TypeOf stmt1 Is TCase Then
         ElseIf TypeOf stmt1 Is TVariableDeclaration Then
+        ElseIf TypeOf stmt1 Is TBlock Then
         ElseIf TypeOf stmt1 Is TFor Then
             Debug.Assert(False)
         Else
@@ -2339,15 +2376,15 @@ Public Class Sys
             Debug.Assert(False)
         End If
 
-        up_obj = Sys.UpStmt(stmt1.UpTrm)
+        up_obj = Sys.ParentStmt(stmt1.UpTrm)
         If TypeOf up_obj Is TStatement Then
             up_stmt = CType(up_obj, TStatement)
 
             '            Debug.WriteLine("前提条件 {0} > {1}", stmt1.TypeStmt, up_stmt.ToString())
 
-            AddCondition(stmt1, up_stmt, and1)
+            AddCondition(stmt1, up_stmt, and1, cpy)
 
-            CalcPreCondition(up_stmt, and1)
+            CalcPreCondition(up_stmt, and1, cpy)
 
         ElseIf TypeOf up_obj Is TFunction Then
 
@@ -2542,7 +2579,10 @@ Public Class Sys
 
         ' 文を実行する前提条件を返す
         pre_cond = TApply.NewOpr(EToken.And_)
-        CalcPreCondition(stmt, pre_cond)
+        CalcPreCondition(stmt, pre_cond, Nothing)
+        If pre_cond.ArgApp.Count <> pre_cond.ArgApp.Distinct().Count() Then
+            Debug.Print("")
+        End If
 
         ' 余分な条件を取り除く
         CleanCondition(pre_cond)

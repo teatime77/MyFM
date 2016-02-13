@@ -201,7 +201,9 @@ Public Class TNaviMakeSourceCode
                 ElseIf TypeOf obj Is TStatement Then
                     Dim stmt1 As TStatement = CType(obj, TStatement)
 
-                    If TypeOf stmt1 Is TIfBlock Then
+                    If TypeOf stmt1 Is TBlock Then
+                        .TabStmt = stmt1.TabStmt + 1
+                    ElseIf TypeOf stmt1 Is TIfBlock Then
                         If CType(stmt1, TIfBlock).WithIf IsNot Nothing Then
                             .TabStmt = stmt1.TabStmt + 2
                         Else
@@ -668,7 +670,7 @@ Public Class TNaviMakeSourceCode
                     With CType(self, TIfBlock)
                         Dim if1 As TIf, i1 As Integer
 
-                        if1 = CType(.UpTrm, TIf)
+                        if1 = CType(Sys.ParentNotBlockStmt(.UpTrm), TIf)
                         i1 = if1.IfBlc.IndexOf(CType(self, TIfBlock))
                         Debug.Assert(i1 <> -1)
 

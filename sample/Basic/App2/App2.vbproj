@@ -66,6 +66,9 @@
     <Compile Include="..\lib\lib.vb">
       <Link>lib.vb</Link>
     </Compile>
+    <Compile Include="..\lib\shape.vb">
+      <Link>shape.vb</Link>
+    </Compile>
     <Compile Include="..\lib\web.vb">
       <Link>web.vb</Link>
     </Compile>

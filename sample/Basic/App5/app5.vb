@@ -31,7 +31,7 @@
 End Class
 
 Public Class TMyApplication
-    Inherits TApplication
+    Inherits TShapeApplication
     Public CircleR As Double = 80
     Public cnt As Double = 0
     <_Weak()> Public Mama As TCat

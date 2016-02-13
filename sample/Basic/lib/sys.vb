@@ -387,3 +387,20 @@ End Class
 
 Public MustInherit Class Attribute
 End Class
+
+Public Class Debug
+    Sub Print(ParamArray args As Object())
+    End Sub
+
+    Sub Write(ParamArray args As Object())
+    End Sub
+
+    Sub Assert(b As Boolean)
+    End Sub
+
+    Sub Assert(b As Boolean, msg As String)
+    End Sub
+
+    Public Sub WriteLine(ParamArray args As Object())
+    End Sub
+End Class

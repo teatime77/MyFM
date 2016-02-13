@@ -1044,6 +1044,21 @@ Public Class TProject
                         Dim child_parent_dot_list = From d In child_dot_list Where d.IsParentField()
 
                         ' 親の仮想メソッド内のフィールドの定義参照に対し
+                        If parent_dot_list.Count() <> Enumerable.Distinct(parent_dot_list).Count() Then
+                            Dim v As New List(Of TDot)(parent_dot_list)
+                            Dim i1 As Integer, i2 As Integer
+                            For i1 = 0 To v.Count - 1
+                                Dim dot1 As TDot = v(i1)
+                                For i2 = i1 + 1 To v.Count - 1
+                                    Dim dot2 As TDot = v(i2)
+                                    If v(i1) Is v(i2) Then
+
+                                        Debug.Print("重複 Dot定義1 {0}:{2} {1}", dot1.NameRef, MakeStatementText(Sys.UpStmtProper(dot1)), dot1.IdxAtm)
+                                        Debug.Print("重複 Dot定義2 {0}:{2} {1}", dot2.NameRef, MakeStatementText(Sys.UpStmtProper(dot2)), dot2.IdxAtm)
+                                    End If
+                                Next
+                            Next
+                        End If
                         Debug.Assert(parent_dot_list.Count() = Enumerable.Distinct(parent_dot_list).Count())
                         For Each dot1 In From d In parent_dot_list Where d.TrmDot Is Nothing AndAlso d.DefRef
 

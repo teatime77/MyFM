@@ -35,36 +35,40 @@ Public Class TDeclarative
 
     Public Overridable Sub NaviTerm(trm1 As TTerm)
         If trm1 IsNot Nothing Then
+            If TypeOf trm1 Is TStatement Then
+                NaviStatement(CType(trm1, TStatement))
+            Else
+                StartCondition(trm1)
 
-            StartCondition(trm1)
+                Try
+                    If TypeOf trm1 Is TConstant Then
+                        NaviConstant(CType(trm1, TConstant))
+                    ElseIf TypeOf trm1 Is TArray Then
+                        NaviArray(CType(trm1, TArray))
+                    ElseIf TypeOf trm1 Is TDot Then
+                        NaviDot(CType(trm1, TDot))
+                    ElseIf TypeOf trm1 Is TReference Then
+                        NaviReference(CType(trm1, TReference))
+                    ElseIf trm1.IsApp() Then
+                        NaviApply(CType(trm1, TApply))
+                    ElseIf trm1.IsLog() Then
+                        NaviLog(CType(trm1, TApply))
+                    ElseIf TypeOf trm1 Is TParenthesis Then
+                        NaviTerm(CType(trm1, TParenthesis).TrmPar)
+                        EndCondition(trm1)
+                    ElseIf TypeOf trm1 Is TFrom Then
+                        NaviFrom(CType(trm1, TFrom))
+                        EndCondition(trm1)
+                    ElseIf TypeOf trm1 Is TAggregate Then
+                        NaviAggregate(CType(trm1, TAggregate))
+                        EndCondition(trm1)
+                    Else
+                        Debug.Assert(False)
+                    End If
+                Catch ex As TError
+                End Try
+            End If
 
-            Try
-                If TypeOf trm1 Is TConstant Then
-                    NaviConstant(CType(trm1, TConstant))
-                ElseIf TypeOf trm1 Is TArray Then
-                    NaviArray(CType(trm1, TArray))
-                ElseIf TypeOf trm1 Is TDot Then
-                    NaviDot(CType(trm1, TDot))
-                ElseIf TypeOf trm1 Is TReference Then
-                    NaviReference(CType(trm1, TReference))
-                ElseIf trm1.IsApp() Then
-                    NaviApply(CType(trm1, TApply))
-                ElseIf trm1.IsLog() Then
-                    NaviLog(CType(trm1, TApply))
-                ElseIf TypeOf trm1 Is TParenthesis Then
-                    NaviTerm(CType(trm1, TParenthesis).TrmPar)
-                    EndCondition(trm1)
-                ElseIf TypeOf trm1 Is TFrom Then
-                    NaviFrom(CType(trm1, TFrom))
-                    EndCondition(trm1)
-                ElseIf TypeOf trm1 Is TAggregate Then
-                    NaviAggregate(CType(trm1, TAggregate))
-                    EndCondition(trm1)
-                Else
-                    Debug.Assert(False)
-                End If
-            Catch ex As TError
-            End Try
         End If
     End Sub
 

@@ -19,6 +19,7 @@
         <string>sys.vb</string>
         <string>web.vb</string>
         <string>lib.vb</string>
+        <string>shape.vb</string>
       </SourceFileNameList>
     </TLibrary>
     <TLibrary>
