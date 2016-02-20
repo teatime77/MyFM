@@ -217,7 +217,7 @@ Public Class TToken
     Public TabTkn As Integer
 
     Public tknSym As Integer
-    Public ObjTkn As Object
+    <_Weak()> Public ObjTkn As Object
 
     Public Sub New()
     End Sub
@@ -678,6 +678,10 @@ Public Class TField
             Return ClaFld.NameCla() + "." + NameVar
         End If
     End Function
+
+    Public Function isStrong() As Boolean
+        Return ModVar IsNot Nothing AndAlso ModVar.isStrong
+    End Function
 End Class
 
 ' -------------------------------------------------------------------------------- TFunction
@@ -700,6 +704,7 @@ Public Class TFunction
     Public BlcFnc As TBlock
     <_Weak()> Public OrgFnc As TFunction
     <_Weak()> Public WithFnc As TClass
+    <_Weak()> Public OrgRule As TFunction
 
     <_Weak()> Public CallFrom As New TList(Of TFunction)
     <_Weak()> Public CallTo As New TList(Of TFunction)

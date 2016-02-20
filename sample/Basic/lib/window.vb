@@ -31,8 +31,8 @@ End Class
 
 '-------------------------------------------------------------------------------- TView
 Public Class TView
-    Public _ParentControl As TControl
-    Public Prev As TControl
+    <_Parent()> Public ParentControl As TControl
+    <_Prev()> Public Prev As TControl
 
     Public Left As Double
     Public Top As Double
@@ -46,8 +46,8 @@ Public Class TView
     Public DesiredWidth As Double
     Public DesiredHeight As Double
 
-    Public AbsoluteX As Integer
-    Public AbsoluteY As Integer
+    Public Position As New TPoint
+    Public AbsPosition As New TPoint
 
     Public Visible As Boolean
 
@@ -61,10 +61,10 @@ Public Class TView
     Public Bitmap As TBitmap
     Public BackgroundBitmap As TBitmap
     Public BackgroundImage As TBitmap
-    Public BackgroundColor As String = Nothing
+    Public BackgroundColor As String = "cornsilk"
 
     Public BorderWidth As Double = 0
-    Public BorderColor As String = Nothing
+    Public BorderColor As String = "#0000FF"
 
     Public Overridable Sub Draw(gr As TGraphics)
         Dim ctx As CanvasRenderingContext2D = gr.Context
@@ -73,12 +73,12 @@ Public Class TView
 
         If BackgroundColor <> Nothing Then
             ctx.fillStyle = BackgroundColor
-            ctx.fillRect(AbsoluteX, AbsoluteY, ActualWidth, ActualHeight)
+            ctx.fillRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
         End If
 
         If BorderWidth <> 0 AndAlso BorderColor <> Nothing Then
             ctx.strokeStyle = BorderColor
-            ctx.strokeRect(AbsoluteX, AbsoluteY, ActualWidth, ActualHeight)
+            ctx.strokeRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
         End If
 
         ctx.closePath()
@@ -108,7 +108,7 @@ Public Class TControl
 
     Public AutoSize As Boolean
 
-    Public Data As Object
+    'Public Data As Object
 End Class
 
 '-------------------------------------------------------------------------------- TViewGroup
@@ -124,6 +124,30 @@ Public Class TPanel
     Public HorizontalPadding As Double
     Public VerticalPadding As Double
     Public ChildrenScale As Double
+
+    Public Overrides Sub Draw(gr As TGraphics)
+        Dim ctx As CanvasRenderingContext2D = gr.Context
+        gr.save()
+        ctx.beginPath()
+
+        If BackgroundColor <> Nothing Then
+            ctx.fillStyle = BackgroundColor
+            ctx.fillRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
+        End If
+
+        If BorderWidth <> 0 AndAlso BorderColor <> Nothing Then
+            ctx.strokeStyle = BorderColor
+            ctx.strokeRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
+        End If
+
+        ctx.closePath()
+
+        gr.restore()
+
+        For Each x In Children
+            x.Draw(gr)
+        Next
+    End Sub
 End Class
 
 '-------------------------------------------------------------------------------- TCanvas
@@ -169,17 +193,17 @@ Public Class TTextBlock
 
         If BackgroundColor <> Nothing Then
             ctx.fillStyle = BackgroundColor
-            ctx.fillRect(AbsoluteX, AbsoluteY, ActualWidth, ActualHeight)
+            ctx.fillRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
         End If
 
         If BorderWidth <> 0 AndAlso BorderColor <> Nothing Then
             ctx.strokeStyle = BorderColor
-            ctx.strokeRect(AbsoluteX, AbsoluteY, ActualWidth, ActualHeight)
+            ctx.strokeRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
         End If
 
         ctx.font = Font.FontString
         ctx.fillStyle = TextColor
-        ctx.fillText(Text, AbsoluteX, AbsoluteY + ActualHeight, 80)
+        ctx.fillText(Text, AbsPosition.X, AbsPosition.Y + ActualHeight, 80)
 
         ctx.closePath()
         gr.restore()
@@ -245,7 +269,7 @@ End Class
 '-------------------------------------------------------------------------------- TTreeViewItem
 Public Class TTreeViewItem
     Inherits TTextBlock
-    Public _ParentTVI As TTreeViewItem
+    <_Parent()> Public ParentTVI As TTreeViewItem
     Public Indent As Double
     Public Expanded As Boolean
 

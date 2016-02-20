@@ -1467,6 +1467,7 @@ End Class
 ' クラスの場合分けのIf文からクラスごとのメソッドを作る。
 Public Class TNaviMakeVirtualizableIfMethod
     Inherits TDeclarative
+    Public OrgRuleNavi As TFunction
     Public UDA As TUseDefineAnalysis
 
     Public Function CopyAncestorBlock(if1 As TIf, blc1 As TBlock, cpy As TCopy) As TBlock
@@ -1540,6 +1541,7 @@ Public Class TNaviMakeVirtualizableIfMethod
                     fnc1.ClaFnc = virtualizable_class
                     fnc1.ClaFnc.FncCla.Add(fnc1)
                     fnc1.WithFnc = virtualizable_class
+                    fnc1.OrgRule = OrgRuleNavi
 
                     Debug.Print("Make Rule {0}.{1}", virtualizable_class.NameVar, fnc1.NameVar)
 

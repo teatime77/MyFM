@@ -283,3 +283,20 @@ function $Query(v, cnd, sel) {
 
     return obj;
 }
+
+var Double = function () {
+}
+
+Double.IsNaN = function (x) {
+    return x == undefined;
+}
+
+var Debug = function () {
+}
+
+Debug.Assert = function (x, msg) {
+    if (!x) {
+
+        console.log("assert error!" + msg);
+    }
+}

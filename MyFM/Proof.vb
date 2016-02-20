@@ -654,7 +654,7 @@ Public Class TDataflow
                         Dim ref_type = TDataflow.GetRefType(ref1)
                         Select Case ref_type
                             Case ERefPathType.ParentField
-                                stmt1.BeforeSrc = String.Format("CType(._ParentControl.Sync, {0}).{1}.WaitOne()", SyncClassName, signal_name)
+                                stmt1.BeforeSrc = String.Format("CType(.ParentControl.Sync, {0}).{1}.WaitOne()", SyncClassName, signal_name)
 
                             Case ERefPathType.SelfFieldChild
                                 Dim sw1 As New StringWriter
@@ -715,7 +715,7 @@ Public Class TDataflow
         Next
         sw.WriteLine("Public Sub New(self1 As Object, parent1 As Object, prev1 As Object)")
         sw.WriteLine("SelfSync = self1")
-        sw.WriteLine("SelfSync._ParentControl = parent1")
+        sw.WriteLine("SelfSync.ParentControl = parent1")
         sw.WriteLine("SelfSync._Prev = prev1")
         sw.WriteLine("self1.Sync = Me")
         sw.WriteLine("End Sub")

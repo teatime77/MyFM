@@ -98,8 +98,8 @@ End Class
 
 '-------------------------------------------------------------------------------- TFont
 Public Class TFont
-    Public EmSize As Double = 12
-    Public FontString As String = "12px 'monospace'"
+    Public EmSize As Double = 24
+    Public FontString As String = "24px 'monospace'"
 
     'Public FontTypeFace As Typeface
 End Class

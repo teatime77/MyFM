@@ -905,9 +905,9 @@ Public Class TProject
 
     '==========================================================================================================================================================================
     '==========================================================================================================================================================================
-    Public Sub AddRuleCall(fnc1 As TFunction, cla1 As TClass)
+    Public Sub AddRuleCall(rule As TFunction, fnc1 As TFunction, cla1 As TClass)
         ' RuleのCall文を作る。
-        Dim rule_fnc_list = From c In Sys.SuperClassList(cla1).Distinct() From f In c.FncCla Where f.ModVar.isInvariant Select f
+        Dim rule_fnc_list = From c In Sys.SuperClassList(cla1).Distinct() From f In c.FncCla Where f.OrgRule Is rule Select f
         If rule_fnc_list.Any() Then
 
             Dim rule_fnc As TFunction = rule_fnc_list.First()
@@ -1222,7 +1222,7 @@ Public Class TProject
                     Dim super_class_list = Sys.SuperClassList(dot1.TypeDot).Distinct()
 
                     ' 上記のスーパークラスの型のフィールドのリスト
-                    Dim parent_field_list = From parent_field In Prj.SimpleFieldList Where parent_field.ModVar.isStrong() AndAlso super_class_list.Contains(FieldElementType(parent_field))
+                    Dim parent_field_list = From parent_field In Prj.SimpleFieldList Where parent_field.isStrong() AndAlso super_class_list.Contains(FieldElementType(parent_field))
 
                     ' 親のフィールドを参照するドットの処理対象クラスの型のフィールドを持つクラスのリスト
                     Dim parent_field_class_list_2 = (From f In parent_field_list Select f.ClaFld).Distinct()
@@ -1353,7 +1353,7 @@ Public Class TProject
             If dt.UseParentClassList.Contains(cla1) Then
                 ' 親のフィールドの値を参照している場合
 
-                AddRuleCall(fnc1, cla1)
+                AddRuleCall(rule, fnc1, cla1)
             End If
 
             Dim self_var As TVariable = fnc1.ArgFnc(0)
@@ -1398,7 +1398,7 @@ Public Class TProject
             If Not dt.UseParentClassList.Contains(cla1) Then
                 ' 親のフィールドの値を参照していない場合
 
-                AddRuleCall(fnc1, cla1)
+                AddRuleCall(rule, fnc1, cla1)
             End If
         Next
 
@@ -1408,7 +1408,7 @@ Public Class TProject
 
                 Dim fnc1 As TFunction = InitNavigateFunction(function_name, cla1)
                 dt.NaviFunctionList.Add(fnc1)
-                AddRuleCall(fnc1, cla1)
+                AddRuleCall(rule, fnc1, cla1)
             End If
         Next
 
@@ -1471,6 +1471,10 @@ Public Class TProject
                 For Each navigation_field In navigation_field_list
 
                     Dim field_element_type As TClass = FieldElementType(navigation_field)
+                    If field_element_type Is ObjectType Then
+
+                        Debug.Print("ObjectType navigationfield : {0}", navigation_field)
+                    End If
 
                     navi_needed_class_list.DistinctAdd(field_element_type)
 
@@ -1848,6 +1852,7 @@ Public Class TProject
 
                 ' クラスの場合分けのIf文からクラスごとのメソッドを作る。
                 Dim make_virtualizable_if_method As New TNaviMakeVirtualizableIfMethod
+                make_virtualizable_if_method.OrgRuleNavi = rule
                 make_virtualizable_if_method.UDA = dt
                 make_virtualizable_if_method.NaviFunction(rule)
 

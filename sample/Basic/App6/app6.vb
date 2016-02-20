@@ -3,95 +3,184 @@ Public Class TMyApplication
     Inherits TWindowApplication
 
     Public Overrides Sub AppInitialize()
-        Dim lbl As New TLabel
+        Dim lbl1 As New TLabel
 
-        lbl.Text = "こんにちは"
-        lbl.Font.EmSize = 24
-        lbl.Font.FontString = "24px 'monospace'"
-        lbl.AbsoluteX = 200
-        lbl.AbsoluteY = 100
-        lbl.AutoSize = True
+        lbl1.Text = "こんにちは"
+        lbl1.Font.EmSize = 24
+        lbl1.Font.FontString = "24px 'monospace'"
+        lbl1.Position.X = 200
+        lbl1.Position.Y = 50
+        lbl1.AutoSize = True
 
-        lbl.BackgroundColor = "cornsilk"
-        lbl.BorderColor = "#0000FF"
-        lbl.BorderWidth = 10
-        ViewList.push(lbl)
+        lbl1.BorderWidth = 10
+        ViewList.push(lbl1)
 
-        Dim btn As New TButton
+        Dim btn1 As New TButton
 
-        btn.Text = "はじめまして"
-        btn.Font.EmSize = 24
-        btn.Font.FontString = "24px 'monospace'"
-        btn.AbsoluteX = 200
-        btn.AbsoluteY = 200
-        btn.AutoSize = True
+        btn1.Text = "はじめまして"
+        btn1.Position.X = 200
+        btn1.Position.Y = 100
+        btn1.AutoSize = True
 
-        btn.BackgroundColor = "cornsilk"
-        btn.BorderColor = "#0000FF"
-        btn.BorderWidth = 10
-        ViewList.push(btn)
+        btn1.BorderWidth = 10
+        ViewList.push(btn1)
+
+        Dim cnv1 As New TCanvas
+
+        cnv1.Position.X = 200
+        cnv1.Position.Y = 150
+        cnv1.Width = 300
+        cnv1.Height = 100
+
+        cnv1.BorderWidth = 10
+        ViewList.push(cnv1)
+
+        Dim cnv2 As New TCanvas
+
+        cnv2.Position.X = 200
+        cnv2.Position.Y = 300
+        cnv2.Width = 300
+        cnv2.Height = 100
+
+        cnv2.BorderWidth = 10
+        ViewList.push(cnv2)
+
+        Dim lbl2 As New TLabel
+
+        lbl2.Text = "どうぞよろしく"
+        lbl2.Position.X = 10
+        lbl2.Position.Y = 10
+        lbl2.AutoSize = True
+
+        lbl2.BorderWidth = 10
+
+        cnv2.Children.push(lbl2)
+
 
     End Sub
 
-    <_Invariant()> Public Overrides Sub Rule(self As Object, app As TMyApplication)
+    <_Invariant()> Public Sub SizeRule(self As Object, app As TMyApplication)
         If TypeOf self Is TControl Then
             With CType(self, TControl)
-                If TypeOf ._ParentControl Is TCanvas Then
+                If TypeOf self Is TTextBlock Then
+                    With CType(self, TTextBlock)
+                        Dim sz As TPoint
+
+                        sz = app.Graphics.MeasureText(.Font, .Text)
+                        .TextWidth = sz.X
+                        .TextHeight = sz.Y
+
+                        If TypeOf self Is TTreeViewItem Then
+                            With CType(self, TTreeViewItem)
+                                Dim children_height_sum As Double, children_width_max As Double
+
+                                If .ChildrenTVI.Count <> 0 AndAlso .Expanded Then
+                                    ' 子があり、展開している場合
+
+                                    children_height_sum = Aggregate a_ctrl In .ChildrenTVI Into Sum(a_ctrl.DesiredHeight)
+                                    .ActualHeight = .MarginTop + .TextHeight + .MarginMiddleVertical * .ChildrenTVI.Count + children_height_sum + .MarginBottom
+
+                                    children_width_max = Aggregate a_ctrl In .ChildrenTVI Into Max(a_ctrl.ActualWidth)
+                                    .ActualWidth = Math.Max(.TextWidth, children_width_max)
+
+                                    .Left = .Indent
+
+                                    If .Prev Is Nothing Then
+                                        ' 最初の場合
+
+                                        .Top = .ParentControl.ClientTop + .TextHeight
+                                    Else
+                                        ' 最初でない場合
+
+                                        .Top = .Prev.Top + .Prev.ActualHeight + .MarginMiddleVertical
+                                    End If
+                                Else
+                                    ' 子がないか、折りたたまれている場合
+
+                                    .ActualHeight = .MarginTop + .TextHeight + .MarginBottom
+
+                                    .ActualWidth = .TextWidth
+                                End If
+
+                            End With
+
+                        Else
+                            If .AutoSize Then
+
+                                .DesiredWidth = .LeftPadding + .TextWidth + .RightPadding
+                                .DesiredHeight = .TextHeight
+                            Else
+
+                                .DesiredWidth = .Width
+                                .DesiredHeight = .Height
+                            End If
+                        End If
+                    End With
+
+                Else
+
+                    .DesiredWidth = .Width
+                    .DesiredHeight = .Height
+                End If
+
+                If TypeOf .ParentControl Is TCanvas Then
                     Dim canvas As TCanvas
 
-                    canvas = CType(._ParentControl, TCanvas)
+                    canvas = CType(.ParentControl, TCanvas)
                     If Not Double.IsNaN(.MarginLeft) Then
                         ' 左のマージンが有効の場合
 
-                        .Left = .MarginLeft
+                        '.Left = .MarginLeft
 
                         If Not Double.IsNaN(.MarginRight) Then
                             ' 右のマージンが有効の場合
 
-                            .ActualWidth = ._ParentControl.Width - .MarginRight - .Left
+                            '.ActualWidth = .ParentControl.Width - .MarginRight - .Left
                         Else
                             ' 右のマージンが無効の場合
 
-                            .ActualWidth = .DesiredWidth
+                            '.ActualWidth = .DesiredWidth
                         End If
                     Else
                         ' 左のマージンが無効の場合
 
-                        Debug.Assert(Not Double.IsNaN(.MarginRight))
+                        'Debug.Assert(Not Double.IsNaN(.MarginRight), "x margin error")
 
-                        .ActualWidth = .DesiredWidth
+                        '.ActualWidth = .DesiredWidth
 
-                        .Left = ._ParentControl.ActualWidth - .MarginRight - .ActualWidth
+                        '.Left = .ParentControl.ActualWidth - .MarginRight - .ActualWidth
                     End If
 
                     If Not Double.IsNaN(.MarginTop) Then
                         ' 上のマージンが有効の場合
 
-                        .Top = .MarginTop
+                        '.Top = .MarginTop
 
                         If Not Double.IsNaN(.MarginBottom) Then
                             ' 下のマージンが有効の場合
 
-                            .ActualHeight = ._ParentControl.Height - .MarginBottom - .Top
+                            '.ActualHeight = .ParentControl.Height - .MarginBottom - .Top
                         Else
                             ' 下のマージンが無効の場合
 
-                            .ActualHeight = .DesiredHeight
+                            '.ActualHeight = .DesiredHeight
                         End If
                     Else
                         ' 上のマージンが無効の場合
 
-                        Debug.Assert(Not Double.IsNaN(.MarginBottom))
+                        'Debug.Assert(Not Double.IsNaN(.MarginBottom), "y margin error")
 
-                        .ActualHeight = .DesiredHeight
+                        '.ActualHeight = .DesiredHeight
 
-                        .Top = ._ParentControl.ActualHeight - .MarginBottom - .ActualHeight
+                        '.Top = .ParentControl.ActualHeight - .MarginBottom - .ActualHeight
                     End If
+                    .ActualWidth = .DesiredWidth
+                    .ActualHeight = .DesiredHeight
 
-                ElseIf TypeOf ._ParentControl Is TStackPanel Then
+                ElseIf TypeOf .ParentControl Is TStackPanel Then
                     Dim stack_panel As TStackPanel
 
-                    stack_panel = CType(._ParentControl, TStackPanel)
+                    stack_panel = CType(.ParentControl, TStackPanel)
 
                     Select Case stack_panel.Orientation
 
@@ -124,6 +213,10 @@ Public Class TMyApplication
                                 .Top = .Prev.Top + .Prev.ActualHeight + stack_panel.VerticalPadding
                             End If
                     End Select
+                Else
+
+                    .ActualWidth = .DesiredWidth
+                    .ActualHeight = .DesiredHeight
                 End If
 
                 If TypeOf self Is TScrollView Then
@@ -201,61 +294,6 @@ Public Class TMyApplication
 
                     End With
                 ElseIf TypeOf self Is TTextBlock Then
-                    With CType(self, TTextBlock)
-                        Dim sz As TPoint
-
-                        sz = app.Graphics.MeasureText(.Font, .Text)
-                        .TextWidth = sz.X
-                        .TextHeight = sz.Y
-
-                        If TypeOf self Is TTreeViewItem Then
-                            With CType(self, TTreeViewItem)
-                                Dim children_height_sum As Double, children_width_max As Double
-
-                                If .ChildrenTVI.Count <> 0 AndAlso .Expanded Then
-                                    ' 子があり、展開している場合
-
-                                    children_height_sum = Aggregate a_ctrl In .ChildrenTVI Into Sum(a_ctrl.DesiredHeight)
-                                    .ActualHeight = .MarginTop + .TextHeight + .MarginMiddleVertical * .ChildrenTVI.Count + children_height_sum + .MarginBottom
-
-                                    children_width_max = Aggregate a_ctrl In .ChildrenTVI Into Max(a_ctrl.ActualWidth)
-                                    .ActualWidth = Math.Max(.TextWidth, children_width_max)
-
-                                    .Left = .Indent
-
-                                    If .Prev Is Nothing Then
-                                        ' 最初の場合
-
-                                        .Top = ._ParentControl.ClientTop + .TextHeight
-                                    Else
-                                        ' 最初でない場合
-
-                                        .Top = .Prev.Top + .Prev.ActualHeight + .MarginMiddleVertical
-                                    End If
-                                Else
-                                    ' 子がないか、折りたたまれている場合
-
-                                    .ActualHeight = .MarginTop + .TextHeight + .MarginBottom
-
-                                    .ActualWidth = .TextWidth
-                                End If
-
-                            End With
-
-                        Else
-                            If .AutoSize Then
-
-                                .DesiredWidth = .LeftPadding + .TextWidth + .RightPadding
-                            Else
-
-                                .DesiredWidth = .Width
-                            End If
-
-                            .ActualWidth = .DesiredWidth
-                            .ActualHeight = .TextHeight
-                        End If
-                    End With
-
                 ElseIf TypeOf self Is TTreeView Then
                     With CType(self, TTreeView)
                         .ContentWidth = .Root.ActualWidth
@@ -345,8 +383,8 @@ Public Class TMyApplication
     <_Invariant()> Public Sub PositionRule(self As Object, app As TMyApplication)
         If TypeOf self Is TControl Then
             With CType(self, TControl)
-                If TypeOf ._ParentControl Is TCanvas Then
-                    Dim canvas As TCanvas = CType(._ParentControl, TCanvas)
+                If TypeOf .ParentControl Is TCanvas Then
+                    Dim canvas As TCanvas = CType(.ParentControl, TCanvas)
 
                     If Not Double.IsNaN(.MarginLeft) Then
                         ' 左のマージンが有効の場合
@@ -372,8 +410,11 @@ Public Class TMyApplication
 
                     End If
 
-                ElseIf TypeOf ._ParentControl Is TStackPanel Then
-                    Dim stack_panel As TStackPanel = CType(._ParentControl, TStackPanel)
+                    .AbsPosition.X = .ParentControl.AbsPosition.X + .Position.X
+                    .AbsPosition.Y = .ParentControl.AbsPosition.Y + .Position.Y
+
+                ElseIf TypeOf .ParentControl Is TStackPanel Then
+                    Dim stack_panel As TStackPanel = CType(.ParentControl, TStackPanel)
 
                     Select Case stack_panel.Orientation
 
@@ -399,6 +440,11 @@ Public Class TMyApplication
 
                             End If
                     End Select
+
+                Else
+
+                    .AbsPosition.X = .Position.X
+                    .AbsPosition.Y = .Position.Y
                 End If
 
                 If TypeOf self Is TScrollView Then
