@@ -342,7 +342,7 @@ Public Class TMyApplication
         End If
     End Sub
 
-    Public Sub PositionRule(self As Object, app As TMyApplication)
+    <_Invariant()> Public Sub PositionRule(self As Object, app As TMyApplication)
         If TypeOf self Is TControl Then
             With CType(self, TControl)
                 If TypeOf ._ParentControl Is TCanvas Then

@@ -1,0 +1,27 @@
+﻿body {
+    background-color:cornsilk;
+    line-height: 150%;
+}
+pre {
+    font-family:monospace;
+    line-height: 120%;
+}
+.res {
+    color:blue;
+}
+.cls{
+    color:cadetblue;
+}
+
+.reserved {
+	color: blue;
+}
+.class {
+	color: Teal;
+}
+.string {
+	color: red;
+}
+.comment {
+	color: #008000;
+}

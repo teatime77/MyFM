@@ -88,7 +88,7 @@ TRuntime.prototype.AnimationFrameLoop = function () {
     var _this = this;
     this.Graphics.Clear();
     this.App.Graphics = this.Graphics;
-    this.App.Navigate_Rule(this.App, this.App);
+    this.App.AllRule(this.App, this.App);
 
     if (this.App.ShapeList != null) {
         this.Graphics.Context.setTransform(1, 0, 0, 1, 0, 0);

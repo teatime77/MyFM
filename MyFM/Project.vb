@@ -924,12 +924,10 @@ Public Class TProject
     End Sub
 
 
-    Public Function InitNavigateFunction(function_name As String, cla1 As TClass, dt As TUseDefineAnalysis) As TFunction
+    Public Function InitNavigateFunction(function_name As String, cla1 As TClass) As TFunction
         Dim fnc1 As New TFunction(function_name, Me, cla1)
 
         Debug.Print("Init Navigate Function {0}.{1}", cla1.NameVar, function_name)
-
-        dt.NaviFunctionList.Add(fnc1)
 
         Dim self_var As New TLocalVariable("self", ObjectType)
         Dim app_var As New TLocalVariable("app", MainClass)
@@ -1349,7 +1347,8 @@ Public Class TProject
 
         For Each cla1 In navigation_field_list_table.Keys()
             Dim navigation_field_list As List(Of TField) = navigation_field_list_table(cla1)
-            Dim fnc1 As TFunction = InitNavigateFunction(function_name, cla1, dt)
+            Dim fnc1 As TFunction = InitNavigateFunction(function_name, cla1)
+            dt.NaviFunctionList.Add(fnc1)
 
             If dt.UseParentClassList.Contains(cla1) Then
                 ' 親のフィールドの値を参照している場合
@@ -1407,7 +1406,8 @@ Public Class TProject
         For Each cla1 In navi_needed_class_list
             If Not navigation_field_list_table.Keys().Contains(cla1) Then
 
-                Dim fnc1 As TFunction = InitNavigateFunction(function_name, cla1, dt)
+                Dim fnc1 As TFunction = InitNavigateFunction(function_name, cla1)
+                dt.NaviFunctionList.Add(fnc1)
                 AddRuleCall(fnc1, cla1)
             End If
         Next
@@ -1822,6 +1822,9 @@ Public Class TProject
 
         If MainClass IsNot Nothing Then
 
+            ' すべての不変条件メソッドを呼ぶメソッド
+            Dim all_rule As TFunction = InitNavigateFunction("AllRule", MainClass)
+
             Dim vrule = (From fnc In MainClass.FncCla Where fnc.ModVar.isInvariant).ToList()
             For Each rule In vrule
                 Dim dt As New TUseDefineAnalysis
@@ -1871,7 +1874,20 @@ Public Class TProject
                 For Each fnc1 In dt.NaviFunctionList
                     EnsureFunctionIntegrity(fnc1)
                 Next
+
+                ' アプリのクラスの不変条件メソッドを得る。
+                Dim app_rule = From fnc1 In dt.NaviFunctionList Where fnc1.ClaFnc.IsSuperClassOf(MainClass) AndAlso fnc1.ClaFnc IsNot ObjectType
+                Debug.Assert(app_rule.Count() = 1)
+
+                ' アプリのクラスの不変条件メソッドを呼ぶ。
+                Dim app1 As TApply = TApply.MakeAppCall(New TDot(Nothing, app_rule.First()))
+                app1.ArgApp.Add(New TReference(all_rule.ArgFnc(0)))
+                app1.ArgApp.Add(New TReference(all_rule.ArgFnc(1)))
+                all_rule.BlcFnc.AddStmtBlc(New TCall(app1))
             Next
+
+            ' すべての不変条件メソッドの整合性を保つ。
+            EnsureFunctionIntegrity(all_rule)
         End If
 
         Dim function_list As List(Of TFunction) = MakeSetParent()

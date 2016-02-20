@@ -1,0 +1,629 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>形式手法ツール MyFM ～ ループはもう書かない</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <h1>ループはもう書かない</h1>
+
+    <h2>はじめに</h2>
+    このサイトでは自作の<a href="https://ja.wikipedia.org/wiki/%E5%BD%A2%E5%BC%8F%E6%89%8B%E6%B3%95">形式手法(Formal Methods)</a>のツールであるMyFMについて書いてます。<br />
+    形式手法はアプリの正しさを数学的に証明することによって、信頼性の高いアプリを作る開発手法です。<br />
+    <br />
+    <a href="https://ja.wikipedia.org/wiki/%E6%A7%8B%E9%80%A0%E5%8C%96%E3%83%97%E3%83%AD%E3%82%B0%E3%83%A9%E3%83%9F%E3%83%B3%E3%82%B0">構造化プログラミング</a>を提唱したダイクストラは
+    goto文を使わず、順次処理・分岐処理・ループの三つの構造化文を使えばプログラムの正しさの証明ができると主張しました。<br />
+    <br />
+    <img src="img/structured.png" />
+    <br />
+    <br />
+    でもループを解析してプログラムを証明するって結構たいへんです。<br />
+    <br />
+    で、思ったのが「ループって書かなくていいんじゃない？」ということ。<br />
+    そもそも、なぜループを書くかというとアプリのデータ構造がリストや木構造になっているからてす。<br />
+    <img src="img/loop.png" /><br />
+    <br />
+    <br />
+    じゃあ、アプリのデータ構造を解析してループを生成すればいいんじゃない？というのが、MyFMの基本的な考えです。<br />
+    <br />
+    形式手法のツールとしては<a href="https://ja.wikipedia.org/wiki/Z%E8%A8%80%E8%AA%9E">Z</a>や<a href="https://ja.wikipedia.org/wiki/VDM">VDM</a>のように上流工程の仕様を記述する方法が有名ですが、
+    MyFMでは<a href="https://ja.wikipedia.org/wiki/%E9%9D%99%E7%9A%84%E3%82%B3%E3%83%BC%E3%83%89%E8%A7%A3%E6%9E%90">静的コード解析</a>の方法を使うので下流工程のツールです。<br />
+    <br />
+    MyFMの大きな流れは以下のようになります。<br />
+
+    <ol>
+        <li>
+            アプリの中のオブジェクトが常に満たすべき条件(不変条件)をVB.NETの構文を使って記述します。
+            <!--  -->
+        </li>
+        <li>不変条件からループを含む実行可能なソースコードを生成します。</li>
+        <li>生成されたコードで、Nullポインタ例外やキャスト例外などのエラーが起こらないことを証明します。</li>
+    </ol>
+
+
+    ループがなければ、静的コード解析は格段に簡単になり、証明が容易になります。<br />
+    ループの生成はRDBでのSQL文でも行っていることなので、MyFMはRDBの一種の拡張になります。<br />
+    <br />
+    <img src="img/easy.png" />
+    <br />
+    <br />
+    なお、必ずしもFor文やDo While文などのループ文を生成しなければならないというわけではありません。<br />
+    MyFMはデータの依存関係を解析して実行順序を決めるので、本来は<a href="https://ja.wikipedia.org/wiki/%E3%83%87%E3%83%BC%E3%82%BF%E3%83%95%E3%83%AD%E3%83%BC%E3%83%97%E3%83%AD%E3%82%B0%E3%83%A9%E3%83%9F%E3%83%B3%E3%82%B0">データフロープログラミング</a> のコードを生成する方が適しています。<br />
+    並列処理ができるという点でもデータフロープログラミングの方が有利なので、最終的にはデータフロープログラミングに対応する予定です。<br />
+    <br />
+    生成されるコードも現在はVB.NETとJavaScriptだけですが、将来的にはさまざまな言語やプラットフォームに対応したいと思っています。<br />
+    <br />
+    ちなみに.NETのコードからJavaScriptのコードを生成するツールとしてはマイクロソフトの<a href="https://ja.wikipedia.org/wiki/TypeScript">TypeScript</a>があります。<br />
+    MyFMは<a href="https://ja.wikipedia.org/wiki/%E7%B5%B1%E5%90%88%E8%A8%80%E8%AA%9E%E3%82%AF%E3%82%A8%E3%83%AA">統合言語クエリ(LINQ)</a>に対応していて、この点ではTypeScriptより高機能なので、
+    形式手法などややこしいことを言わずに、単純にLINQ対応のJavaScriptを生成するツールと言った方が一般にはウケるかも知れませんが、形式手法はわたしのライフワークなので、とりあえずこの方向で進めることにします。<br />
+    <br />
+
+
+
+    ソースコードはオープンソースでGitHubに入れています。<br />
+    <a href="https://github.com/teatime77/MyFM">https://github.com/teatime77/MyFM</a><br />
+    自由に使ってもらってよいのですが、変数名の変更などいろいろとソースを整理している途中なので、ダウンロードするのはもう少し待ってもらった方がよいかも知れません。
+    <br />
+    <br />
+
+    <h2>目次</h2>
+
+    <ol>
+        <li>
+            <a href="#app_sample">アプリのサンプル</a><br />
+            <br />
+        </li>
+        <li>
+            <a href="#principle">動作原理</a><br />
+            <br />
+
+        </li>
+        <li>
+            <a href="#generated_code">生成されるコード</a><br />
+            <br />
+
+        </li>
+        <li>
+            <a href="#invariant_rule">不変条件メソッドの記述の規則</a><br />
+            <br />
+
+        </li>
+        <li>
+            <a href="#virtual_method">不変条件から仮想メソッドの生成</a><br />
+            <br />
+
+        </li>
+        <li>
+            <a href="#navigation_field">ナビゲートするフィールドを求める</a><br />
+            <br />
+
+        </li>
+        <li>
+            <a href="#set_parent">親や直前のノードを設定するメソッドの生成</a><br />
+            <br />
+
+        </li>
+        <li>
+            <a href="#VirtualizedMethodDefUseDependency">不変条件から作った仮想メソッド内の使用参照と定義参照の依存関係を求める。</a><br />
+            <br />
+
+        </li>
+        <li>
+            <a href="#VirtualizedMethodParentChildDefUseDependency">親や子のフィールドの使用参照と定義参照の依存関係を求める。</a><br />
+            <br />
+
+        </li>
+        <li>
+            <a href="#MakeNaviFunction">ナビゲート メソッドを作る。</a><br />
+            <br />
+
+        </li>
+        <li>
+            <a href="#proof">証明の方法</a><br />
+        </li>
+    </ol>
+    <br />
+
+
+    <h2 id="app_sample">アプリのサンプル</h2>
+
+    以下では簡単なネコのサンプルアプリを使って説明します。<br />
+
+
+    <img src="img/family.png" /><br />
+
+    アプリのデータ構造は、おばあちゃんネコをルートノードとする木構造になっています。<br />
+
+    木構造の中のノードのフィールドの値は親の値に依存する場合(トップダウン)と、子の値に依存する場合(ボトムアップ)の２種類があります。<br />
+    リンクをクリックしてそれぞれのアプリの動作をご確認ください。<br />
+    <br />
+    &nbsp;&nbsp;&nbsp;&nbsp;<a style="font-size:120%" href="App4/out/JavaScript/index.html">トップダウンのアプリ</a><br />
+    &nbsp;&nbsp;&nbsp;&nbsp;<a style="font-size:120%" href="App5/out/JavaScript/index.html">ボトムアップのアプリ</a><br />
+
+    <br />
+上記のアプリのねこのクラスの定義は以下のようになります。<br/>
+ここで <b>&lt;_Parent()&gt;</b> と <b>&lt;_Prev()&gt;</b> はフィールドの属性です。<br/>
+<b>&lt;_Parent()&gt;</b> は親ノードを指し、<b>&lt;_Prev()&gt;</b> は直前のノードを指します。
+<pre>
+<code>
+<span class="reserved">Public </span><span class="reserved"> Class </span><span class="text">ねこ</span>
+    <span class=""> < </span><span class="text">_Parent</span><span class="symbol">(</span><span class="symbol">)</span><span class=""> > </span><span class="reserved"> Public </span><span class="variable">親</span><span class="reserved"> As </span><span class="text">ねこ</span>
+    <span class=""> < </span><span class="text">_Prev</span><span class="symbol">(</span><span class="symbol">)</span><span class=""> > </span><span class="reserved"> Public </span><span class="variable">直前</span><span class="reserved"> As </span><span class="text">ねこ</span>
+    <span class="reserved">Public </span><span class="variable">子供</span><span class="reserved"> As </span><span class="reserved"> New </span><span class="text">List</span><span class="symbol">(</span><span class="reserved"> Of </span><span class="text">ねこ</span><span class="symbol">)</span>
+    <span class="reserved">Public </span><span class="variable">位置</span><span class="reserved"> As </span><span class="text">Point</span>
+<span class="reserved">End Class </span>
+</code>
+</pre>
+
+
+トップダウンのアプリでは不変条件は以下のようになります。<br />
+ここで <b>&lt;_Invariant()&gt;</b> は、このメソッドが不変条件であることを示す属性です。
+<pre>
+<code>
+<span class=""> < </span><span class="text">_Invariant</span><span class="symbol">(</span><span class="symbol">)</span><span class=""> > </span><span class="reserved"> Public </span><span class="reserved"> Overrides </span><span class="reserved"> Sub </span><span class="variable">Rule</span><span class="symbol">(</span><span class="variable">self</span><span class="reserved"> As </span><span class="text">Object</span><span class=""> , </span><span class="variable">app</span><span class="reserved"> As </span><span class="text">TMyApplication</span><span class="symbol">)</span>
+    <span class="reserved">If </span><span class="reserved"> TypeOf </span><span class="reference">self</span><span class="reserved"> Is </span><span class="text">ねこ</span><span class="reserved"> Then</span>
+        <span class="reserved">With </span><span class="reserved"> CType </span><span class="symbol">(</span><span class="reference">self</span><span class=""> , </span><span class="text">ねこ</span><span class="symbol">)</span>
+            <span class="reserved">If </span><span class="symbol">.</span><span class="text">親</span><span class="reserved"> Is </span><span class="reference">Nothing</span><span class="reserved"> Then</span>
+                <span class="comment">' 親がいない場合</span>
+
+                <span class="comment">' 位置はマウスの位置</span>
+                <span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">X</span><span class=""> = </span><span class="reference">app</span><span class="symbol">.</span><span class="text">マウス位置</span><span class="symbol">.</span><span class="text">X</span>
+                <span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">Y</span><span class=""> = </span><span class="reference">app</span><span class="symbol">.</span><span class="text">マウス位置</span><span class="symbol">.</span><span class="text">Y</span>
+            <span class="reserved">Else </span>
+                <span class="comment">' 親がいる場合</span>
+
+                <span class="comment">' Y位置 = 親のY位置 + 100</span>
+                <span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">Y</span><span class=""> = </span><span class="symbol">.</span><span class="text">親</span><span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">Y</span><span class=""> + </span><span class="text">100</span>
+
+                <span class="reserved">If </span><span class="symbol">.</span><span class="text">直前</span><span class="reserved"> Is </span><span class="reference">Nothing</span><span class="reserved"> Then</span>
+                    <span class="comment">' 子の先頭の場合</span>
+
+                    <span class="comment">' X位置 = 親のX位置</span>
+                    <span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">X</span><span class=""> = </span><span class="symbol">.</span><span class="text">親</span><span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">X</span>
+                <span class="reserved">Else </span>
+                    <span class="comment">' 子の先頭でない場合</span>
+
+                    <span class="comment">' X位置 = 直前のX位置 + 100</span>
+                    <span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">X</span><span class=""> = </span><span class="symbol">.</span><span class="text">直前</span><span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">X</span><span class=""> + </span><span class="text">100</span>
+                <span class="reserved">End If </span>
+            <span class="reserved">End If </span>
+        <span class="reserved">End With </span>
+    <span class="reserved">End If </span>
+<span class="reserved">End Sub </span>
+
+</code>
+</pre>
+
+
+ボトムアップのアプリでは不変条件は以下のようになります。<br />
+<pre><code>    
+<span class=""> < </span><span class="text">_Invariant</span><span class="symbol">(</span><span class="symbol">)</span><span class=""> > </span><span class="reserved"> Sub </span><span class="variable">Rule</span><span class="symbol">(</span><span class="variable">self</span><span class="reserved"> As </span><span class="text">Object</span><span class=""> , </span><span class="variable">app</span><span class="reserved"> As </span><span class="text">TMyApplication</span><span class="symbol">)</span>
+    <span class="reserved">With </span><span class="reserved"> CType </span><span class="symbol">(</span><span class="text">self</span><span class=""> , </span><span class="text">ねこ</span><span class="symbol">)</span>
+        <span class="reserved">If </span><span class="symbol">.</span><span class="text">子供</span><span class="symbol">.</span><span class="text">length</span><span class=""> = </span><span class="text">0</span><span class="reserved"> Then</span>
+            <span class="comment">' 子供がない場合</span>
+
+            <span class="reserved">If </span><span class="symbol">.</span><span class="text">直前</span><span class="reserved"> Is </span><span class="reference">Nothing</span><span class="reserved"> Then</span>
+                <span class="comment">' 先頭の場合</span>
+
+                <span class="comment">' 位置はマウスの位置</span>
+                <span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">X</span><span class=""> = </span><span class="reference">app</span><span class="symbol">.</span><span class="text">MousePosition</span><span class="symbol">.</span><span class="text">X</span>
+                <span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">Y</span><span class=""> = </span><span class="reference">app</span><span class="symbol">.</span><span class="text">MousePosition</span><span class="symbol">.</span><span class="text">Y</span>
+            <span class="reserved">Else </span>
+                <span class="comment">' 先頭でない場合</span>
+
+                <span class="comment">' X位置 = 直前のX位置 + 100</span>
+                <span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">X</span><span class=""> = </span><span class="symbol">.</span><span class="text">直前</span><span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">X</span><span class=""> + </span><span class="text">100</span>
+
+                <span class="comment">' Y位置 = 直前のY位置</span>
+                <span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">Y</span><span class=""> = </span><span class="symbol">.</span><span class="text">直前</span><span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">Y</span>
+            <span class="reserved">End If </span>
+        <span class="reserved">Else </span>
+            <span class="comment">' 子供がある場合</span>
+
+            <span class="comment">' X位置 = 子供のX位置の平均値</span>
+            <span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">X</span><span class=""> = </span><span class="reserved"> Aggregate </span><span class="text">x</span><span class="reserved"> In </span><span class="symbol">.</span><span class="text">子供</span><span class="reserved"> Into </span><span class="text">Average</span><span class="symbol">(</span><span class="reference">x</span><span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">X</span><span class="symbol">)</span>
+
+            <span class="comment">' Y位置 = 子供のY位置の平均値 - 100</span>
+            <span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">Y</span><span class=""> = </span><span class="symbol">(</span><span class="reserved"> Aggregate </span><span class="text">x</span><span class="reserved"> In </span><span class="symbol">.</span><span class="text">子供</span><span class="reserved"> Into </span><span class="text">Average</span><span class="symbol">(</span><span class="reference">x</span><span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">Y</span><span class="symbol">)</span><span class="symbol">)</span><span class=""> - </span><span class="text">100</span>
+        <span class="reserved">End If </span>
+    <span class="reserved">End With </span>
+<span class="reserved">End Sub </span>
+</code></pre>
+    <br />
+
+
+<h2 id="principle">動作原理</h2>
+MyFMの動作原理は以下のように非常に単純です。
+
+
+<ol>
+    <li>アプリ内のすべてのオブジェクトが満たすべき不変条件をメソッドの形で書きます。</li>
+    <li>アプリ内のすべてのオブジェクトをナビゲートするメソッドを生成します。</li>
+    <li>ナビゲートするメソッドから不変条件のメソッドを呼ぶようにします。</li>
+</ol>
+
+すごく愚直な方法で実行速度が遅くなりそうですが、びっくりするほど遅いというわけではありません。<br />
+実はMyFM内部の多くの処理もこういう方法で実装しています。<br />
+    <br />
+    ただ、ある程度の規模のアプリになると不変条件のメソッドは巨大なIf文になり、これをアプリ内のすべてのオブジェクトに対してブンブン回すというのは非効率的です。<br />
+    これを改善する方法は<a href="#virtual_method">不変条件から仮想メソッドの生成</a>で説明しています。<br />
+    <br />
+    アプリ内のすべてのオブジェクトをナビゲートするにはルートノードからフィールドを順々にたどっていきます。<br />
+    これについては<a href="#navigation_field">ナビゲートするフィールドを求める</a>に書いています。<br />
+    <br />
+    親ノードや直前のノードを指すフィールドに値を設定する方法は<a href="#set_parent">親や直前のノードを設定するメソッドの生成</a>にあります。<br />
+    <br />
+    木構造の中のノードのフィールドの値は親の値に依存する場合(トップダウン)と、子の値に依存する場合(ボトムアップ)の２種類がありますが、それを判断する方法は<a href="#VirtualizedMethodParentChildDefUseDependency">親や子のフィールドの使用参照と定義参照の依存関係を求める</a>で書いています。<br />
+    <br />
+    アプリ内のすべてのオブジェクトをナビゲートするメソッドは<a href="#MakeNaviFunction">ナビゲート メソッドを作る</a>で説明しています。<br />
+    <br />
+    最後は<a href="#proof">証明の方法</a>についての説明です。<br />
+        <br />
+        <br />
+
+        <h2 id="generated_code">生成されるコード</h2>
+        以下の３個のメソッドが生成されます。
+        <ul>
+            <li>親や直前のノードを指すフィールドに値をセットするメソッド</li>
+            <li>不変条件から生成した仮想メソッド</li>
+            <li>オブジェクトをナビゲートするメソッド</li>
+        </ul>
+
+        <h4>親や直前のノードを指すフィールドに値をセットするメソッド</h4>
+        サンプルアプリでは以下のようになります。<br />
+        このメソッドはクラスのフィールドの情報から生成します。
+
+<pre><code>
+        <span class="reserved">Public </span><span class="reserved"> Overrides </span><span class="reserved"> Sub </span><span class="variable">__SetParent</span><span class="symbol">(</span><span class="variable">self</span><span class="reserved"> As </span><span class="text">Object</span><span class=""> , </span><span class="variable">_Parent</span><span class="reserved"> As </span><span class="text">Object</span><span class=""> , </span><span class="variable">_Prev</span><span class="reserved"> As </span><span class="text">Object</span><span class="symbol">)</span>
+        <span class="reserved">With </span><span class="reserved"> CType </span><span class="symbol">(</span><span class="text">self</span><span class=""> , </span><span class="text">ねこ</span><span class="symbol">)</span>
+        <span class="reserved">MyBase </span><span class="symbol">.</span><span class="reference">__SetParent</span><span class="symbol">(</span><span class="reference">self</span><span class=""> , </span><span class="reference">_Parent</span><span class=""> , </span><span class="reference">_Prev</span><span class="symbol">)</span>
+        <span class="reserved">If </span><span class="reserved"> TypeOf </span><span class="reference">_Parent</span><span class="reserved"> Is </span><span class="text">ねこ</span><span class="reserved"> Then</span>
+        <span class="symbol">.</span><span class="text">親</span><span class=""> = </span><span class="reference">_Parent</span>
+        <span class="reserved">End If </span>
+        <span class="reserved">If </span><span class="reserved"> TypeOf </span><span class="reference">_Prev</span><span class="reserved"> Is </span><span class="text">ねこ</span><span class="reserved"> Then</span>
+        <span class="symbol">.</span><span class="text">直前</span><span class=""> = </span><span class="reference">_Prev</span>
+        <span class="reserved">End If </span>
+        <span class="reserved">If </span><span class="symbol">.</span><span class="text">子供</span><span class="reserved"> IsNot </span><span class="reference">Nothing</span><span class="reserved"> Then</span>
+        <span class="symbol">.</span><span class="text">子供</span><span class="symbol">.</span><span class="text">UpList</span><span class=""> = </span><span class="reference">self</span>
+        <span class="reserved">Dim </span><span class="variable">__prev</span><span class="reserved"> As </span><span class="text">ねこ</span>
+        <span class="reserved">For </span><span class="reserved"> Each </span><span class="text">x</span><span class="reserved"> In </span><span class="symbol">.</span><span class="text">子供</span>
+        <span class="reference">x</span><span class="symbol">.</span><span class="text">__SetParent</span><span class="symbol">(</span><span class="reference">x</span><span class=""> , </span><span class="reference">self</span><span class=""> , </span><span class="reference">__prev</span><span class="symbol">)</span>
+        <span class="reference">__prev</span><span class=""> = </span><span class="reference">x</span>
+        <span class="reserved">Next </span>
+        <span class="reserved">End If </span>
+        <span class="reserved">End With </span>
+        <span class="reserved">End Sub </span>
+</code></pre>
+
+        <h4>不変条件から生成した仮想メソッド</h4>
+        サンプルアプリではクラスは１つしかないので、不変条件とほとんど同じ形をしています。<br />
+        ただし、不変条件はアプリケーションのクラスのメソッドとして定義されますが、以下はねこクラスの仮想メソッドとして生成されます。
+
+<pre><code>
+        <span class=""> < </span><span class="text">_Invariant</span><span class="symbol">(</span><span class="symbol">)</span><span class=""> > </span><span class="reserved"> Sub </span><span class="variable">Rule</span><span class="symbol">(</span><span class="variable">self</span><span class="reserved"> As </span><span class="text">Object</span><span class=""> , </span><span class="variable">app</span><span class="reserved"> As </span><span class="text">TMyApplication</span><span class="symbol">)</span>
+        <span class="reserved">With </span><span class="reserved"> CType </span><span class="symbol">(</span><span class="text">self</span><span class=""> , </span><span class="text">ねこ</span><span class="symbol">)</span>
+        <span class="reserved">If </span><span class="symbol">.</span><span class="text">親</span><span class="reserved"> Is </span><span class="reference">Nothing</span><span class="reserved"> Then</span>
+        <span class="comment">' 親がいない場合</span>
+        <span class="comment">' 位置はマウスの位置</span>
+        <span class="symbol">.</span><span class="text">Center</span><span class="symbol">.</span><span class="text">X</span><span class=""> = </span><span class="reference">app</span><span class="symbol">.</span><span class="text">MousePosition</span><span class="symbol">.</span><span class="text">X</span>
+        <span class="symbol">.</span><span class="text">Center</span><span class="symbol">.</span><span class="text">Y</span><span class=""> = </span><span class="reference">app</span><span class="symbol">.</span><span class="text">MousePosition</span><span class="symbol">.</span><span class="text">Y</span>
+        <span class="reserved">Else </span>
+        <span class="comment">' 親がいない場合</span>
+        <span class="comment">' Y位置 = 親のY位置 + 100</span>
+        <span class="symbol">.</span><span class="text">Center</span><span class="symbol">.</span><span class="text">Y</span><span class=""> = </span><span class="symbol">.</span><span class="text">親</span><span class="symbol">.</span><span class="text">Center</span><span class="symbol">.</span><span class="text">Y</span><span class=""> + </span><span class="text">100</span>
+        <span class="reserved">If </span><span class="symbol">.</span><span class="text">直前</span><span class="reserved"> Is </span><span class="reference">Nothing</span><span class="reserved"> Then</span>
+        <span class="comment">' 子の先頭の場合</span>
+        <span class="comment">' X位置 = 親のX位置</span>
+        <span class="symbol">.</span><span class="text">Center</span><span class="symbol">.</span><span class="text">X</span><span class=""> = </span><span class="symbol">.</span><span class="text">親</span><span class="symbol">.</span><span class="text">Center</span><span class="symbol">.</span><span class="text">X</span>
+        <span class="reserved">Else </span>
+        <span class="comment">' 子の先頭の場合</span>
+        <span class="comment">' X位置 = 直前のX位置 + 100</span>
+        <span class="symbol">.</span><span class="text">Center</span><span class="symbol">.</span><span class="text">X</span><span class=""> = </span><span class="symbol">.</span><span class="text">直前</span><span class="symbol">.</span><span class="text">Center</span><span class="symbol">.</span><span class="text">X</span><span class=""> + </span><span class="text">100</span>
+        <span class="reserved">End If </span>
+        <span class="reserved">End If </span>
+        <span class="reserved">End With </span>
+        <span class="reserved">End Sub </span>
+</code></pre>
+
+
+        <h4>オブジェクトをナビゲートするメソッド</h4>
+        <h5>トップダウンの場合</h5>
+        トップダウンの場合は、親のフィールドの値を子が使うので、親の不変条件メソッド(<b>Rule</b>)を呼んで親のフィールドの値を確定してから、子供たちのナビゲート メソッド(<b>Navigate_Rule</b>)を呼びます。<br />
+<pre><code>
+        <span class="reserved">Sub </span><span class="variable">Navigate_Rule</span><span class="symbol">(</span><span class="variable">self</span><span class="reserved"> As </span><span class="text">Object</span><span class=""> , </span><span class="variable">app</span><span class="reserved"> As </span><span class="text">TMyApplication</span><span class="symbol">)</span>
+        <span class="reserved">With </span><span class="reserved"> CType </span><span class="symbol">(</span><span class="text">self</span><span class=""> , </span><span class="text">ねこ</span><span class="symbol">)</span>
+        <span class="comment">' ----- 不変条件メソッドを呼んでから、子供たちのナビゲート メソッドを呼びます。 -----</span>
+        <span class="symbol">.</span><span class="text">Rule</span><span class="symbol">(</span><span class="reference">self</span><span class=""> , </span><span class="reference">app</span><span class="symbol">)</span>
+        <span class="reserved">For </span><span class="reserved"> Each </span><span class="text">x</span><span class="reserved"> In </span><span class="symbol">.</span><span class="text">子供</span>
+        <span class="reference">x</span><span class="symbol">.</span><span class="text">Navigate_Rule</span><span class="symbol">(</span><span class="reference">x</span><span class=""> , </span><span class="reference">app</span><span class="symbol">)</span>
+        <span class="reserved">Next </span>
+        <span class="reserved">End With </span>
+        <span class="reserved">End Sub </span>
+</code></pre>
+
+
+        <h5>ボトムアップの場合</h5>
+        ボトムアップの場合は、子のフィールドの値を親が使うので、子供たちのナビゲート メソッド(<b>Navigate_Rule</b>)を呼んで子のフィールドの値を確定してから、親の不変条件メソッド(<b>Rule</b>)を呼びます。<br />
+
+<pre><code>
+        <span class="reserved">Sub </span><span class="variable">Navigate_Rule</span><span class="symbol">(</span><span class="variable">self</span><span class="reserved"> As </span><span class="text">Object</span><span class=""> , </span><span class="variable">app</span><span class="reserved"> As </span><span class="text">TMyApplication</span><span class="symbol">)</span>
+        <span class="reserved">With </span><span class="reserved"> CType </span><span class="symbol">(</span><span class="text">self</span><span class=""> , </span><span class="text">ねこ</span><span class="symbol">)</span>
+        <span class="reserved">For </span><span class="reserved"> Each </span><span class="text">x</span><span class="reserved"> In </span><span class="symbol">.</span><span class="text">子供</span>
+        <span class="reference">x</span><span class="symbol">.</span><span class="text">Navigate_Rule</span><span class="symbol">(</span><span class="reference">x</span><span class=""> , </span><span class="reference">app</span><span class="symbol">)</span>
+        <span class="reserved">Next </span>
+        <span class="comment">' ----- 子供たちのナビゲート メソッドを呼んでから、不変条件メソッドを呼びます。 -----</span>
+        <span class="symbol">.</span><span class="text">Rule</span><span class="symbol">(</span><span class="reference">self</span><span class=""> , </span><span class="reference">app</span><span class="symbol">)</span>
+        <span class="reserved">End With </span>
+        <span class="reserved">End Sub </span>
+</code></pre>
+
+        <br />
+
+        <h2 id="invariant_rule">不変条件メソッドの記述の規則</h2>
+        不変条件は一見VB.NETのコードですが、VB.NETで許されるコードを何でも書いてしまうと、解析が困難になるので一定の規則を決めることにします。<br />
+
+        サンプルアプリを見ると、オブジェクトのフィールドの値は親、子、直前などの隣接するオブジェクトの値に依存しているのが分かります。<br />
+        不変条件はオブジェクトの値を隣接するオブジェクトの値で定義するようにします。<br />
+
+        <h5>規則Ⅰ 不変条件のメソッドの宣言方法</h5>
+        メソッドの属性として <b>&lt;_Invariant()&gt;</b> を指定して、このメソッドが不変条件であることを明示します。<br />
+
+        メソッドの最初の引数は現在の処理対象のオブジェクト、２番目の引数はアプリのルートオブジェクトとします。
+
+        <h5>規則Ⅱ 処理対象はWithは囲む。</h5>
+
+        現在の処理対象のオブジェクトを以下のようにWithステートメントで囲みます。
+
+<pre><code>
+        <span class="reserved">If </span><span class="reserved"> TypeOf </span><span class="reference">self</span><span class="reserved"> Is </span><span class="text">ねこ</span><span class="reserved"> Then</span>
+        <span class="reserved">With </span><span class="reserved"> CType </span><span class="symbol">(</span><span class="reference">self</span><span class=""> , </span><span class="text">ねこ</span><span class="symbol">)</span>
+        <span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">X</span><span class=""> = </span><span class="reference">app</span><span class="symbol">.</span><span class="text">マウス位置</span><span class="symbol">.</span><span class="text">X</span>        
+        <span class="reserved">End With </span>
+        <span class="reserved">End If </span>
+</code></pre>
+        <code><span class="reserved">With</span></code>で囲むと処理対象のフィールドは<code> <span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">X</span> </code>のようにドット(<b style="font-size:150%"> . </b>)の左がない形で参照できます。<br />
+        こうすると人がコードを見るときも、MyFMがコードを解析するときも、処理対象のフィールドへの参照が明確になり便利です。<br />
+
+        <h5>規則Ⅲ フィールドへの代入は処理対象のオブジェクトのみ可能</h5>
+
+        以下のように親や直前のノードなど隣接するオブジェクトのフィールドに代入してはならないとします。<br />
+<pre><code>
+        <span class="text">親</span><span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">X</span><span class=""> = </span><span class="reference">app</span><span class="symbol">.</span><span class="text">マウス位置</span><span class="symbol">.</span><span class="text">X</span>        
+        <span class="text">直前</span><span class="symbol">.</span><span class="text">位置</span><span class="symbol">.</span><span class="text">X</span><span class=""> = </span><span class="reference">app</span><span class="symbol">.</span><span class="text">マウス位置</span><span class="symbol">.</span><span class="text">X</span>        
+</code></pre>
+        フィールドへの代入では、処理対象のオブジェクトのフィールドのみ可とします。<br />
+        <br />
+
+
+
+        <h2 id="virtual_method">不変条件から仮想メソッドの生成</h2>
+        サンプルアプリはクラスが１つしかないので不変条件は単純ですが、一般のアプリは多くのクラスがあるので不変条件は大きくなります。<br />
+        A, B, C, D, Eの５つのクラスがある場合、不変条件は例えば以下のような形になります。
+<pre><code>
+        <span class="reserved">Public </span><span class="reserved"> Sub </span><span class="variable">Rule</span><span class="symbol">(</span><span class="variable">self</span><span class="reserved"> As </span><span class="text">Object</span><span class=""> , </span><span class="variable">app</span><span class="reserved"> As </span><span class="text">TMyApplication</span><span class="symbol">)</span>
+        <span class="reserved">If </span><span class="reserved"> TypeOf </span><span class="reference">self</span><span class="reserved"> Is </span><span class="text">A</span><span class="reserved"> Then</span>
+        <span class="reserved">With </span><span class="reserved"> CType </span><span class="symbol">(</span><span class="reference">self</span><span class=""> , </span><span class="text">A</span><span class="symbol">)</span>
+        <span class="comment">' ・・・ Aクラスの処理の記述 ・・・</span>
+        <span class="reserved">If </span><span class="reserved"> TypeOf </span><span class="reference">self</span><span class="reserved"> Is </span><span class="text">B</span><span class="reserved"> Then</span>
+        <span class="reserved">With </span><span class="reserved"> CType </span><span class="symbol">(</span><span class="reference">self</span><span class=""> , </span><span class="text">B</span><span class="symbol">)</span>
+        <span class="comment">' ・・・ Bクラスの処理の記述 ・・・</span>
+        <span class="reserved">End With </span>
+        <span class="reserved">ElseIf </span><span class="reserved"> TypeOf </span><span class="reference">self</span><span class="reserved"> Is </span><span class="text">C</span><span class="reserved"> Then</span>
+        <span class="reserved">With </span><span class="reserved"> CType </span><span class="symbol">(</span><span class="reference">self</span><span class=""> , </span><span class="text">C</span><span class="symbol">)</span>
+        <span class="comment">' ・・・ Cクラスの処理の記述 ・・・</span>
+        <span class="reserved">If </span><span class="reserved"> TypeOf </span><span class="reference">self</span><span class="reserved"> Is </span><span class="text">D</span><span class="reserved"> Then</span>
+        <span class="reserved">With </span><span class="reserved"> CType </span><span class="symbol">(</span><span class="reference">self</span><span class=""> , </span><span class="text">D</span><span class="symbol">)</span>
+        <span class="comment">' ・・・ Dクラスの処理の記述 ・・・</span>
+        <span class="reserved">End With </span>
+        <span class="reserved">ElseIf </span><span class="reserved"> TypeOf </span><span class="reference">self</span><span class="reserved"> Is </span><span class="text">E</span><span class="reserved"> Then</span>
+        <span class="reserved">With </span><span class="reserved"> CType </span><span class="symbol">(</span><span class="reference">self</span><span class=""> , </span><span class="text">E</span><span class="symbol">)</span>
+        <span class="comment">' ・・・ Eクラスの処理の記述 ・・・</span>
+        <span class="reserved">End With </span>
+        <span class="reserved">End If </span>
+        <span class="reserved">End With </span>
+        <span class="reserved">End If </span>
+        <span class="reserved">End With </span>
+        <span class="reserved">End If </span>
+        <span class="reserved">End Sub </span>
+</code></pre>
+
+        数十のクラスがあるアプリでは不変条件は巨大なIf文のかたまりになります。<br />
+        このような不変条件のメソッドを呼ぶのは効率が悪いので、以下のように不変条件をクラスごとの仮想メソッドに分解する方法を考えます。<br />
+
+<pre><code>
+<span class="reserved">Public </span><span class="reserved"> Class </span><span class="text">A</span>
+        <span class="reserved">Public </span><span class="reserved"> Overridable </span><span class="reserved"> Sub </span><span class="variable">Rule</span><span class="symbol">(</span><span class="variable">self</span><span class="reserved"> As </span><span class="text">Object</span><span class=""> , </span><span class="variable">app</span><span class="reserved"> As </span><span class="text">TMyApplication</span><span class="symbol">)</span>
+        <span class="comment">' ・・・ Aクラスの処理の記述 ・・・</span>
+        <span class="reserved">End Sub </span>
+<span class="reserved">End Class </span>
+<span class="reserved">Public </span><span class="reserved"> Class </span><span class="text">C</span>
+        <span class="reserved">Inherits </span><span class="text">A</span>
+        <span class="reserved">Public </span><span class="reserved"> Overrides </span><span class="reserved"> Sub </span><span class="variable">Rule</span><span class="symbol">(</span><span class="variable">self</span><span class="reserved"> As </span><span class="text">Object</span><span class=""> , </span><span class="variable">app</span><span class="reserved"> As </span><span class="text">TMyApplication</span><span class="symbol">)</span>
+        <span class="comment">' ・・・ Aクラスの処理の記述 ・・・</span>
+        <span class="comment">' ・・・ Cクラスの処理の記述 ・・・</span>
+        <span class="reserved">End Sub </span>
+<span class="reserved">End Class </span>
+<span class="reserved">Public </span><span class="reserved"> Class </span><span class="text">D</span>
+        <span class="reserved">Inherits </span><span class="text">C</span>
+        <span class="reserved">Public </span><span class="reserved"> Overrides </span><span class="reserved"> Sub </span><span class="variable">Rule</span><span class="symbol">(</span><span class="variable">self</span><span class="reserved"> As </span><span class="text">Object</span><span class=""> , </span><span class="variable">app</span><span class="reserved"> As </span><span class="text">TMyApplication</span><span class="symbol">)</span>
+        <span class="comment">' ・・・ Aクラスの処理の記述 ・・・</span>
+        <span class="comment">' ・・・ Cクラスの処理の記述 ・・・</span>
+        <span class="comment">' ・・・ Dクラスの処理の記述 ・・・</span>
+        <span class="reserved">End Sub </span>
+<span class="reserved">End Class </span>
+</code></pre>
+        サブクラスの仮想メソッドではスーパークラスの仮想メソッドの処理内容も含んでいます。<br />
+        <br />
+
+        仮想メソッドに分解する手順は以下の２段階になります。
+        <ol>
+            <li>仮想メソッドに変換可能のIf文を探す。</li>
+            <li>仮想メソッドに変換可能のIf文から仮想メソッドを作る。</li>
+        </ol>
+
+        関係するコードは以下になります。ソースがまだ整理されてなくて、現在作業中ですのでしばらくお待ちください。<br />
+        <b>仮想メソッドに変換可能のIf文を探す。</b>
+        &nbsp;&nbsp;<a href="src/TNaviSetVirtualizableIf.IsVirtualizableIfBlock.html">TNaviSetVirtualizableIf.IsVirtualizableIfBlock</a>
+        &nbsp;&nbsp;<a href="src/TNaviSetVirtualizableIf.StartCondition.html">TNaviSetVirtualizableIf.StartCondition</a><br />
+        <b>仮想メソッドに変換可能のIf文から仮想メソッドを作る。</b>
+        &nbsp;&nbsp;<a href="src/TNaviMakeVirtualizableIfMethod.CopyAncestorBlock.html">TNaviMakeVirtualizableIfMethod.CopyAncestorBlock</a>
+        &nbsp;&nbsp;<a href="src/TNaviMakeVirtualizableIfMethod.StartCondition.html">TNaviMakeVirtualizableIfMethod.StartCondition</a><br />
+        <br />
+
+        <h2 id="navigation_field">ナビゲートするフィールドを求める。</h2>
+
+        アプリのデータの木構造で、あるクラスのオブジェクト(青丸)に対して処理をしたいとします。<br />
+        ルート(赤丸)からどのようにフィールドをたどっていけばよいでしょうか?
+
+        <br />
+        <br />
+        <br />
+        <img src="img/not_cloud.png" /><br />
+
+        処理は２段階に分かれます。
+        <ol>
+            <li>青丸のクラスにアクセスするフィールドを順に上にたどっていき、それらのフィールドの集合をAとします。</li>
+            <li>ルート(赤丸)からアクセスできるフィールドを順に下にたどっていき、それらのフィールドの集合をBとします。</li>
+        </ol>
+        AとBの共通集合がループでナビゲートするフィールドになります。<br />
+        <br />
+        関係するコードは以下になります。<br />
+        &nbsp;&nbsp;<a href="src/TProject.MakeNavigationFieldListTable.html">TProject.MakeNavigationFieldListTable</a><br />
+        <br />
+
+        <h2 id="set_parent">親や直前のノードを設定するメソッドの生成</h2>
+        サンプルアプリの以下のねこのクラスでは<b> 親 </b>や<b> 直前 </b>のフィールドの値は自動的に設定することができます。<br />
+<pre>
+<code>
+        <span class="reserved">Public </span><span class="reserved"> Class </span><span class="text">ねこ</span>
+        <span class=""> < </span><span class="text">_Parent</span><span class="symbol">(</span><span class="symbol">)</span><span class=""> > </span><span class="reserved"> Public </span><span class="variable">親</span><span class="reserved"> As </span><span class="text">ねこ</span>
+        <span class=""> < </span><span class="text">_Prev</span><span class="symbol">(</span><span class="symbol">)</span><span class=""> > </span><span class="reserved"> Public </span><span class="variable">直前</span><span class="reserved"> As </span><span class="text">ねこ</span>
+        <span class="reserved">Public </span><span class="variable">子供</span><span class="reserved"> As </span><span class="reserved"> New </span><span class="text">List</span><span class="symbol">(</span><span class="reserved"> Of </span><span class="text">ねこ</span><span class="symbol">)</span>
+        <span class="reserved">Public </span><span class="variable">位置</span><span class="reserved"> As </span><span class="text">Point</span>
+        <span class="reserved">End Class </span>
+</code>
+</pre>
+
+        MyFMでは以下のようなコードが生成されます。
+<pre><code>    
+        <span class="reserved">Public </span><span class="reserved"> Overrides </span><span class="reserved"> Sub </span><span class="variable">__SetParent</span><span class="symbol">(</span><span class="variable">self</span><span class="reserved"> As </span><span class="text">Object</span><span class=""> , </span><span class="variable">_Parent</span><span class="reserved"> As </span><span class="text">Object</span><span class=""> , </span><span class="variable">_Prev</span><span class="reserved"> As </span><span class="text">Object</span><span class="symbol">)</span>
+        <span class="reserved">With </span><span class="reserved"> CType </span><span class="symbol">(</span><span class="text">self</span><span class=""> , </span><span class="text">ねこ</span><span class="symbol">)</span>
+        <span class="reserved">If </span><span class="reserved"> TypeOf </span><span class="reference">_Parent</span><span class="reserved"> Is </span><span class="text">ねこ</span><span class="reserved"> Then</span>
+        <span class="symbol">.</span><span class="text">親</span><span class=""> = </span><span class="reference">_Parent</span>
+        <span class="reserved">End If </span>
+        <span class="reserved">If </span><span class="reserved"> TypeOf </span><span class="reference">_Prev</span><span class="reserved"> Is </span><span class="text">ねこ</span><span class="reserved"> Then</span>
+        <span class="symbol">.</span><span class="text">直前</span><span class=""> = </span><span class="reference">_Prev</span>
+        <span class="reserved">End If </span>
+        <span class="reserved">If </span><span class="symbol">.</span><span class="text">子供</span><span class="reserved"> IsNot </span><span class="reference">Nothing</span><span class="reserved"> Then</span>
+        <span class="reserved">Dim </span><span class="variable">__prev</span><span class="reserved"> As </span><span class="text">ねこ</span>
+        <span class="reserved">For </span><span class="reserved"> Each </span><span class="text">x</span><span class="reserved"> In </span><span class="symbol">.</span><span class="text">子供</span>
+        <span class="reference">x</span><span class="symbol">.</span><span class="text">__SetParent</span><span class="symbol">(</span><span class="reference">x</span><span class=""> , </span><span class="reference">self</span><span class=""> , </span><span class="reference">__prev</span><span class="symbol">)</span>
+        <span class="reference">__prev</span><span class=""> = </span><span class="reference">x</span>
+        <span class="reserved">Next </span>
+        <span class="reserved">End If </span>
+        <span class="reserved">End With </span>
+        <span class="reserved">End Sub </span>
+</code></pre>
+
+        基本的には先ほどの「ループでナビゲートするフィールドを求める。」を使います。<br />
+        コードは以下なのですが、整理するまでもう少しお待ちください．．．<br />
+        &nbsp;&nbsp;<a href="src/TProject.MakeSetParent.html">TProject.MakeSetParent</a><br />
+        &nbsp;&nbsp;<a href="src/TProject.MakeSetParentSub.html">TProject.MakeSetParentSub</a><br />
+        <br />
+
+
+        <h2 id="VirtualizedMethodDefUseDependency">不変条件から作った仮想メソッド内の使用参照と定義参照の依存関係を求める。</h2>
+        変数の値を使用している箇所(使用参照)と、変数に値を代入している箇所(定義参照)の依存関係を調べます。(<a href="https://en.wikipedia.org/wiki/Use-define_chain">使用・定義連鎖</a>)<br />
+        ループがないおかげでずいぶん楽ちんです。<br />
+        関係するコードは以下になります。<br />
+        &nbsp;&nbsp;<a href="src/TProject.VirtualizedMethodDefUseDependency.html">TProject.VirtualizedMethodDefUseDependency</a><br />
+        <br />
+
+        使用・定義連鎖の解析では簡単な数学的な推論をしています。<br />
+        &nbsp;&nbsp;<a href="src/Sys.BinomialInference.html">Sys.BinomialInference</a><br />
+        &nbsp;&nbsp;<a href="src/Sys.Consistent.html">Sys.Consistent</a><br />
+        <br />
+
+        <h2 id="VirtualizedMethodParentChildDefUseDependency">親や子のフィールドの使用参照と定義参照の依存関係を求める。</h2>
+        サンプルアプリで、木構造の中のノードのフィールドの値は親の値に依存する場合(トップダウン)と、子の値に依存する場合(ボトムアップ)の２種類があると書きましたが、
+        トップダウンとボトムアップのどちらになるかをここで判断します。<br />
+        <br />
+        この結果によって木構造をナビゲートするときの実行順序が変わります。<br />
+        トップダウンの場合は、親のフィールドの値を子が使うので、親に不変条件メソッドを適用して親のフィールドの値を確定してから、子供たちへナビゲートします。<br />
+        ボトムアップの場合は、子のフィールドの値を親が使うので、子供たちへナビゲートして子のフィールドの値を確定してから、親の不変条件メソッドを適用します。<br />
+        <br />
+        これも基本的には使用・定義連鎖の解析ですが、ループがないおかげで楽ちんです。<br />
+        <br />
+        関係するコードは以下になります。<br />
+        &nbsp;&nbsp;<a href="src/TProject.VirtualizedMethodParentChildDefUseDependency.html">TProject.VirtualizedMethodParentChildDefUseDependency</a><br />
+        <br />
+
+
+
+        <h2 id="MakeNaviFunction">ナビゲート メソッドを作る。</h2>
+        ようやくアプリの木構造をループするメソッドを作ることができました。<br />
+        ここではナビゲート メソッドを作り、木構造の中の各ノードに対して、仮想メソッドにした不変条件メソッドを呼びます。<br />
+        <br />
+        関係するコードは以下になります。<br />
+        &nbsp;&nbsp;<a href="src/TProject.MakeNaviFunctionList.html">TProject.MakeNaviFunctionList</a><br />
+        <br />
+
+        <h2 id="proof">証明の方法</h2>
+        最後に形式手法ツールの所以であるプログラムの正当性を数学的に証明する方法の説明です。<br />
+        実は未実装です。 ^^;<br />
+        <br />
+        ただし、以下の説明を読んでいただくと、Nullポインタ例外やキャスト例外などの検出は結構簡単に実装できそうと感じていただけると思います。<br />
+        <br />
+        トップダウンの場合、一般に不変条件は以下の形をしています。
+<pre><code>
+        <span class="reserved">Public </span><span class="reserved"> Sub </span><span class="variable">Rule</span><span class="symbol">(</span><span class="variable">self</span><span class="reserved"> As </span><span class="text">Object</span><span class=""> , </span><span class="variable">app</span><span class="reserved"> As </span><span class="text">TMyApplication</span><span class="symbol">)</span>
+        <span class="reserved">If </span><span class="reserved"> TypeOf </span><span class="reference">self</span><span class="reserved"> Is </span><span class="text">C</span><span class="reserved"> Then</span>
+        <span class="reserved">With </span><span class="reserved"> CType </span><span class="symbol">(</span><span class="reference">self</span><span class=""> , </span><span class="text">C</span><span class="symbol">)</span>
+        <span class="reserved">If </span><span class="symbol">.</span><span class="text">親</span><span class="reserved"> Is </span><span class="reference">Nothing</span><span class="reserved"> Then</span>
+        <span class="comment">' ルートの場合</span>
+        <span class="comment">' Dataの値は他のノードの値に依存せずに決まる。</span>
+        <span class="symbol">.</span><span class="text">Data</span><span class=""> = </span><span class="reference">f</span><span class="symbol">(</span><span class="symbol">)</span>
+        <span class="reserved">Else </span>
+        <span class="comment">' ルートでない場合</span>
+        <span class="reserved">If </span><span class="symbol">.</span><span class="text">直前</span><span class="reserved"> Is </span><span class="reference">Nothing</span><span class="reserved"> Then</span>
+        <span class="comment">' 子の最初の場合</span>
+        <span class="comment">' Dataの値は、親のDataの値に依存する。</span>
+        <span class="symbol">.</span><span class="text">Data</span><span class=""> = </span><span class="reference">g</span><span class="symbol">(</span><span class="symbol">.</span><span class="text">親</span><span class="symbol">.</span><span class="text">Data</span><span class="symbol">)</span>
+        <span class="reserved">Else </span>
+        <span class="comment">' 子の最初でない場合</span>
+        <span class="comment">' Dataの値は、親または直前のDataの値に依存する。</span>
+        <span class="symbol">.</span><span class="text">Data</span><span class=""> = </span><span class="reference">h</span><span class="symbol">(</span><span class="symbol">.</span><span class="text">親</span><span class="symbol">.</span><span class="text">Data</span><span class=""> , </span><span class="symbol">.</span><span class="text">直前</span><span class="symbol">.</span><span class="text">Data</span><span class="symbol">)</span>
+        <span class="reserved">End If </span>
+        <span class="reserved">End If </span>
+        <span class="reserved">End With </span>
+        <span class="reserved">End If </span>
+        <span class="reserved">End Sub </span>
+</code></pre>
+
+        この不変条件を適用すると、Dataの値にf(),g(),h()のいずれかの値が入るのは明らかです。<br />
+        Dataに入る値の型も、f(),g(),h()の型から類推できます。<br />
+        <br />
+        より厳密に証明するには<a href="https://ja.wikipedia.org/wiki/%E6%95%B0%E5%AD%A6%E7%9A%84%E5%B8%B0%E7%B4%8D%E6%B3%95">数学的帰納法</a>を使います。<br />
+        具体的には、ルートからのネストの深さ<b>m</b>と、子のリストの中の順番<b>n</b>に対して、<b>m</b>と<b>n</b>の二重帰納法で証明することになります。<br />
+        ただし、現実的には帰納法なんか持ち出さなくても、上記のコードのパターンから明らかと言ってしまってよいかもしれません。<br />
+        <br />
+        なんか当たり前のことを数学的証明と呼んでいてバカバカしいと思われるかもしれません。<br />
+        でも、もしもこのプログラムがループや再帰関数呼び出しを使って実装されていたら、コードを解析して上記の推論を導くのはとんでもなく大変です。<br />
+        そういう意味で形式手法でプログラムの正当性を数学的に証明する場合に、ループを除去した不変条件を書くという手法は有効な方法だと思います。<br />
+        <br />
+        <br />
+        まとまりがなく、しかも不完全な文章をここまで読んでいただき、ありがとうございます。<br />
+        <br />
+        ソースは公開してありますが、まだ他の人に読んでもらえる代物にはなっておらず、ツール自体も実用的に使えるものではありません。<br />
+        未実装の部分も多くわたし一人の力では到底よいソフトにはならないと思っていますので、一緒にプロジェクトに参加してくれる人を探しています。<br />
+        <br />
+        分かりづらい部分も多々あると思いますので、指摘していただければ幸いです。<br />
+        <br />
+        ご意見・ご感想は以下までお願いします。<br />
+
+        <img src="img/mail.png" />
+
+</body>
+</html>
