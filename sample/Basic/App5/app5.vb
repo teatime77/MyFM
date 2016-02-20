@@ -213,7 +213,7 @@ End Class
 Public Class E
     Inherits C
 
-    Public Sub Rule(self As Object, app As TMyApplication)
+    Public Overrides Sub Rule(self As Object, app As TMyApplication)
         If TypeOf self Is A Then
             With CType(self, A)
                 ' Aクラスの処理

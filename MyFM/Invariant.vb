@@ -404,6 +404,7 @@ Public Class TNaviMakeSourceCode
                 ElseIf TypeOf self Is TFunction Then
                     With CType(self, TFunction)
 
+                        ' Not (ParserMK.LanguageSP <> ELanguage.JavaScript AndAlso .IsInitializer() OrElse (ParserMK.LanguageSP = ELanguage.JavaScript AndAlso .ModVar.isInvariant)) 
                         If Not .IsInitializer() OrElse ParserMK.LanguageSP = ELanguage.JavaScript Then
                             If .ComVar IsNot Nothing Then
 

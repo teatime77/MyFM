@@ -81,46 +81,29 @@ TRuntime.prototype.RuntimeInitialize = function () {
         this.App.__SetParent(this.App, undefined);
     }
 
-    for (var i = 0; i < this.App.ShapeList.length; i++) {
-        SetImageOnLoad( this.App.ShapeList[i] );
-    }
-
     this.Run();
-};
-
-function SetImageOnLoad(self) {
-    if (self instanceof TGroup) {
-        for (var i = 0; i < self.Children.length; i++) {
-            SetImageOnLoad(self.Children[i]);
-        }
-    }
-    else if (self instanceof TPicture) {
-    }
-
-}
-
-TRuntime.prototype.NaviShape = function (self) {
-    this.App.Rule(self, this.App);
-    if (self instanceof TGroup) {
-        for (var i = 0; i < self.Children.length; i++) {
-            this.NaviShape(self.Children[i]);
-        }
-    }
 };
 
 TRuntime.prototype.AnimationFrameLoop = function () {
     var _this = this;
     this.Graphics.Clear();
+    this.App.Graphics = this.Graphics;
     this.App.Navigate_Rule(this.App, this.App);
+
     if (this.App.ShapeList != null) {
-        //for (var i = 0; i < this.App.ShapeList.length; i++) {
-        //    this.NaviShape(this.App.ShapeList[i]);
-        //}
         this.Graphics.Context.setTransform(1, 0, 0, 1, 0, 0);
         for (var i = 0; i < this.App.ShapeList.length; i++) {
             this.App.ShapeList[i].Draw(this.Graphics);
         }
     }
+
+    if (this.App.ViewList != null) {
+        this.Graphics.Context.setTransform(1, 0, 0, 1, 0, 0);
+        for (var i = 0; i < this.App.ViewList.length; i++) {
+            this.App.ViewList[i].Draw(this.Graphics);
+        }
+    }
+
     window.requestAnimationFrame(function () { return _this.AnimationFrameLoop(); });
 };
 

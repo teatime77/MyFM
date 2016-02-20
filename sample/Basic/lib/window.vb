@@ -61,17 +61,37 @@ Public Class TView
     Public Bitmap As TBitmap
     Public BackgroundBitmap As TBitmap
     Public BackgroundImage As TBitmap
+    Public BackgroundColor As String = Nothing
+
+    Public BorderWidth As Double = 0
+    Public BorderColor As String = Nothing
+
+    Public Overridable Sub Draw(gr As TGraphics)
+        Dim ctx As CanvasRenderingContext2D = gr.Context
+        gr.save()
+        ctx.beginPath()
+
+        If BackgroundColor <> Nothing Then
+            ctx.fillStyle = BackgroundColor
+            ctx.fillRect(AbsoluteX, AbsoluteY, ActualWidth, ActualHeight)
+        End If
+
+        If BorderWidth <> 0 AndAlso BorderColor <> Nothing Then
+            ctx.strokeStyle = BorderColor
+            ctx.strokeRect(AbsoluteX, AbsoluteY, ActualWidth, ActualHeight)
+        End If
+
+        ctx.closePath()
+        gr.restore()
+    End Sub
 End Class
 
 '-------------------------------------------------------------------------------- TControl
 Public Class TControl
     Inherits TView
-    Public BorderWidth As Double
-    Public BorderColor As TColor
     Public MousePressBorderColor As TColor
     Public MouseOverBorderColor As TColor
 
-    Public BackgroundColor As TColor
     Public MousePressBackgroundColor As TColor
     Public MouseOverBackgroundColor As TColor
 
@@ -81,10 +101,10 @@ Public Class TControl
     Public ClientWidth As Double
     Public ClientHight As Double
 
-    Public LeftPadding As Double
-    Public TopPadding As Double
-    Public RightPadding As Double
-    Public BottomPadding As Double
+    Public LeftPadding As Double = 0
+    Public TopPadding As Double = 0
+    Public RightPadding As Double = 0
+    Public BottomPadding As Double = 0
 
     Public AutoSize As Boolean
 
@@ -133,12 +153,39 @@ End Class
 '-------------------------------------------------------------------------------- TTextBlock
 Public Class TTextBlock
     Inherits TControl
-    Public Font As TFont
+    Public Font As New TFont
     Public Text As String
     Public TextWidth As Double
     Public TextHeight As Double
+    Public TextColor As String = "#000000"
 
     Public DataFormat As String
+
+
+    Public Overrides Sub Draw(gr As TGraphics)
+        Dim ctx As CanvasRenderingContext2D = gr.Context
+        gr.save()
+        ctx.beginPath()
+
+        If BackgroundColor <> Nothing Then
+            ctx.fillStyle = BackgroundColor
+            ctx.fillRect(AbsoluteX, AbsoluteY, ActualWidth, ActualHeight)
+        End If
+
+        If BorderWidth <> 0 AndAlso BorderColor <> Nothing Then
+            ctx.strokeStyle = BorderColor
+            ctx.strokeRect(AbsoluteX, AbsoluteY, ActualWidth, ActualHeight)
+        End If
+
+        ctx.font = Font.FontString
+        ctx.fillStyle = TextColor
+        ctx.fillText(Text, AbsoluteX, AbsoluteY + ActualHeight, 80)
+
+        ctx.closePath()
+        gr.restore()
+    End Sub
+
+
 End Class
 
 '-------------------------------------------------------------------------------- TLabel
@@ -282,4 +329,9 @@ End Class
 '-------------------------------------------------------------------------------- TGroupBox
 Public Class TGroupBox
     Public Text As String
+End Class
+
+Public Class TWindowApplication
+    Inherits TApplication
+    Public ViewList As New TList(Of TView)
 End Class

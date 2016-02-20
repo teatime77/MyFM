@@ -1,6 +1,37 @@
 ﻿
 Public Class TMyApplication
-    Inherits TApplication
+    Inherits TWindowApplication
+
+    Public Overrides Sub AppInitialize()
+        Dim lbl As New TLabel
+
+        lbl.Text = "こんにちは"
+        lbl.Font.EmSize = 24
+        lbl.Font.FontString = "24px 'monospace'"
+        lbl.AbsoluteX = 200
+        lbl.AbsoluteY = 100
+        lbl.AutoSize = True
+
+        lbl.BackgroundColor = "cornsilk"
+        lbl.BorderColor = "#0000FF"
+        lbl.BorderWidth = 10
+        ViewList.push(lbl)
+
+        Dim btn As New TButton
+
+        btn.Text = "はじめまして"
+        btn.Font.EmSize = 24
+        btn.Font.FontString = "24px 'monospace'"
+        btn.AbsoluteX = 200
+        btn.AbsoluteY = 200
+        btn.AutoSize = True
+
+        btn.BackgroundColor = "cornsilk"
+        btn.BorderColor = "#0000FF"
+        btn.BorderWidth = 10
+        ViewList.push(btn)
+
+    End Sub
 
     <_Invariant()> Public Overrides Sub Rule(self As Object, app As TMyApplication)
         If TypeOf self Is TControl Then
@@ -173,28 +204,11 @@ Public Class TMyApplication
                     With CType(self, TTextBlock)
                         Dim sz As TPoint
 
-                        sz = .Font.MeasureText(.Text)
+                        sz = app.Graphics.MeasureText(.Font, .Text)
                         .TextWidth = sz.X
                         .TextHeight = sz.Y
 
-                        If TypeOf self Is TLabel Then
-                            With CType(self, TLabel)
-                                If .AutoSize Then
-
-                                    .DesiredWidth = .LeftPadding + .TextWidth + .RightPadding
-                                Else
-
-                                    .DesiredWidth = .Width
-                                End If
-                            End With
-
-                        ElseIf TypeOf self Is TButton Then
-                            With CType(self, TButton)
-
-
-                            End With
-
-                        ElseIf TypeOf self Is TTreeViewItem Then
+                        If TypeOf self Is TTreeViewItem Then
                             With CType(self, TTreeViewItem)
                                 Dim children_height_sum As Double, children_width_max As Double
 
@@ -227,6 +241,18 @@ Public Class TMyApplication
                                 End If
 
                             End With
+
+                        Else
+                            If .AutoSize Then
+
+                                .DesiredWidth = .LeftPadding + .TextWidth + .RightPadding
+                            Else
+
+                                .DesiredWidth = .Width
+                            End If
+
+                            .ActualWidth = .DesiredWidth
+                            .ActualHeight = .TextHeight
                         End If
                     End With
 
@@ -302,6 +328,171 @@ Public Class TMyApplication
 
                                     .Thumb.Top = button_size + thumb_pos
                                     .Thumb.Height = thumb_size
+                            End Select
+                        End If
+                    End With
+
+                ElseIf TypeOf self Is TForm Then
+
+                    With CType(self, TForm)
+
+                    End With
+                End If
+            End With
+        End If
+    End Sub
+
+    Public Sub PositionRule(self As Object, app As TMyApplication)
+        If TypeOf self Is TControl Then
+            With CType(self, TControl)
+                If TypeOf ._ParentControl Is TCanvas Then
+                    Dim canvas As TCanvas = CType(._ParentControl, TCanvas)
+
+                    If Not Double.IsNaN(.MarginLeft) Then
+                        ' 左のマージンが有効の場合
+
+                    Else
+                        ' 左のマージンが無効の場合
+
+                    End If
+
+                    If Not Double.IsNaN(.MarginTop) Then
+                        ' 上のマージンが有効の場合
+
+
+                        If Not Double.IsNaN(.MarginBottom) Then
+                            ' 下のマージンが有効の場合
+
+                        Else
+                            ' 下のマージンが無効の場合
+
+                        End If
+                    Else
+                        ' 上のマージンが無効の場合
+
+                    End If
+
+                ElseIf TypeOf ._ParentControl Is TStackPanel Then
+                    Dim stack_panel As TStackPanel = CType(._ParentControl, TStackPanel)
+
+                    Select Case stack_panel.Orientation
+
+                        Case EOrientation.Horizontal
+                            ' 水平方向に並べる場合
+
+
+                            If .Prev Is Nothing Then
+                                ' 最初の場合
+
+                            Else
+                                ' 最初でない場合
+
+                            End If
+                        Case EOrientation.Vertical
+                            ' 垂直方向に並べる場合
+
+                            If .Prev Is Nothing Then
+                                ' 最初の場合
+
+                            Else
+                                ' 最初でない場合
+
+                            End If
+                    End Select
+                End If
+
+                If TypeOf self Is TScrollView Then
+
+                    With CType(self, TScrollView)
+
+                        If TypeOf self Is TTreeView Then
+
+                            With CType(self, TTreeView)
+
+                            End With
+                        End If
+                    End With
+
+                ElseIf TypeOf self Is TStackPanel Then
+                    With CType(self, TStackPanel)
+
+                        Select Case .Orientation
+                            Case EOrientation.Horizontal
+                                ' 水平方向に並べる場合
+
+                            Case EOrientation.Vertical
+                                ' 垂直方向に並べる場合
+
+                        End Select
+
+                    End With
+                ElseIf TypeOf self Is TTextBlock Then
+                    With CType(self, TTextBlock)
+
+                        If TypeOf self Is TTreeViewItem Then
+                            With CType(self, TTreeViewItem)
+
+                                If .ChildrenTVI.Count <> 0 AndAlso .Expanded Then
+                                    ' 子があり、展開している場合
+
+
+                                    If .Prev Is Nothing Then
+                                        ' 最初の場合
+
+                                    Else
+                                        ' 最初でない場合
+
+                                    End If
+                                Else
+                                    ' 子がないか、折りたたまれている場合
+
+                                End If
+
+                            End With
+
+                        Else
+                            If .AutoSize Then
+
+                            Else
+
+                            End If
+
+                        End If
+                    End With
+
+                ElseIf TypeOf self Is TTreeView Then
+                    With CType(self, TTreeView)
+                    End With
+
+                ElseIf TypeOf self Is TScrollBar Then
+
+                    With CType(self, TScrollBar)
+
+                        Select Case .Orientation
+                            Case EOrientation.Horizontal
+                            Case EOrientation.Vertical
+                        End Select
+
+
+                        If True Then
+                            ' Thumbの位置・サイズからLowValue・HighValueを求める場合
+
+                            Select Case .Orientation
+                                Case EOrientation.Horizontal
+
+                                Case EOrientation.Vertical
+                            End Select
+
+                        Else
+                            ' LowValue・HighValueからThumbの位置・サイズを求める場合
+
+
+                            Select Case .Orientation
+                                Case EOrientation.Horizontal
+
+
+                                Case EOrientation.Vertical
+
                             End Select
                         End If
                     End With
