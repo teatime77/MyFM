@@ -63,7 +63,7 @@ Public Class TView
     Public BackgroundImage As TBitmap
     Public BackgroundColor As String = "cornsilk"
 
-    Public BorderWidth As Double = 0
+    Public BorderWidth As Double = 10
     Public BorderColor As String = "#0000FF"
 
     Public Overridable Sub Draw(gr As TGraphics)

@@ -3,60 +3,72 @@ Public Class TMyApplication
     Inherits TWindowApplication
 
     Public Overrides Sub AppInitialize()
+
+        '------------------------------ ---------- キャンバス
+        Dim cnv1 As New TCanvas
+
+        cnv1.Position.X = 10
+        cnv1.Position.Y = 10
+        cnv1.Width = 300
+        cnv1.Height = 100
+
+        ViewList.push(cnv1)
+
+        '------------------------------ ボタン
+        Dim btn1 As New TButton
+
+        btn1.Text = "はじめまして"
+        btn1.MarginLeft = 10
+        btn1.MarginTop = 10
+        btn1.AutoSize = True
+
+        cnv1.Children.push(btn1)
+
+        '------------------------------ ラベル
         Dim lbl1 As New TLabel
 
         lbl1.Text = "こんにちは"
         lbl1.Font.EmSize = 24
         lbl1.Font.FontString = "24px 'monospace'"
+        lbl1.MarginRight = 10
+        lbl1.MarginBottom = 10
         lbl1.Position.X = 200
-        lbl1.Position.Y = 50
+        lbl1.Position.Y = 20
         lbl1.AutoSize = True
 
-        lbl1.BorderWidth = 10
-        ViewList.push(lbl1)
+        cnv1.Children.push(lbl1)
 
-        Dim btn1 As New TButton
-
-        btn1.Text = "はじめまして"
-        btn1.Position.X = 200
-        btn1.Position.Y = 100
-        btn1.AutoSize = True
-
-        btn1.BorderWidth = 10
-        ViewList.push(btn1)
-
-        Dim cnv1 As New TCanvas
-
-        cnv1.Position.X = 200
-        cnv1.Position.Y = 150
-        cnv1.Width = 300
-        cnv1.Height = 100
-
-        cnv1.BorderWidth = 10
-        ViewList.push(cnv1)
-
+        '------------------------------ ---------- キャンバス
         Dim cnv2 As New TCanvas
 
-        cnv2.Position.X = 200
-        cnv2.Position.Y = 300
+        cnv2.Position.X = 10
+        cnv2.Position.Y = 200
         cnv2.Width = 300
         cnv2.Height = 100
 
-        cnv2.BorderWidth = 10
         ViewList.push(cnv2)
 
+        '------------------------------ ラベル
         Dim lbl2 As New TLabel
 
         lbl2.Text = "どうぞよろしく"
-        lbl2.Position.X = 10
+        lbl2.MarginLeft = 20
+        lbl2.MarginRight = 100
         lbl2.Position.Y = 10
         lbl2.AutoSize = True
 
-        lbl2.BorderWidth = 10
-
         cnv2.Children.push(lbl2)
 
+        '------------------------------ ラベル
+        Dim lbl3 As New TLabel
 
+        lbl3.Text = "またね"
+        lbl3.MarginTop = 20
+        lbl3.MarginBottom = 20
+        lbl3.MarginRight = 10
+        lbl3.AutoSize = True
+
+        cnv2.Children.push(lbl3)
     End Sub
 
     <_Invariant()> Public Sub SizeRule(self As Object, app As TMyApplication)
@@ -124,58 +136,26 @@ Public Class TMyApplication
                 End If
 
                 If TypeOf .ParentControl Is TCanvas Then
-                    Dim canvas As TCanvas
 
-                    canvas = CType(.ParentControl, TCanvas)
-                    If Not Double.IsNaN(.MarginLeft) Then
-                        ' 左のマージンが有効の場合
+                    If Not Double.IsNaN(.MarginLeft) AndAlso Not Double.IsNaN(.MarginRight) Then
+                        ' 左右のマージンが有効の場合
 
-                        '.Left = .MarginLeft
-
-                        If Not Double.IsNaN(.MarginRight) Then
-                            ' 右のマージンが有効の場合
-
-                            '.ActualWidth = .ParentControl.Width - .MarginRight - .Left
-                        Else
-                            ' 右のマージンが無効の場合
-
-                            '.ActualWidth = .DesiredWidth
-                        End If
+                        .ActualWidth = .ParentControl.ActualWidth - (.MarginLeft + .MarginRight)
                     Else
-                        ' 左のマージンが無効の場合
+                        ' 左右のマージンが有効でないの場合
 
-                        'Debug.Assert(Not Double.IsNaN(.MarginRight), "x margin error")
-
-                        '.ActualWidth = .DesiredWidth
-
-                        '.Left = .ParentControl.ActualWidth - .MarginRight - .ActualWidth
+                        .ActualWidth = .DesiredWidth
                     End If
 
-                    If Not Double.IsNaN(.MarginTop) Then
-                        ' 上のマージンが有効の場合
+                    If Not Double.IsNaN(.MarginTop) AndAlso Not Double.IsNaN(.MarginBottom) Then
+                        ' 上下のマージンが有効の場合
 
-                        '.Top = .MarginTop
-
-                        If Not Double.IsNaN(.MarginBottom) Then
-                            ' 下のマージンが有効の場合
-
-                            '.ActualHeight = .ParentControl.Height - .MarginBottom - .Top
-                        Else
-                            ' 下のマージンが無効の場合
-
-                            '.ActualHeight = .DesiredHeight
-                        End If
+                        .ActualHeight = .ParentControl.ActualHeight - (.MarginTop + .MarginBottom)
                     Else
-                        ' 上のマージンが無効の場合
+                        ' 上下のマージンが有効でない場合
 
-                        'Debug.Assert(Not Double.IsNaN(.MarginBottom), "y margin error")
-
-                        '.ActualHeight = .DesiredHeight
-
-                        '.Top = .ParentControl.ActualHeight - .MarginBottom - .ActualHeight
+                        .ActualHeight = .DesiredHeight
                     End If
-                    .ActualWidth = .DesiredWidth
-                    .ActualHeight = .DesiredHeight
 
                 ElseIf TypeOf .ParentControl Is TStackPanel Then
                     Dim stack_panel As TStackPanel
@@ -385,33 +365,41 @@ Public Class TMyApplication
             With CType(self, TControl)
                 If TypeOf .ParentControl Is TCanvas Then
                     Dim canvas As TCanvas = CType(.ParentControl, TCanvas)
+                    Dim x As Double, y As Double
 
                     If Not Double.IsNaN(.MarginLeft) Then
                         ' 左のマージンが有効の場合
 
-                    Else
-                        ' 左のマージンが無効の場合
+                        x = .MarginLeft
 
+                    ElseIf Not Double.IsNaN(.MarginRight) Then
+                        ' 右のマージンが有効の場合
+
+                        x = .ParentControl.ActualWidth - (.ActualWidth + .MarginRight)
+                    Else
+                        ' 左右のマージンが無効の場合
+
+                        x = .Position.X
                     End If
+
+                    .AbsPosition.X = .ParentControl.AbsPosition.X + x
 
                     If Not Double.IsNaN(.MarginTop) Then
                         ' 上のマージンが有効の場合
 
+                        y = .MarginTop
 
-                        If Not Double.IsNaN(.MarginBottom) Then
-                            ' 下のマージンが有効の場合
+                    ElseIf Not Double.IsNaN(.MarginBottom) Then
+                        ' 下のマージンが有効の場合
 
-                        Else
-                            ' 下のマージンが無効の場合
-
-                        End If
+                        y = .ParentControl.ActualHeight - (.ActualHeight + .MarginBottom)
                     Else
-                        ' 上のマージンが無効の場合
+                        ' 上下のマージンが無効の場合
 
+                        y = .Position.Y
                     End If
 
-                    .AbsPosition.X = .ParentControl.AbsPosition.X + .Position.X
-                    .AbsPosition.Y = .ParentControl.AbsPosition.Y + .Position.Y
+                    .AbsPosition.Y = .ParentControl.AbsPosition.Y + y
 
                 ElseIf TypeOf .ParentControl Is TStackPanel Then
                     Dim stack_panel As TStackPanel = CType(.ParentControl, TStackPanel)
