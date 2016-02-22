@@ -1338,6 +1338,63 @@ Public Class TProject
         Return navigation_field_list_table
     End Function
 
+    Public Sub MakeNaviFunctionListSub(rule As TFunction, dt As TUseDefineAnalysis, function_name As String, dummy_function As TFunction, navi_needed_class_list As TList(Of TClass), cla1 As TClass, navigation_field_list As List(Of TField))
+        Dim fnc1 As TFunction = InitNavigateFunction(function_name, cla1)
+        dt.NaviFunctionList.Add(fnc1)
+
+        If dt.UseParentClassList.Contains(cla1) Then
+            ' 親のフィールドの値を参照している場合
+
+            AddRuleCall(rule, fnc1, cla1)
+        End If
+
+        Dim self_var As TVariable = fnc1.ArgFnc(0)
+        Dim app_var As TVariable = fnc1.ArgFnc(1)
+
+        Debug.Print("Rule {0}", cla1.NameVar)
+
+        For Each navigation_field In navigation_field_list
+            If navigation_field.TypeVar.OrgCla IsNot Nothing Then
+                ' リストの場合
+
+                ' ループを作る。
+                Dim for1 As New TFor
+                for1.InVarFor = New TLocalVariable("x", Nothing)
+                for1.InTrmFor = New TDot(Nothing, navigation_field)
+                for1.BlcFor = New TBlock()
+
+                ' リスト内の各要素に対しメソッドを呼ぶ。
+                Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TReference(for1.InVarFor), dummy_function))
+                app1.ArgApp.Add(New TReference(for1.InVarFor))
+                app1.ArgApp.Add(New TReference(app_var))
+                for1.BlcFor.AddStmtBlc(New TCall(app1))
+
+                fnc1.BlcFnc.AddStmtBlc(for1)
+
+                Debug.Print("For Each x in .{0}" + vbCrLf + "x.{1}()" + vbCrLf + "Next", navigation_field.NameVar, function_name)
+            Else
+                ' リストでない場合
+
+                ' フィールドに対しメソッドを呼ぶ。
+                Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TDot(Nothing, navigation_field), dummy_function))
+                app1.ArgApp.Add(New TDot(Nothing, navigation_field))
+                app1.ArgApp.Add(New TReference(app_var))
+                fnc1.BlcFnc.AddStmtBlc(New TCall(app1))
+
+                Debug.Print(".{0}()", function_name)
+            End If
+
+            navi_needed_class_list.DistinctAdd(FieldElementType(navigation_field))
+        Next
+
+        If Not dt.UseParentClassList.Contains(cla1) Then
+            ' 親のフィールドの値を参照していない場合
+
+            AddRuleCall(rule, fnc1, cla1)
+        End If
+
+    End Sub
+
     Public Sub MakeNaviFunctionList(rule As TFunction, dt As TUseDefineAnalysis, navigation_field_list_table As TMap(Of TClass, TField))
 
         Dim function_name As String = "Navigate_" + rule.NameVar
@@ -1347,71 +1404,25 @@ Public Class TProject
 
         For Each cla1 In navigation_field_list_table.Keys()
             Dim navigation_field_list As List(Of TField) = navigation_field_list_table(cla1)
-            Dim fnc1 As TFunction = InitNavigateFunction(function_name, cla1)
-            dt.NaviFunctionList.Add(fnc1)
 
-            If dt.UseParentClassList.Contains(cla1) Then
-                ' 親のフィールドの値を参照している場合
-
-                AddRuleCall(rule, fnc1, cla1)
-            End If
-
-            Dim self_var As TVariable = fnc1.ArgFnc(0)
-            Dim app_var As TVariable = fnc1.ArgFnc(1)
-
-            Debug.Print("Rule {0}", cla1.NameVar)
-
-            For Each navigation_field In navigation_field_list
-                If navigation_field.TypeVar.OrgCla IsNot Nothing Then
-                    ' リストの場合
-
-                    ' ループを作る。
-                    Dim for1 As New TFor
-                    for1.InVarFor = New TLocalVariable("x", Nothing)
-                    for1.InTrmFor = New TDot(Nothing, navigation_field)
-                    for1.BlcFor = New TBlock()
-
-                    ' リスト内の各要素に対しメソッドを呼ぶ。
-                    Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TReference(for1.InVarFor), dummy_function))
-                    app1.ArgApp.Add(New TReference(for1.InVarFor))
-                    app1.ArgApp.Add(New TReference(app_var))
-                    for1.BlcFor.AddStmtBlc(New TCall(app1))
-
-                    fnc1.BlcFnc.AddStmtBlc(for1)
-
-                    Debug.Print("For Each x in .{0}" + vbCrLf + "x.{1}()" + vbCrLf + "Next", navigation_field.NameVar, function_name)
-                Else
-                    ' リストでない場合
-
-                    ' フィールドに対しメソッドを呼ぶ。
-                    Dim app1 As TApply = TApply.MakeAppCall(New TDot(New TDot(Nothing, navigation_field), dummy_function))
-                    app1.ArgApp.Add(New TDot(Nothing, navigation_field))
-                    app1.ArgApp.Add(New TReference(app_var))
-                    fnc1.BlcFnc.AddStmtBlc(New TCall(app1))
-
-                    Debug.Print(".{0}()", function_name)
-                End If
-
-                navi_needed_class_list.DistinctAdd(FieldElementType(navigation_field))
-            Next
-
-            If Not dt.UseParentClassList.Contains(cla1) Then
-                ' 親のフィールドの値を参照していない場合
-
-                AddRuleCall(rule, fnc1, cla1)
-            End If
+            MakeNaviFunctionListSub(rule, dt, function_name, dummy_function, navi_needed_class_list, cla1, navigation_field_list)
         Next
 
         navi_needed_class_list.DistinctAddRange(dt.VirtualizableClassList)
         For Each cla1 In navi_needed_class_list
             If Not navigation_field_list_table.Keys().Contains(cla1) Then
+                Dim navigation_field_list As List(Of TField)
 
-                Dim fnc1 As TFunction = InitNavigateFunction(function_name, cla1)
-                dt.NaviFunctionList.Add(fnc1)
-                AddRuleCall(rule, fnc1, cla1)
+                Dim super_class_key_list = From c In navigation_field_list_table.Keys() Where c.IsSuperClassOf(cla1)
+                If super_class_key_list.Any() Then
+                    navigation_field_list = navigation_field_list_table(super_class_key_list.First())
+                Else
+                    navigation_field_list = New List(Of TField)()
+                End If
+
+                MakeNaviFunctionListSub(rule, dt, function_name, dummy_function, navi_needed_class_list, cla1, navigation_field_list)
             End If
         Next
-
     End Sub
 
 

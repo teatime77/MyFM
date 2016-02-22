@@ -98,8 +98,6 @@ Public Class TControl
     Public Anchor As TAnchorStyle
     Public ClientLeft As Double
     Public ClientTop As Double
-    Public ClientWidth As Double
-    Public ClientHight As Double
 
     Public LeftPadding As Double = 0
     Public TopPadding As Double = 0
