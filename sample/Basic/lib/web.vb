@@ -53,6 +53,7 @@ End Class
 Public Class CanvasRenderingContext2D
     Public fillStyle As String
     Public strokeStyle As String
+    Public lineWidth As Double
     Public font As String
     Public textBaseline As String
 
@@ -86,10 +87,10 @@ Public Class CanvasRenderingContext2D
     Sub fill()
     End Sub
 
-    Sub strokeText(text As String, x As Double, y As Double, maxWidth As Double)
+    Sub strokeText(text As String, x As Double, y As Double)
     End Sub
 
-    Sub fillText(text As String, x As Double, y As Double, maxWidth As Double)
+    Sub fillText(text As String, x As Double, y As Double)
     End Sub
 
     Sub drawImage(image As Image, offsetX As Double, offsetY As Double)

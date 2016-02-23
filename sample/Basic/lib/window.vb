@@ -63,7 +63,7 @@ Public Class TView
     Public BackgroundImage As TBitmap
     Public BackgroundColor As String = "cornsilk"
 
-    Public BorderWidth As Double = 10
+    Public BorderWidth As Double = 1
     Public BorderColor As String = "#0000FF"
 
     Public Overridable Sub Draw(gr As TGraphics)
@@ -77,6 +77,7 @@ Public Class TView
         End If
 
         If BorderWidth <> 0 AndAlso BorderColor <> Nothing Then
+            ctx.lineWidth = BorderWidth
             ctx.strokeStyle = BorderColor
             ctx.strokeRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
         End If
@@ -103,8 +104,6 @@ Public Class TControl
     Public TopPadding As Double = 0
     Public RightPadding As Double = 0
     Public BottomPadding As Double = 0
-
-    Public AutoSize As Boolean
 
     'Public Data As Object
 End Class
@@ -134,6 +133,7 @@ Public Class TPanel
         End If
 
         If BorderWidth <> 0 AndAlso BorderColor <> Nothing Then
+            ctx.lineWidth = BorderWidth
             ctx.strokeStyle = BorderColor
             ctx.strokeRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
         End If
@@ -175,6 +175,7 @@ End Class
 '-------------------------------------------------------------------------------- TTextBlock
 Public Class TTextBlock
     Inherits TControl
+    Public AutoSize As Boolean = True
     Public Font As New TFont
     Public Text As String
     Public TextWidth As Double
@@ -195,13 +196,14 @@ Public Class TTextBlock
         End If
 
         If BorderWidth <> 0 AndAlso BorderColor <> Nothing Then
+            ctx.lineWidth = BorderWidth
             ctx.strokeStyle = BorderColor
             ctx.strokeRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
         End If
 
         ctx.font = Font.FontString
         ctx.fillStyle = TextColor
-        ctx.fillText(Text, AbsPosition.X, AbsPosition.Y + ActualHeight, 80)
+        ctx.fillText(Text, AbsPosition.X, AbsPosition.Y + ActualHeight - BorderWidth)
 
         ctx.closePath()
         gr.restore()

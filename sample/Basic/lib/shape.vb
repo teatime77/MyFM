@@ -114,7 +114,7 @@ Public Class TLabel
             ctx.strokeRect(-dx, -dy, Size.X, Size.Y)
         End If
         ctx.fillStyle = TextColor
-        ctx.fillText(Text, -dx, -dy, 80)
+        ctx.fillText(Text, -dx, -dy)
         ctx.closePath()
         gr.restore()
     End Sub

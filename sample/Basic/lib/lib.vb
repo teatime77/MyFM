@@ -99,9 +99,8 @@ End Class
 '-------------------------------------------------------------------------------- TFont
 Public Class TFont
     Public EmSize As Double = 24
-    Public FontString As String = "24px 'monospace'"
-
-    'Public FontTypeFace As Typeface
+    'Public FontString As String = "24px 'monospace'"
+    Public FontString As String = "24px 'sans-serif'"
 End Class
 
 Public Class TGraphics
@@ -197,11 +196,11 @@ Public Class TGraphics
         Context.beginPath()
         Context.font = "48px 'ＭＳ Ｐゴシック'"
         Context.strokeStyle = "blue"
-        Context.strokeText("青色でstrokText", 10, 525, 80)
-        Context.strokeText("maxLengthをセット", 10, 550, 80)
+        Context.strokeText("青色でstrokText", 10, 525)
+        Context.strokeText("maxLengthをセット", 10, 550)
         Context.fillStyle = "red"
-        Context.fillText("赤色でfillText", 10, 75, 580)
-        Context.fillText("maxLengthをセット", 10, 600, 80)
+        Context.fillText("赤色でfillText", 10, 75)
+        Context.fillText("maxLengthをセット", 10, 600)
     End Sub
 
     Sub Clear()

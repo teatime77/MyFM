@@ -19,7 +19,6 @@ Public Class TMyApplication
         Dim lbl4 As New TLabel
 
         lbl4.Text = "さよなら"
-        lbl4.AutoSize = True
 
         vstc.Children.push(lbl4)
 
@@ -27,7 +26,6 @@ Public Class TMyApplication
         Dim lbl5 As New TLabel
 
         lbl5.Text = "こんばんは"
-        lbl5.AutoSize = True
 
         vstc.Children.push(lbl5)
 
@@ -36,17 +34,15 @@ Public Class TMyApplication
 
         hstc.Position.X = 10
         hstc.Position.Y = 340
-        hstc.Width = 300
-        hstc.Height = 100
+        hstc.Height = 30
         hstc.Orientation = EOrientation.Horizontal
 
-        ViewList.push(hstc)
+        vstc.Children.push(hstc)
 
         '------------------------------ ラベル
         Dim lbl6 As New TLabel
 
         lbl6.Text = "おはよう"
-        lbl6.AutoSize = True
 
         hstc.Children.push(lbl6)
 
@@ -54,9 +50,9 @@ Public Class TMyApplication
         Dim lbl7 As New TLabel
 
         lbl7.Text = "元気ですか"
-        lbl7.AutoSize = True
 
         hstc.Children.push(lbl7)
+
 
         '---------------------------------------- キャンバス
         Dim cnv1 As New TCanvas
@@ -74,7 +70,6 @@ Public Class TMyApplication
         btn1.Text = "はじめまして"
         btn1.MarginLeft = 10
         btn1.MarginTop = 10
-        btn1.AutoSize = True
 
         cnv1.Children.push(btn1)
 
@@ -88,7 +83,6 @@ Public Class TMyApplication
         lbl1.MarginBottom = 10
         lbl1.Position.X = 200
         lbl1.Position.Y = 20
-        lbl1.AutoSize = True
 
         cnv1.Children.push(lbl1)
 
@@ -109,7 +103,6 @@ Public Class TMyApplication
         lbl2.MarginLeft = 20
         lbl2.MarginRight = 100
         lbl2.Position.Y = 10
-        lbl2.AutoSize = True
 
         cnv2.Children.push(lbl2)
 
@@ -120,7 +113,6 @@ Public Class TMyApplication
         lbl3.MarginTop = 20
         lbl3.MarginBottom = 20
         lbl3.MarginRight = 10
-        lbl3.AutoSize = True
 
         cnv2.Children.push(lbl3)
 
@@ -163,12 +155,12 @@ Public Class TMyApplication
                                 ' 水平方向に並べる場合
 
                                 .DesiredWidth = Aggregate ctrl In .Children Into Sum(ctrl.DesiredWidth)
-                                .DesiredHeight = .Height
+                                .DesiredHeight = Aggregate ctrl In .Children Into Max(ctrl.DesiredHeight)
 
                             Case EOrientation.Vertical
                                 ' 垂直方向に並べる場合
 
-                                .DesiredWidth = .Width
+                                .DesiredWidth = Aggregate a_ctrl In .Children Into Max(a_ctrl.DesiredWidth)
                                 .DesiredHeight = Aggregate a_ctrl In .Children Into Sum(a_ctrl.DesiredHeight)
                         End Select
                     End With
