@@ -98,9 +98,9 @@ End Class
 
 '-------------------------------------------------------------------------------- TFont
 Public Class TFont
-    Public EmSize As Double = 24
+    Public EmSize As Double = 16
     'Public FontString As String = "24px 'monospace'"
-    Public FontString As String = "24px 'sans-serif'"
+    Public FontString As String = "16px 'sans-serif'"
 End Class
 
 Public Class TGraphics

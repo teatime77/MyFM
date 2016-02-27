@@ -61,10 +61,31 @@ Public Class TView
     Public Bitmap As TBitmap
     Public BackgroundBitmap As TBitmap
     Public BackgroundImage As TBitmap
-    Public BackgroundColor As String = "cornsilk"
+    Public BackgroundColor As String = "#E0E0E0"
 
     Public BorderWidth As Double = 1
     Public BorderColor As String = "#0000FF"
+
+    Public Sub DrawBorder(gr As TGraphics, ctx As CanvasRenderingContext2D)
+
+        If BorderWidth <> 0 AndAlso BorderColor <> Nothing Then
+
+            ctx.lineWidth = BorderWidth
+            ctx.strokeStyle = "#808080"
+            ctx.strokeRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
+
+            ctx.strokeStyle = "#404040"
+
+            ctx.moveTo(AbsPosition.X, AbsPosition.Y)
+            ctx.lineTo(AbsPosition.X + ActualWidth, AbsPosition.Y)
+            ctx.stroke()
+
+            ctx.moveTo(AbsPosition.X, AbsPosition.Y)
+            ctx.lineTo(AbsPosition.X, AbsPosition.Y + ActualHeight)
+            ctx.stroke()
+        End If
+
+    End Sub
 
     Public Overridable Sub Draw(gr As TGraphics)
         Dim ctx As CanvasRenderingContext2D = gr.Context
@@ -76,13 +97,8 @@ Public Class TView
             ctx.fillRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
         End If
 
-        If BorderWidth <> 0 AndAlso BorderColor <> Nothing Then
-            ctx.lineWidth = BorderWidth
-            ctx.strokeStyle = BorderColor
-            ctx.strokeRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
-        End If
+        DrawBorder(gr, ctx)
 
-        ctx.closePath()
         gr.restore()
     End Sub
 End Class
@@ -100,10 +116,7 @@ Public Class TControl
     Public ClientLeft As Double
     Public ClientTop As Double
 
-    Public LeftPadding As Double = 0
-    Public TopPadding As Double = 0
-    Public RightPadding As Double = 0
-    Public BottomPadding As Double = 0
+    Public Padding As Double = 5
 
     'Public Data As Object
 End Class
@@ -117,9 +130,6 @@ End Class
 Public Class TPanel
     Inherits TControl
     Public Children As New TList(Of TControl)
-
-    Public HorizontalPadding As Double
-    Public VerticalPadding As Double
     Public ChildrenScale As Double
 
     Public Overrides Sub Draw(gr As TGraphics)
@@ -132,13 +142,7 @@ Public Class TPanel
             ctx.fillRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
         End If
 
-        If BorderWidth <> 0 AndAlso BorderColor <> Nothing Then
-            ctx.lineWidth = BorderWidth
-            ctx.strokeStyle = BorderColor
-            ctx.strokeRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
-        End If
-
-        ctx.closePath()
+        DrawBorder(gr, ctx)
 
         gr.restore()
 
@@ -195,17 +199,14 @@ Public Class TTextBlock
             ctx.fillRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
         End If
 
-        If BorderWidth <> 0 AndAlso BorderColor <> Nothing Then
-            ctx.lineWidth = BorderWidth
-            ctx.strokeStyle = BorderColor
-            ctx.strokeRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
-        End If
+        DrawBorder(gr, ctx)
 
+        ctx.textBaseline = "top"
         ctx.font = Font.FontString
         ctx.fillStyle = TextColor
-        ctx.fillText(Text, AbsPosition.X, AbsPosition.Y + ActualHeight - BorderWidth)
+        ' + ActualHeight - BorderWidth
+        ctx.fillText(Text, AbsPosition.X + Padding, AbsPosition.Y + Padding)
 
-        ctx.closePath()
         gr.restore()
     End Sub
 
@@ -285,13 +286,8 @@ Public Class TTreeViewItem
             ctx.fillRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
         End If
 
-        If BorderWidth <> 0 AndAlso BorderColor <> Nothing Then
-            ctx.lineWidth = BorderWidth
-            ctx.strokeStyle = BorderColor
-            ctx.strokeRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
-        End If
+        DrawBorder(gr, ctx)
 
-        ctx.closePath()
         gr.restore()
 
         Header.Draw(gr)

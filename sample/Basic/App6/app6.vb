@@ -9,7 +9,7 @@ Public Class TMyApplication
 
         tvi1.Header.Text = "りんご"
         tvi1.Position.X = 10
-        tvi1.Position.Y = 310
+        tvi1.Position.Y = 400
         ViewList.push(tvi1)
 
         '------------------------------ ツリービューアイテム
@@ -36,7 +36,6 @@ Public Class TMyApplication
         vstc.Position.X = 10
         vstc.Position.Y = 230
         vstc.Width = 300
-        vstc.Height = 100
         vstc.Orientation = EOrientation.Vertical
 
         ViewList.push(vstc)
@@ -154,8 +153,8 @@ Public Class TMyApplication
 
                         If .AutoSize Then
 
-                            .DesiredWidth = .LeftPadding + .TextWidth + .RightPadding
-                            .DesiredHeight = .TextHeight
+                            .DesiredWidth = .TextWidth + 2 * .Padding
+                            .DesiredHeight = .TextHeight + 2 * .Padding
                         Else
 
                             .DesiredWidth = .Width
@@ -187,14 +186,14 @@ Public Class TMyApplication
                             Case EOrientation.Horizontal
                                 ' 水平方向に並べる場合
 
-                                .DesiredWidth = Aggregate ctrl In .Children Into Sum(ctrl.DesiredWidth)
-                                .DesiredHeight = Aggregate ctrl In .Children Into Max(ctrl.DesiredHeight)
+                                .DesiredWidth = (1 + .Children.length) * .Padding + Aggregate ctrl In .Children Into Sum(ctrl.DesiredWidth)
+                                .DesiredHeight = 2 * .Padding + Aggregate ctrl In .Children Into Max(ctrl.DesiredHeight)
 
                             Case EOrientation.Vertical
                                 ' 垂直方向に並べる場合
 
-                                .DesiredWidth = Aggregate a_ctrl In .Children Into Max(a_ctrl.DesiredWidth)
-                                .DesiredHeight = Aggregate a_ctrl In .Children Into Sum(a_ctrl.DesiredHeight)
+                                .DesiredWidth = 2 * .Padding + Aggregate a_ctrl In .Children Into Max(a_ctrl.DesiredWidth)
+                                .DesiredHeight = (1 + .Children.length) * .Padding + Aggregate a_ctrl In .Children Into Sum(a_ctrl.DesiredHeight)
                         End Select
                     End With
 
@@ -242,12 +241,12 @@ Public Class TMyApplication
                             ' 水平方向に並べる場合
 
                             .ActualWidth = stack_panel.ChildrenScale * .DesiredWidth
-                            .ActualHeight = .ParentControl.ActualHeight
+                            .ActualHeight = .ParentControl.ActualHeight - 2 * stack_panel.Padding
 
                         Case EOrientation.Vertical
                             ' 垂直方向に並べる場合
 
-                            .ActualWidth = .ParentControl.ActualWidth
+                            .ActualWidth = .ParentControl.ActualWidth - 2 * stack_panel.Padding
                             .ActualHeight = stack_panel.ChildrenScale * .DesiredHeight
                     End Select
                 Else
@@ -264,34 +263,19 @@ Public Class TMyApplication
 
                                 If .DesiredWidth <= .ActualWidth Then
 
-                                    If .Children.length <= 1 Then
-                                        .HorizontalPadding = 0
-                                    Else
-                                        .HorizontalPadding = (.ActualWidth - .DesiredWidth) / (.Children.length - 1)
-                                    End If
-
                                     .ChildrenScale = 1
                                 Else
 
-                                    .HorizontalPadding = 0
-
                                     .ChildrenScale = .ActualWidth / .DesiredWidth
                                 End If
+
                             Case EOrientation.Vertical
                                 ' 垂直方向に並べる場合
 
                                 If .DesiredHeight <= .ActualHeight Then
 
-                                    If .Children.length <= 1 Then
-                                        .VerticalPadding = 0
-                                    Else
-                                        .VerticalPadding = (.ActualHeight - .DesiredHeight) / (.Children.length - 1)
-                                    End If
-
                                     .ChildrenScale = 1
                                 Else
-
-                                    .VerticalPadding = 0
 
                                     .ChildrenScale = .ActualHeight / .DesiredHeight
                                 End If
@@ -353,28 +337,28 @@ Public Class TMyApplication
                             If .Prev Is Nothing Then
                                 ' 最初の場合
 
-                                .AbsPosition.X = .ParentControl.AbsPosition.X
+                                .AbsPosition.X = .ParentControl.AbsPosition.X + stack_panel.Padding
                             Else
                                 ' 最初でない場合
 
-                                .AbsPosition.X = .Prev.AbsPosition.X + .Prev.ActualWidth + stack_panel.HorizontalPadding
+                                .AbsPosition.X = .Prev.AbsPosition.X + .Prev.ActualWidth + stack_panel.Padding
                             End If
 
-                            .AbsPosition.Y = .ParentControl.AbsPosition.Y
+                            .AbsPosition.Y = .ParentControl.AbsPosition.Y + stack_panel.Padding
 
                         Case EOrientation.Vertical
                             ' 垂直方向に並べる場合
 
-                            .AbsPosition.X = .ParentControl.AbsPosition.X
+                            .AbsPosition.X = .ParentControl.AbsPosition.X + stack_panel.Padding
 
                             If .Prev Is Nothing Then
                                 ' 最初の場合
 
-                                .AbsPosition.Y = .ParentControl.AbsPosition.Y
+                                .AbsPosition.Y = .ParentControl.AbsPosition.Y + stack_panel.Padding
                             Else
                                 ' 最初でない場合
 
-                                .AbsPosition.Y = .Prev.AbsPosition.Y + .Prev.ActualHeight + stack_panel.VerticalPadding
+                                .AbsPosition.Y = .Prev.AbsPosition.Y + .Prev.ActualHeight + stack_panel.Padding
                             End If
                     End Select
 
