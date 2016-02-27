@@ -106,6 +106,7 @@ End Class
 '-------------------------------------------------------------------------------- TControl
 Public Class TControl
     Inherits TView
+    Public AutoSize As Boolean = True
     Public MousePressBorderColor As TColor
     Public MouseOverBorderColor As TColor
 
@@ -179,7 +180,6 @@ End Class
 '-------------------------------------------------------------------------------- TTextBlock
 Public Class TTextBlock
     Inherits TControl
-    Public AutoSize As Boolean = True
     Public Font As New TFont
     Public Text As String
     Public TextWidth As Double
@@ -231,6 +231,30 @@ End Class
 '-------------------------------------------------------------------------------- TRadioButton
 Public Class TRadioButton
     Inherits TControl
+End Class
+
+'-------------------------------------------------------------------------------- TPictureBox
+Public Class TImageView
+    Inherits TControl
+    <_Weak()> Public ImageIV As Image
+
+    Public Overrides Sub Draw(gr As TGraphics)
+        Dim ctx As CanvasRenderingContext2D = gr.Context
+        gr.save()
+        ctx.beginPath()
+
+        If BackgroundColor <> Nothing Then
+            ctx.fillStyle = BackgroundColor
+            ctx.fillRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
+        End If
+
+        DrawBorder(gr, ctx)
+
+        ctx.drawImage(ImageIV, AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
+
+        gr.restore()
+    End Sub
+
 End Class
 
 '-------------------------------------------------------------------------------- TScrollBar
@@ -360,11 +384,8 @@ End Class
 Public Class TMenu
 End Class
 
-'-------------------------------------------------------------------------------- TPictureBox
+'-------------------------------------------------------------------------------- TGrid
 Public Class TGrid
-End Class
-
-Public Class TPictureBox
 End Class
 
 '-------------------------------------------------------------------------------- TSlider
@@ -379,5 +400,5 @@ End Class
 
 Public Class TWindowApplication
     Inherits TApplication
-    Public ViewList As New TList(Of TView)
+    Public MainControl As TControl
 End Class

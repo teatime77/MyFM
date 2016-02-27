@@ -96,6 +96,9 @@ Public Class CanvasRenderingContext2D
     Sub drawImage(image As Image, offsetX As Double, offsetY As Double)
     End Sub
 
+    Sub drawImage(image As Image, x As Double, y As Double, w As Double, h As Double)
+    End Sub
+
     Sub save()
     End Sub
 

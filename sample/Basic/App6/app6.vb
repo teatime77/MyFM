@@ -3,6 +3,19 @@ Public Class TMyApplication
     Inherits TWindowApplication
 
     Public Overrides Sub AppInitialize()
+        '---------------------------------------- メイン キャンバス
+        Dim main_canvas As New TCanvas
+        main_canvas.Width = Size.X
+        main_canvas.Height = Size.Y
+        MainControl = main_canvas
+
+        '------------------------------ 画像
+        Dim img1 As New TImageView
+
+        img1.ImageIV = MakeImage("../../../img/grandma1.png")
+        img1.MarginRight = 10
+        img1.MarginTop = 10
+        main_canvas.Children.push(img1)
 
         '---------------------------------------- ツリービューアイテム
         Dim tvi1 As New TTreeViewItem
@@ -10,7 +23,7 @@ Public Class TMyApplication
         tvi1.Header.Text = "りんご"
         tvi1.Position.X = 10
         tvi1.Position.Y = 400
-        ViewList.push(tvi1)
+        main_canvas.Children.push(tvi1)
 
         '------------------------------ ツリービューアイテム
         Dim tvi2 As New TTreeViewItem
@@ -38,7 +51,7 @@ Public Class TMyApplication
         vstc.Width = 300
         vstc.Orientation = EOrientation.Vertical
 
-        ViewList.push(vstc)
+        main_canvas.Children.push(vstc)
 
         '------------------------------ ラベル
         Dim lbl4 As New TLabel
@@ -86,7 +99,7 @@ Public Class TMyApplication
         cnv1.Width = 300
         cnv1.Height = 100
 
-        ViewList.push(cnv1)
+        main_canvas.Children.push(cnv1)
 
         '------------------------------ ボタン
         Dim btn1 As New TButton
@@ -118,7 +131,7 @@ Public Class TMyApplication
         cnv2.Width = 300
         cnv2.Height = 100
 
-        ViewList.push(cnv2)
+        main_canvas.Children.push(cnv2)
 
         '------------------------------ ラベル
         Dim lbl2 As New TLabel
@@ -155,6 +168,26 @@ Public Class TMyApplication
 
                             .DesiredWidth = .TextWidth + 2 * .Padding
                             .DesiredHeight = .TextHeight + 2 * .Padding
+                        Else
+
+                            .DesiredWidth = .Width
+                            .DesiredHeight = .Height
+                        End If
+                    End With
+
+                ElseIf TypeOf self Is TImageView Then
+                    With CType(self, TImageView)
+
+                        If .AutoSize Then
+
+                            If .ImageIV.complete Then
+
+                                .DesiredWidth = .ImageIV.width
+                                .DesiredHeight = .ImageIV.height
+                            Else
+                                .DesiredWidth = 10
+                                .DesiredHeight = 10
+                            End If
                         Else
 
                             .DesiredWidth = .Width

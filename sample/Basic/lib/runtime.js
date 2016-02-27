@@ -90,18 +90,16 @@ TRuntime.prototype.AnimationFrameLoop = function () {
     this.App.Graphics = this.Graphics;
     this.App.AllRule(this.App, this.App);
 
+    this.Graphics.Context.setTransform(1, 0, 0, 1, 0, 0);
+
     if (this.App.ShapeList != null) {
-        this.Graphics.Context.setTransform(1, 0, 0, 1, 0, 0);
         for (var i = 0; i < this.App.ShapeList.length; i++) {
             this.App.ShapeList[i].Draw(this.Graphics);
         }
     }
 
-    if (this.App.ViewList != null) {
-        this.Graphics.Context.setTransform(1, 0, 0, 1, 0, 0);
-        for (var i = 0; i < this.App.ViewList.length; i++) {
-            this.App.ViewList[i].Draw(this.Graphics);
-        }
+    if (this.App.MainControl != null) {
+        this.App.MainControl.Draw(this.Graphics);
     }
 
     window.requestAnimationFrame(function () { return _this.AnimationFrameLoop(); });
