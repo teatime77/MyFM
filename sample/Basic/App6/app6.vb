@@ -4,6 +4,32 @@ Public Class TMyApplication
 
     Public Overrides Sub AppInitialize()
 
+        '---------------------------------------- ツリービューアイテム
+        Dim tvi1 As New TTreeViewItem
+
+        tvi1.Header.Text = "りんご"
+        tvi1.Position.X = 10
+        tvi1.Position.Y = 310
+        ViewList.push(tvi1)
+
+        '------------------------------ ツリービューアイテム
+        Dim tvi2 As New TTreeViewItem
+
+        tvi2.Header.Text = "みかん"
+        tvi1.ChildrenTVI.push(tvi2)
+
+        '-------------------- ツリービューアイテム
+        Dim tvi2_1 As New TTreeViewItem
+
+        tvi2_1.Header.Text = "ストロベリー"
+        tvi2.ChildrenTVI.push(tvi2_1)
+
+        '------------------------------ ツリービューアイテム
+        Dim tvi3 As New TTreeViewItem
+
+        tvi3.Header.Text = "オレンジ"
+        tvi1.ChildrenTVI.push(tvi3)
+
         '---------------------------------------- 垂直スタックパネル
         Dim vstc As New TStackPanel
 
@@ -52,7 +78,6 @@ Public Class TMyApplication
         lbl7.Text = "元気ですか"
 
         hstc.Children.push(lbl7)
-
 
         '---------------------------------------- キャンバス
         Dim cnv1 As New TCanvas
@@ -123,28 +148,36 @@ Public Class TMyApplication
             With CType(self, TControl)
                 If TypeOf self Is TTextBlock Then
                     With CType(self, TTextBlock)
-                        Dim sz As TPoint
-
-                        sz = app.Graphics.MeasureText(.Font, .Text)
+                        Dim sz As TPoint = app.Graphics.MeasureText(.Font, .Text)
                         .TextWidth = sz.X
                         .TextHeight = sz.Y
 
-                        If TypeOf self Is TTreeViewItem Then
-                            With CType(self, TTreeViewItem)
+                        If .AutoSize Then
 
-                                .DesiredWidth = .Width
-                                .DesiredHeight = .Height
-                            End With
+                            .DesiredWidth = .LeftPadding + .TextWidth + .RightPadding
+                            .DesiredHeight = .TextHeight
                         Else
-                            If .AutoSize Then
 
-                                .DesiredWidth = .LeftPadding + .TextWidth + .RightPadding
-                                .DesiredHeight = .TextHeight
-                            Else
+                            .DesiredWidth = .Width
+                            .DesiredHeight = .Height
+                        End If
+                    End With
 
-                                .DesiredWidth = .Width
-                                .DesiredHeight = .Height
-                            End If
+                ElseIf TypeOf self Is TTreeViewItem Then
+                    With CType(self, TTreeViewItem)
+                        If .ChildrenTVI.length <> 0 AndAlso .Expanded Then
+                            ' 子があり、展開している場合
+
+                            Dim children_width_max As Double = Aggregate x In .ChildrenTVI Into Max(x.DesiredWidth)
+                            .DesiredWidth = .PaddingTVI + Math.Max(.Header.DesiredWidth, .Indent + children_width_max) + .PaddingTVI
+
+                            Dim children_desired_height_sum As Double = Aggregate x In .ChildrenTVI Into Sum(x.DesiredHeight)
+                            .DesiredHeight = .PaddingTVI + .Header.DesiredHeight + .PaddingTVI * .ChildrenTVI.length + children_desired_height_sum + .PaddingTVI
+                        Else
+                            ' 子がないか、折りたたまれている場合
+
+                            .DesiredWidth = .PaddingTVI + .Header.DesiredWidth + .PaddingTVI
+                            .DesiredHeight = .PaddingTVI + .Header.DesiredHeight + .PaddingTVI
                         End If
                     End With
 
@@ -344,50 +377,37 @@ Public Class TMyApplication
                                 .AbsPosition.Y = .Prev.AbsPosition.Y + .Prev.ActualHeight + stack_panel.VerticalPadding
                             End If
                     End Select
+
+                ElseIf TypeOf .ParentControl Is TTreeViewItem Then
+                    Dim parent_tvi As TTreeViewItem = CType(.ParentControl, TTreeViewItem)
+
+                    If TypeOf self Is TLabel Then
+                        .AbsPosition.X = .ParentControl.AbsPosition.X + parent_tvi.PaddingTVI
+                        .AbsPosition.Y = .ParentControl.AbsPosition.Y + parent_tvi.PaddingTVI
+
+                    Else
+                        .AbsPosition.X = .ParentControl.AbsPosition.X + parent_tvi.PaddingTVI + parent_tvi.Indent
+
+                        If .Prev Is Nothing Then
+                            ' 最初の場合
+
+                            .AbsPosition.Y = .ParentControl.AbsPosition.Y + parent_tvi.Header.ActualHeight + 2 * parent_tvi.PaddingTVI
+                        Else
+                            ' 最初でない場合
+
+                            .AbsPosition.Y = .Prev.AbsPosition.Y + .Prev.ActualHeight + parent_tvi.PaddingTVI
+                        End If
+                    End If
                 Else
 
                     .AbsPosition.X = .Position.X
                     .AbsPosition.Y = .Position.Y
                 End If
-
             End With
         End If
     End Sub
 
     Public Sub NotUsedRule(self As Object, app As TMyApplication)
-        If TypeOf self Is TTreeViewItem Then
-            With CType(self, TTreeViewItem)
-                Dim children_desired_height_sum As Double, children_width_max As Double
-
-                If .ChildrenTVI.Count <> 0 AndAlso .Expanded Then
-                    ' 子があり、展開している場合
-
-                    children_desired_height_sum = Aggregate a_ctrl In .ChildrenTVI Into Sum(a_ctrl.DesiredHeight)
-                    .ActualHeight = .MarginTop + .TextHeight + .MarginMiddleVertical * .ChildrenTVI.Count + children_desired_height_sum + .MarginBottom
-
-                    children_width_max = Aggregate a_ctrl In .ChildrenTVI Into Max(a_ctrl.ActualWidth)
-                    .ActualWidth = Math.Max(.TextWidth, children_width_max)
-
-                    .Left = .Indent
-
-                    If .Prev Is Nothing Then
-                        ' 最初の場合
-
-                        .Top = .ParentControl.ClientTop + .TextHeight
-                    Else
-                        ' 最初でない場合
-
-                        .Top = .Prev.Top + .Prev.ActualHeight + .MarginMiddleVertical
-                    End If
-                Else
-                    ' 子がないか、折りたたまれている場合
-
-                    .ActualHeight = .MarginTop + .TextHeight + .MarginBottom
-
-                    .ActualWidth = .TextWidth
-                End If
-            End With
-        End If
 
         If TypeOf self Is TScrollView Then
 

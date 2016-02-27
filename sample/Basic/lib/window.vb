@@ -268,12 +268,38 @@ End Class
 
 '-------------------------------------------------------------------------------- TTreeViewItem
 Public Class TTreeViewItem
-    Inherits TTextBlock
-    <_Parent()> Public ParentTVI As TTreeViewItem
-    Public Indent As Double
-    Public Expanded As Boolean
-
+    Inherits TControl
+    Public Header As New TLabel
+    Public PaddingTVI As Double = 5
+    Public Indent As Double = 10
+    Public Expanded As Boolean = True
     Public ChildrenTVI As New TList(Of TTreeViewItem)
+
+    Public Overrides Sub Draw(gr As TGraphics)
+        Dim ctx As CanvasRenderingContext2D = gr.Context
+        gr.save()
+        ctx.beginPath()
+
+        If BackgroundColor <> Nothing Then
+            ctx.fillStyle = BackgroundColor
+            ctx.fillRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
+        End If
+
+        If BorderWidth <> 0 AndAlso BorderColor <> Nothing Then
+            ctx.lineWidth = BorderWidth
+            ctx.strokeStyle = BorderColor
+            ctx.strokeRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
+        End If
+
+        ctx.closePath()
+        gr.restore()
+
+        Header.Draw(gr)
+
+        For Each x In ChildrenTVI
+            x.Draw(gr)
+        Next
+    End Sub
 End Class
 
 '-------------------------------------------------------------------------------- TTreeView
