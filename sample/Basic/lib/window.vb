@@ -248,7 +248,7 @@ Public Class TImageView
             ctx.fillRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
         End If
 
-        DrawBorder(gr, ctx)
+        'DrawBorder(gr, ctx)
 
         ctx.drawImage(ImageIV, AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
 
@@ -294,11 +294,17 @@ End Class
 '-------------------------------------------------------------------------------- TTreeViewItem
 Public Class TTreeViewItem
     Inherits TControl
+    Public IconTVI As New TImageView
     Public Header As New TLabel
     Public PaddingTVI As Double = 5
     Public Indent As Double = 10
     Public Expanded As Boolean = True
     Public ChildrenTVI As New TList(Of TTreeViewItem)
+
+    Public Sub New()
+        IconTVI.ImageIV = New Image()
+        IconTVI.ImageIV.src = "../../../img/redstar.gif"
+    End Sub
 
     Public Overrides Sub Draw(gr As TGraphics)
         Dim ctx As CanvasRenderingContext2D = gr.Context
@@ -314,6 +320,7 @@ Public Class TTreeViewItem
 
         gr.restore()
 
+        IconTVI.Draw(gr)
         Header.Draw(gr)
 
         For Each x In ChildrenTVI

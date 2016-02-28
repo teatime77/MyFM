@@ -152,7 +152,6 @@ Public Class TMyApplication
         lbl3.MarginRight = 10
 
         cnv2.Children.push(lbl3)
-
     End Sub
 
     <_Invariant()> Public Sub DesiredSizeRule(self As Object, app As TMyApplication)
@@ -201,14 +200,14 @@ Public Class TMyApplication
                             ' 子があり、展開している場合
 
                             Dim children_width_max As Double = Aggregate x In .ChildrenTVI Into Max(x.DesiredWidth)
-                            .DesiredWidth = .PaddingTVI + Math.Max(.Header.DesiredWidth, .Indent + children_width_max) + .PaddingTVI
+                            .DesiredWidth = Math.Max(.IconTVI.DesiredWidth + .PaddingTVI + .Header.DesiredWidth, .Indent + children_width_max) + 2 * .PaddingTVI
 
                             Dim children_desired_height_sum As Double = Aggregate x In .ChildrenTVI Into Sum(x.DesiredHeight)
                             .DesiredHeight = .PaddingTVI + .Header.DesiredHeight + .PaddingTVI * .ChildrenTVI.length + children_desired_height_sum + .PaddingTVI
                         Else
                             ' 子がないか、折りたたまれている場合
 
-                            .DesiredWidth = .PaddingTVI + .Header.DesiredWidth + .PaddingTVI
+                            .DesiredWidth = .IconTVI.DesiredWidth + .Header.DesiredWidth + 3 * .PaddingTVI
                             .DesiredHeight = .PaddingTVI + .Header.DesiredHeight + .PaddingTVI
                         End If
                     End With
@@ -398,10 +397,14 @@ Public Class TMyApplication
                 ElseIf TypeOf .ParentControl Is TTreeViewItem Then
                     Dim parent_tvi As TTreeViewItem = CType(.ParentControl, TTreeViewItem)
 
-                    If TypeOf self Is TLabel Then
+                    If parent_tvi.IconTVI Is self Then
+
                         .AbsPosition.X = .ParentControl.AbsPosition.X + parent_tvi.PaddingTVI
                         .AbsPosition.Y = .ParentControl.AbsPosition.Y + parent_tvi.PaddingTVI
+                    ElseIf parent_tvi.Header Is self Then
 
+                        .AbsPosition.X = parent_tvi.IconTVI.AbsPosition.X + parent_tvi.IconTVI.ActualWidth + parent_tvi.PaddingTVI
+                        .AbsPosition.Y = .ParentControl.AbsPosition.Y + parent_tvi.PaddingTVI
                     Else
                         .AbsPosition.X = .ParentControl.AbsPosition.X + parent_tvi.PaddingTVI + parent_tvi.Indent
 
