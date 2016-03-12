@@ -22,7 +22,7 @@ Public Class TMyApplication
 
         tvi1.Header.Text = "りんご"
         tvi1.Position.X = 10
-        tvi1.Position.Y = 400
+        tvi1.Position.Y = 320
         main_canvas.Children.push(tvi1)
 
         '------------------------------ ツリービューアイテム
@@ -47,7 +47,7 @@ Public Class TMyApplication
         Dim vstc As New TStackPanel
 
         vstc.Position.X = 10
-        vstc.Position.Y = 230
+        vstc.Position.Y = 180
         vstc.Width = 300
         vstc.Orientation = EOrientation.Vertical
 
@@ -97,14 +97,14 @@ Public Class TMyApplication
         cnv1.Position.X = 10
         cnv1.Position.Y = 10
         cnv1.Width = 300
-        cnv1.Height = 100
+        cnv1.Height = 150
 
         main_canvas.Children.push(cnv1)
 
         '------------------------------ ボタン
         Dim btn1 As New TButton
 
-        btn1.Text = "はじめまして"
+        btn1.Text = "左と上にアンカー"
         btn1.MarginLeft = 10
         btn1.MarginTop = 10
 
@@ -113,45 +113,46 @@ Public Class TMyApplication
         '------------------------------ ラベル
         Dim lbl1 As New TLabel
 
-        lbl1.Text = "こんにちは"
-        lbl1.Font.EmSize = 24
-        lbl1.Font.FontString = "24px 'monospace'"
+        lbl1.Text = "右と下にアンカー"
+        'lbl1.Font.EmSize = 24
+        'lbl1.Font.FontString = "24px 'monospace'"
         lbl1.MarginRight = 10
         lbl1.MarginBottom = 10
-        lbl1.Position.X = 200
-        lbl1.Position.Y = 20
+        'lbl1.Position.X = 200
+        'lbl1.Position.Y = 20
 
         cnv1.Children.push(lbl1)
 
-        '---------------------------------------- キャンバス
-        Dim cnv2 As New TCanvas
+        ''---------------------------------------- キャンバス
+        'Dim cnv2 As New TCanvas
 
-        cnv2.Position.X = 10
-        cnv2.Position.Y = 120
-        cnv2.Width = 300
-        cnv2.Height = 100
+        'cnv2.Position.X = 10
+        'cnv2.Position.Y = 120
+        'cnv2.Width = 300
+        'cnv2.Height = 100
 
-        main_canvas.Children.push(cnv2)
+        'main_canvas.Children.push(cnv2)
 
         '------------------------------ ラベル
         Dim lbl2 As New TLabel
 
-        lbl2.Text = "どうぞよろしく"
-        lbl2.MarginLeft = 20
-        lbl2.MarginRight = 100
+        lbl2.Text = "上と左と右にアンカー"
+        lbl2.MarginLeft = 10
+        lbl2.MarginRight = 10
+        lbl2.MarginTop = 60
         lbl2.Position.Y = 10
 
-        cnv2.Children.push(lbl2)
+        cnv1.Children.push(lbl2)
 
-        '------------------------------ ラベル
-        Dim lbl3 As New TLabel
+        ''------------------------------ ラベル
+        'Dim lbl3 As New TLabel
 
-        lbl3.Text = "またね"
-        lbl3.MarginTop = 20
-        lbl3.MarginBottom = 20
-        lbl3.MarginRight = 10
+        'lbl3.Text = "上と下にアンカー"
+        'lbl3.MarginTop = 20
+        'lbl3.MarginBottom = 20
+        'lbl3.MarginRight = 10
 
-        cnv2.Children.push(lbl3)
+        'cnv2.Children.push(lbl3)
     End Sub
 
     <_Invariant()> Public Sub DesiredSizeRule(self As Object, app As TMyApplication)

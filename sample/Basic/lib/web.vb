@@ -37,6 +37,14 @@ Public Class TList(Of T)
     Inherits List(Of T)
     Public length As Integer
 
+    Public Sub New()
+        MyBase.New()
+    End Sub
+
+    Public Sub New(v As IEnumerable(Of T))
+        MyBase.New(v)
+    End Sub
+
     <_Parent()> Public UpList As Object
 
     Public Sub push(x As T)

@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Language>Basic</Language>
+  <OutputDirectory>out</OutputDirectory>
+  <MainClassName>TMyApplication</MainClassName>
+  <MainFunctionName>GlobalRule</MainFunctionName>
+  <OutputNotUsed>true</OutputNotUsed>
+  <UseReferenceGraph>false</UseReferenceGraph>
+  <ClassNameTablePath />
+  <Dataflow>false</Dataflow>
+  <OutputLanguageList>
+    <ELanguage>JavaScript</ELanguage>
+    <ELanguage>Basic</ELanguage>
+  </OutputLanguageList>
+  <LibraryList>
+    <TLibrary>
+      <LibraryDirectory>..\lib</LibraryDirectory>
+      <SourceFileNameList>
+        <string>sys.vb</string>
+        <string>web.vb</string>
+        <string>lib.vb</string>
+        <string>window.vb</string>
+      </SourceFileNameList>
+    </TLibrary>
+    <TLibrary>
+      <LibraryDirectory>.</LibraryDirectory>
+      <SourceFileNameList>
+        <string>app7.vb</string>
+      </SourceFileNameList>
+    </TLibrary>
+  </LibraryList>
+</TProject>
