@@ -835,6 +835,40 @@ Public Class TProject
         Next
     End Sub
 
+    Public Sub Let_(blc As TBlock, var1 As TVariable, trm As TTerm)
+        Dim asn1 As New TAssignment(New TReference(var1), trm)
+
+        blc.AddStmtBlc(asn1)
+    End Sub
+
+
+    ' 指定されたクラスのクラスの初期化メソッドまたはインスタンスの初期化メソッドを作る。
+    Public Sub MakeXmlSerializer(cls1 As TClass)
+        Dim ini_fnc As TFunction
+
+        ' 初期化の式があるフィールドのリストを得る。
+        Dim vfld = (From fld1 In cls1.FldCla Where fld1.isStrong() AndAlso Not fld1.ModVar.isShared).ToList()
+        If vfld.Count <> 0 Then
+
+            ' フィールドの初期化式から作った代入文を集めたメソッドを作る。
+            ini_fnc = New TFunction(TFunction.InstanceInitializerName, Nothing)
+            cls1.FncCla.Add(ini_fnc)
+
+            ini_fnc.ClaFnc = cls1
+            ini_fnc.ModVar = New TModifier()
+            ini_fnc.TypeFnc = EToken.Sub_
+            ini_fnc.ThisFnc = New TLocalVariable(ParsePrj.ThisName, cls1)
+            ini_fnc.BlcFnc = New TBlock()
+
+            ' フィールドの初期化式から作った代入文をメソッドで定義する。
+            For Each fld1 In vfld
+
+                Let_(ini_fnc.BlcFnc, fld1, fld1.InitVar)
+            Next
+
+        End If
+    End Sub
+
     Public Function ElementType(type1 As TClass) As TClass
         chk(type1 IsNot Nothing)
         If type1.DimCla <> 0 OrElse type1.NameType() = "List" OrElse type1.NameType() = "TList" OrElse type1.NameType() = "IEnumerable" Then
