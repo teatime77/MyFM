@@ -211,7 +211,7 @@ End Class
 Public Class TApplication
     Public Size As New TPoint
     Public MousePosition As New TPoint
-    Public Graphics As TGraphics
+    <_Weak()> Public Graphics As TGraphics
 
     Public Overridable Sub AppInitialize()
     End Sub

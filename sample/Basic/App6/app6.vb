@@ -12,7 +12,8 @@ Public Class TMyApplication
         '------------------------------ 画像
         Dim img1 As New TImageView
 
-        img1.ImageIV = MakeImage("../../../img/grandma1.png")
+        img1.ImageURL = "../../../img/grandma1.png"
+        'img1.ImageIV = MakeImage("../../../img/grandma1.png")
         img1.MarginRight = 10
         img1.MarginTop = 10
         main_canvas.Children.push(img1)
@@ -180,6 +181,9 @@ Public Class TMyApplication
 
                         If .AutoSize Then
 
+                            If .ImageIV Is Nothing Then
+                                .ImageIV = app.MakeImage(.ImageURL)
+                            End If
                             If .ImageIV.complete Then
 
                                 .DesiredWidth = .ImageIV.width

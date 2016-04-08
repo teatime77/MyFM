@@ -90,10 +90,51 @@ function $TabSpace(n) {
 }
 
 window.onload = function () {
+    $txtLog = document.getElementById("$txtLog");
+
     var runtime = new TRuntime();
     runtime.App = new TMyApplication();
     runtime.Canvas = document.getElementById("canvassample");
     runtime.RuntimeInitialize();
+
+    var txt = document.getElementById("app-xml").textContent;
+
+    var lex1 = new TXmlParser(txt);
+    runtime.App = lex1.Parse();
+
+//    runtime.App.AppInitialize();
+
+    if (runtime.App.__SetParent) {
+        runtime.App.__SetParent(runtime.App, undefined);
+    }
+
+    runtime.Run();
+
+    try {
+        var ser = new TXmlSerializer();
+
+        ser.SerializeTop(runtime.App);
+        $Log(ser.Text);
+
+
+        var lex = new TXmlParser(ser.Text);
+        var app = lex.Parse();
+
+        var ser2 = new TXmlSerializer();
+
+        ser2.SerializeTop(app);
+        $LogClear();
+        $Log("検証2 -------------------------------------------------------------------------------");
+        $Log(ser2.Text);
+    }
+    catch (e) {
+        $Log("Error : {0}", e);
+    }
+
+    $Log("-------------------------------------------------------------------------------");
+
+
+
 }
 
 var TRuntime = function () {};
@@ -165,13 +206,6 @@ TRuntime.prototype.RuntimeInitialize = function () {
         event.preventDefault(); // タッチによる画面スクロールを止める
         _this.SetTouchEvent(ev);
     }, false);
-
-    this.App.AppInitialize();
-    if (this.App.__SetParent) {
-        this.App.__SetParent(this.App, undefined);
-    }
-
-    this.Run();
 };
 
 TRuntime.prototype.AnimationFrameLoop = function () {
@@ -871,7 +905,7 @@ TXmlSerializer.prototype.Serialize = function (tag_name, tag_is_field_name, obj_
 
     if (obj == undefined) {
 
-        this.writeln(sp + "<{0} />", tag_name);
+//        this.writeln(sp + "<{0} />", tag_name);
     }
     else {
 
@@ -917,6 +951,7 @@ TXmlSerializer.prototype.Serialize = function (tag_name, tag_is_field_name, obj_
         else {
             // 列挙型の場合
 
+            //$Log("keys A : {0}", obj_class);
             var keys = Object.keys(obj_class);
             for (var i = 0; i < keys.length; i++) {
                 var field_name = keys[i];
@@ -930,6 +965,10 @@ TXmlSerializer.prototype.Serialize = function (tag_name, tag_is_field_name, obj_
 }
 
 TXmlSerializer.prototype.SerializeFieldListSub = function (obj_proto, obj, tab) {
+    //if (obj_proto.$ClassName == undefined) {
+    //    $Log("");
+    //}
+    //$Log("keys B : {0} {1}", obj_proto.$ClassName, obj_proto.$FieldList);
     var keys = Object.keys(obj_proto.$FieldList);
     for (var i = 0; i < keys.length; i++) {
         var field_name = keys[i];

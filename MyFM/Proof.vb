@@ -2251,7 +2251,7 @@ Public Class Sys
             ElseIf dot1.IsSelfField() Then
                 ' 自身のフィールド参照の場合
 
-                If fld1.IsList() Then
+                If fld1.TypeVar.IsList() Then
                     ' フィールドがリストの場合
 
                     ' fld1のフィールドの要素の参照を作る。

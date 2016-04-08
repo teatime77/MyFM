@@ -1,0 +1,628 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>MyFM Sample App</title>
+    <script type="text/javascript" src="../../../lib/runtime.js"></script>
+    <script type="text/javascript" src="lib.js"></script>
+    <script type="text/javascript" src="window.js"></script>
+    <script type="text/javascript" src="app6.js"></script>
+
+    <script id="app-xml" type="application/xml">
+        <?xml version="1.0" encoding="utf-8" ?>
+        <TMyApplication xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <MainControl xsi:type="TCanvas">
+                <Children>
+                    <TImageView>
+                        <ImageURL>../../../img/grandma1.png</ImageURL>
+                        <AutoSize>true</AutoSize>
+                        <Padding>5</Padding>
+                        <ActualWidth>0</ActualWidth>
+                        <ActualHeight>0</ActualHeight>
+                        <DesiredWidth>0</DesiredWidth>
+                        <DesiredHeight>0</DesiredHeight>
+                        <Position xsi:type="TPoint">
+                            <X>0</X>
+                            <Y>0</Y>
+                        </Position>
+                        <AbsPosition xsi:type="TPoint">
+                            <X>490</X>
+                            <Y>10</Y>
+                        </AbsPosition>
+                        <MarginTop>10</MarginTop>
+                        <MarginRight>10</MarginRight>
+                        <BackgroundColor>#E0E0E0</BackgroundColor>
+                        <BorderWidth>1</BorderWidth>
+                        <BorderColor>#0000FF</BorderColor>
+                    </TImageView>
+                    <TTreeViewItem>
+                        <IconTVI xsi:type="TImageView">
+                            <ImageURL>../../../img/redstar.gif</ImageURL>
+                            <AutoSize>true</AutoSize>
+                            <Padding>5</Padding>
+                            <ActualWidth>16</ActualWidth>
+                            <ActualHeight>16</ActualHeight>
+                            <DesiredWidth>16</DesiredWidth>
+                            <DesiredHeight>16</DesiredHeight>
+                            <Position xsi:type="TPoint">
+                                <X>0</X>
+                                <Y>0</Y>
+                            </Position>
+                            <AbsPosition xsi:type="TPoint">
+                                <X>15</X>
+                                <Y>325</Y>
+                            </AbsPosition>
+                            <BackgroundColor>#E0E0E0</BackgroundColor>
+                            <BorderWidth>1</BorderWidth>
+                            <BorderColor>#0000FF</BorderColor>
+                        </IconTVI>
+                        <Header xsi:type="TLabel">
+                            <Font xsi:type="TFont">
+                                <EmSize>16</EmSize>
+                                <FontString>16px 'sans-serif'</FontString>
+                            </Font>
+                            <Text>りんご</Text>
+                            <TextWidth>42</TextWidth>
+                            <TextHeight>16</TextHeight>
+                            <TextColor>#000000</TextColor>
+                            <AutoSize>true</AutoSize>
+                            <Padding>5</Padding>
+                            <ActualWidth>52</ActualWidth>
+                            <ActualHeight>26</ActualHeight>
+                            <DesiredWidth>52</DesiredWidth>
+                            <DesiredHeight>26</DesiredHeight>
+                            <Position xsi:type="TPoint">
+                                <X>0</X>
+                                <Y>0</Y>
+                            </Position>
+                            <AbsPosition xsi:type="TPoint">
+                                <X>36</X>
+                                <Y>325</Y>
+                            </AbsPosition>
+                            <BackgroundColor>#E0E0E0</BackgroundColor>
+                            <BorderWidth>1</BorderWidth>
+                            <BorderColor>#0000FF</BorderColor>
+                        </Header>
+                        <PaddingTVI>5</PaddingTVI>
+                        <Indent>10</Indent>
+                        <Expanded>true</Expanded>
+                        <ChildrenTVI>
+                            <TTreeViewItem>
+                                <IconTVI xsi:type="TImageView">
+                                    <ImageURL>../../../img/redstar.gif</ImageURL>
+                                    <AutoSize>true</AutoSize>
+                                    <Padding>5</Padding>
+                                    <ActualWidth>16</ActualWidth>
+                                    <ActualHeight>16</ActualHeight>
+                                    <DesiredWidth>16</DesiredWidth>
+                                    <DesiredHeight>16</DesiredHeight>
+                                    <Position xsi:type="TPoint">
+                                        <X>0</X>
+                                        <Y>0</Y>
+                                    </Position>
+                                    <AbsPosition xsi:type="TPoint">
+                                        <X>20</X>
+                                        <Y>41</Y>
+                                    </AbsPosition>
+                                    <BackgroundColor>#E0E0E0</BackgroundColor>
+                                    <BorderWidth>1</BorderWidth>
+                                    <BorderColor>#0000FF</BorderColor>
+                                </IconTVI>
+                                <Header xsi:type="TLabel">
+                                    <Font xsi:type="TFont">
+                                        <EmSize>16</EmSize>
+                                        <FontString>16px 'sans-serif'</FontString>
+                                    </Font>
+                                    <Text>みかん</Text>
+                                    <TextWidth>47</TextWidth>
+                                    <TextHeight>16</TextHeight>
+                                    <TextColor>#000000</TextColor>
+                                    <AutoSize>true</AutoSize>
+                                    <Padding>5</Padding>
+                                    <ActualWidth>57</ActualWidth>
+                                    <ActualHeight>26</ActualHeight>
+                                    <DesiredWidth>57</DesiredWidth>
+                                    <DesiredHeight>26</DesiredHeight>
+                                    <Position xsi:type="TPoint">
+                                        <X>0</X>
+                                        <Y>0</Y>
+                                    </Position>
+                                    <AbsPosition xsi:type="TPoint">
+                                        <X>41</X>
+                                        <Y>41</Y>
+                                    </AbsPosition>
+                                    <BackgroundColor>#E0E0E0</BackgroundColor>
+                                    <BorderWidth>1</BorderWidth>
+                                    <BorderColor>#0000FF</BorderColor>
+                                </Header>
+                                <PaddingTVI>5</PaddingTVI>
+                                <Indent>10</Indent>
+                                <Expanded>true</Expanded>
+                                <ChildrenTVI>
+                                    <TTreeViewItem>
+                                        <IconTVI xsi:type="TImageView">
+                                            <ImageURL>../../../img/redstar.gif</ImageURL>
+                                            <AutoSize>true</AutoSize>
+                                            <Padding>5</Padding>
+                                            <ActualWidth>16</ActualWidth>
+                                            <ActualHeight>16</ActualHeight>
+                                            <DesiredWidth>16</DesiredWidth>
+                                            <DesiredHeight>16</DesiredHeight>
+                                            <Position xsi:type="TPoint">
+                                                <X>0</X>
+                                                <Y>0</Y>
+                                            </Position>
+                                            <AbsPosition xsi:type="TPoint">
+                                                <X>20</X>
+                                                <Y>41</Y>
+                                            </AbsPosition>
+                                            <BackgroundColor>#E0E0E0</BackgroundColor>
+                                            <BorderWidth>1</BorderWidth>
+                                            <BorderColor>#0000FF</BorderColor>
+                                        </IconTVI>
+                                        <Header xsi:type="TLabel">
+                                            <Font xsi:type="TFont">
+                                                <EmSize>16</EmSize>
+                                                <FontString>16px 'sans-serif'</FontString>
+                                            </Font>
+                                            <Text>ストロベリー</Text>
+                                            <TextWidth>81</TextWidth>
+                                            <TextHeight>16</TextHeight>
+                                            <TextColor>#000000</TextColor>
+                                            <AutoSize>true</AutoSize>
+                                            <Padding>5</Padding>
+                                            <ActualWidth>91</ActualWidth>
+                                            <ActualHeight>26</ActualHeight>
+                                            <DesiredWidth>91</DesiredWidth>
+                                            <DesiredHeight>26</DesiredHeight>
+                                            <Position xsi:type="TPoint">
+                                                <X>0</X>
+                                                <Y>0</Y>
+                                            </Position>
+                                            <AbsPosition xsi:type="TPoint">
+                                                <X>41</X>
+                                                <Y>41</Y>
+                                            </AbsPosition>
+                                            <BackgroundColor>#E0E0E0</BackgroundColor>
+                                            <BorderWidth>1</BorderWidth>
+                                            <BorderColor>#0000FF</BorderColor>
+                                        </Header>
+                                        <PaddingTVI>5</PaddingTVI>
+                                        <Indent>10</Indent>
+                                        <Expanded>true</Expanded>
+                                        <ChildrenTVI>
+                                        </ChildrenTVI>
+                                        <AutoSize>true</AutoSize>
+                                        <Padding>5</Padding>
+                                        <ActualWidth>122</ActualWidth>
+                                        <ActualHeight>36</ActualHeight>
+                                        <DesiredWidth>122</DesiredWidth>
+                                        <DesiredHeight>36</DesiredHeight>
+                                        <Position xsi:type="TPoint">
+                                            <X>0</X>
+                                            <Y>0</Y>
+                                        </Position>
+                                        <AbsPosition xsi:type="TPoint">
+                                            <X>30</X>
+                                            <Y>72</Y>
+                                        </AbsPosition>
+                                        <BackgroundColor>#E0E0E0</BackgroundColor>
+                                        <BorderWidth>1</BorderWidth>
+                                        <BorderColor>#0000FF</BorderColor>
+                                    </TTreeViewItem>
+                                </ChildrenTVI>
+                                <AutoSize>true</AutoSize>
+                                <Padding>5</Padding>
+                                <ActualWidth>142</ActualWidth>
+                                <ActualHeight>77</ActualHeight>
+                                <DesiredWidth>142</DesiredWidth>
+                                <DesiredHeight>77</DesiredHeight>
+                                <Position xsi:type="TPoint">
+                                    <X>0</X>
+                                    <Y>0</Y>
+                                </Position>
+                                <AbsPosition xsi:type="TPoint">
+                                    <X>25</X>
+                                    <Y>356</Y>
+                                </AbsPosition>
+                                <BackgroundColor>#E0E0E0</BackgroundColor>
+                                <BorderWidth>1</BorderWidth>
+                                <BorderColor>#0000FF</BorderColor>
+                            </TTreeViewItem>
+                            <TTreeViewItem>
+                                <IconTVI xsi:type="TImageView">
+                                    <ImageURL>../../../img/redstar.gif</ImageURL>
+                                    <AutoSize>true</AutoSize>
+                                    <Padding>5</Padding>
+                                    <ActualWidth>16</ActualWidth>
+                                    <ActualHeight>16</ActualHeight>
+                                    <DesiredWidth>16</DesiredWidth>
+                                    <DesiredHeight>16</DesiredHeight>
+                                    <Position xsi:type="TPoint">
+                                        <X>0</X>
+                                        <Y>0</Y>
+                                    </Position>
+                                    <AbsPosition xsi:type="TPoint">
+                                        <X>20</X>
+                                        <Y>123</Y>
+                                    </AbsPosition>
+                                    <BackgroundColor>#E0E0E0</BackgroundColor>
+                                    <BorderWidth>1</BorderWidth>
+                                    <BorderColor>#0000FF</BorderColor>
+                                </IconTVI>
+                                <Header xsi:type="TLabel">
+                                    <Font xsi:type="TFont">
+                                        <EmSize>16</EmSize>
+                                        <FontString>16px 'sans-serif'</FontString>
+                                    </Font>
+                                    <Text>オレンジ</Text>
+                                    <TextWidth>57</TextWidth>
+                                    <TextHeight>16</TextHeight>
+                                    <TextColor>#000000</TextColor>
+                                    <AutoSize>true</AutoSize>
+                                    <Padding>5</Padding>
+                                    <ActualWidth>67</ActualWidth>
+                                    <ActualHeight>26</ActualHeight>
+                                    <DesiredWidth>67</DesiredWidth>
+                                    <DesiredHeight>26</DesiredHeight>
+                                    <Position xsi:type="TPoint">
+                                        <X>0</X>
+                                        <Y>0</Y>
+                                    </Position>
+                                    <AbsPosition xsi:type="TPoint">
+                                        <X>41</X>
+                                        <Y>123</Y>
+                                    </AbsPosition>
+                                    <BackgroundColor>#E0E0E0</BackgroundColor>
+                                    <BorderWidth>1</BorderWidth>
+                                    <BorderColor>#0000FF</BorderColor>
+                                </Header>
+                                <PaddingTVI>5</PaddingTVI>
+                                <Indent>10</Indent>
+                                <Expanded>true</Expanded>
+                                <ChildrenTVI>
+                                </ChildrenTVI>
+                                <AutoSize>true</AutoSize>
+                                <Padding>5</Padding>
+                                <ActualWidth>98</ActualWidth>
+                                <ActualHeight>36</ActualHeight>
+                                <DesiredWidth>98</DesiredWidth>
+                                <DesiredHeight>36</DesiredHeight>
+                                <Position xsi:type="TPoint">
+                                    <X>0</X>
+                                    <Y>0</Y>
+                                </Position>
+                                <AbsPosition xsi:type="TPoint">
+                                    <X>25</X>
+                                    <Y>438</Y>
+                                </AbsPosition>
+                                <BackgroundColor>#E0E0E0</BackgroundColor>
+                                <BorderWidth>1</BorderWidth>
+                                <BorderColor>#0000FF</BorderColor>
+                            </TTreeViewItem>
+                        </ChildrenTVI>
+                        <AutoSize>true</AutoSize>
+                        <Padding>5</Padding>
+                        <ActualWidth>162</ActualWidth>
+                        <ActualHeight>159</ActualHeight>
+                        <DesiredWidth>162</DesiredWidth>
+                        <DesiredHeight>159</DesiredHeight>
+                        <Position xsi:type="TPoint">
+                            <X>10</X>
+                            <Y>320</Y>
+                        </Position>
+                        <AbsPosition xsi:type="TPoint">
+                            <X>10</X>
+                            <Y>320</Y>
+                        </AbsPosition>
+                        <BackgroundColor>#E0E0E0</BackgroundColor>
+                        <BorderWidth>1</BorderWidth>
+                        <BorderColor>#0000FF</BorderColor>
+                    </TTreeViewItem>
+                    <TStackPanel>
+                        <Orientation>Vertical</Orientation>
+                        <Children>
+                            <TLabel>
+                                <Font xsi:type="TFont">
+                                    <EmSize>16</EmSize>
+                                    <FontString>16px 'sans-serif'</FontString>
+                                </Font>
+                                <Text>さよなら</Text>
+                                <TextWidth>53</TextWidth>
+                                <TextHeight>16</TextHeight>
+                                <TextColor>#000000</TextColor>
+                                <AutoSize>true</AutoSize>
+                                <Padding>5</Padding>
+                                <ActualWidth>169</ActualWidth>
+                                <ActualHeight>26</ActualHeight>
+                                <DesiredWidth>63</DesiredWidth>
+                                <DesiredHeight>26</DesiredHeight>
+                                <Position xsi:type="TPoint">
+                                    <X>0</X>
+                                    <Y>0</Y>
+                                </Position>
+                                <AbsPosition xsi:type="TPoint">
+                                    <X>15</X>
+                                    <Y>185</Y>
+                                </AbsPosition>
+                                <BackgroundColor>#E0E0E0</BackgroundColor>
+                                <BorderWidth>1</BorderWidth>
+                                <BorderColor>#0000FF</BorderColor>
+                            </TLabel>
+                            <TLabel>
+                                <Font xsi:type="TFont">
+                                    <EmSize>16</EmSize>
+                                    <FontString>16px 'sans-serif'</FontString>
+                                </Font>
+                                <Text>こんばんは</Text>
+                                <TextWidth>76</TextWidth>
+                                <TextHeight>16</TextHeight>
+                                <TextColor>#000000</TextColor>
+                                <AutoSize>true</AutoSize>
+                                <Padding>5</Padding>
+                                <ActualWidth>169</ActualWidth>
+                                <ActualHeight>26</ActualHeight>
+                                <DesiredWidth>86</DesiredWidth>
+                                <DesiredHeight>26</DesiredHeight>
+                                <Position xsi:type="TPoint">
+                                    <X>0</X>
+                                    <Y>0</Y>
+                                </Position>
+                                <AbsPosition xsi:type="TPoint">
+                                    <X>15</X>
+                                    <Y>216</Y>
+                                </AbsPosition>
+                                <BackgroundColor>#E0E0E0</BackgroundColor>
+                                <BorderWidth>1</BorderWidth>
+                                <BorderColor>#0000FF</BorderColor>
+                            </TLabel>
+                            <TStackPanel>
+                                <Orientation>Horizontal</Orientation>
+                                <Children>
+                                    <TLabel>
+                                        <Font xsi:type="TFont">
+                                            <EmSize>16</EmSize>
+                                            <FontString>16px 'sans-serif'</FontString>
+                                        </Font>
+                                        <Text>おはよう</Text>
+                                        <TextWidth>56</TextWidth>
+                                        <TextHeight>16</TextHeight>
+                                        <TextColor>#000000</TextColor>
+                                        <AutoSize>true</AutoSize>
+                                        <Padding>5</Padding>
+                                        <ActualWidth>NaN</ActualWidth>
+                                        <ActualHeight>NaN</ActualHeight>
+                                        <DesiredWidth>66</DesiredWidth>
+                                        <DesiredHeight>26</DesiredHeight>
+                                        <Position xsi:type="TPoint">
+                                            <X>0</X>
+                                            <Y>0</Y>
+                                        </Position>
+                                        <AbsPosition xsi:type="TPoint">
+                                            <X>20</X>
+                                            <Y>252</Y>
+                                        </AbsPosition>
+                                        <BackgroundColor>#E0E0E0</BackgroundColor>
+                                        <BorderWidth>1</BorderWidth>
+                                        <BorderColor>#0000FF</BorderColor>
+                                    </TLabel>
+                                    <TLabel>
+                                        <Font xsi:type="TFont">
+                                            <EmSize>16</EmSize>
+                                            <FontString>16px 'sans-serif'</FontString>
+                                        </Font>
+                                        <Text>元気ですか</Text>
+                                        <TextWidth>78</TextWidth>
+                                        <TextHeight>16</TextHeight>
+                                        <TextColor>#000000</TextColor>
+                                        <AutoSize>true</AutoSize>
+                                        <Padding>5</Padding>
+                                        <ActualWidth>NaN</ActualWidth>
+                                        <ActualHeight>NaN</ActualHeight>
+                                        <DesiredWidth>88</DesiredWidth>
+                                        <DesiredHeight>26</DesiredHeight>
+                                        <Position xsi:type="TPoint">
+                                            <X>0</X>
+                                            <Y>0</Y>
+                                        </Position>
+                                        <AbsPosition xsi:type="TPoint">
+                                            <X>NaN</X>
+                                            <Y>252</Y>
+                                        </AbsPosition>
+                                        <BackgroundColor>#E0E0E0</BackgroundColor>
+                                        <BorderWidth>1</BorderWidth>
+                                        <BorderColor>#0000FF</BorderColor>
+                                    </TLabel>
+                                </Children>
+                                <ChildrenScale>1</ChildrenScale>
+                                <AutoSize>true</AutoSize>
+                                <Padding>5</Padding>
+                                <Height>30</Height>
+                                <ActualWidth>169</ActualWidth>
+                                <ActualHeight>36</ActualHeight>
+                                <DesiredWidth>169</DesiredWidth>
+                                <DesiredHeight>36</DesiredHeight>
+                                <Position xsi:type="TPoint">
+                                    <X>10</X>
+                                    <Y>340</Y>
+                                </Position>
+                                <AbsPosition xsi:type="TPoint">
+                                    <X>15</X>
+                                    <Y>247</Y>
+                                </AbsPosition>
+                                <BackgroundColor>#E0E0E0</BackgroundColor>
+                                <BorderWidth>1</BorderWidth>
+                                <BorderColor>#0000FF</BorderColor>
+                            </TStackPanel>
+                        </Children>
+                        <ChildrenScale>1</ChildrenScale>
+                        <AutoSize>true</AutoSize>
+                        <Padding>5</Padding>
+                        <Width>300</Width>
+                        <ActualWidth>179</ActualWidth>
+                        <ActualHeight>108</ActualHeight>
+                        <DesiredWidth>179</DesiredWidth>
+                        <DesiredHeight>108</DesiredHeight>
+                        <Position xsi:type="TPoint">
+                            <X>10</X>
+                            <Y>180</Y>
+                        </Position>
+                        <AbsPosition xsi:type="TPoint">
+                            <X>10</X>
+                            <Y>180</Y>
+                        </AbsPosition>
+                        <BackgroundColor>#E0E0E0</BackgroundColor>
+                        <BorderWidth>1</BorderWidth>
+                        <BorderColor>#0000FF</BorderColor>
+                    </TStackPanel>
+                    <TCanvas>
+                        <Children>
+                            <TButton>
+                                <Font xsi:type="TFont">
+                                    <EmSize>16</EmSize>
+                                    <FontString>16px 'sans-serif'</FontString>
+                                </Font>
+                                <Text>左と上にアンカー</Text>
+                                <TextWidth>116</TextWidth>
+                                <TextHeight>16</TextHeight>
+                                <TextColor>#000000</TextColor>
+                                <AutoSize>true</AutoSize>
+                                <Padding>5</Padding>
+                                <ActualWidth>126</ActualWidth>
+                                <ActualHeight>26</ActualHeight>
+                                <DesiredWidth>126</DesiredWidth>
+                                <DesiredHeight>26</DesiredHeight>
+                                <Position xsi:type="TPoint">
+                                    <X>0</X>
+                                    <Y>0</Y>
+                                </Position>
+                                <AbsPosition xsi:type="TPoint">
+                                    <X>20</X>
+                                    <Y>20</Y>
+                                </AbsPosition>
+                                <MarginLeft>10</MarginLeft>
+                                <MarginTop>10</MarginTop>
+                                <BackgroundColor>#E0E0E0</BackgroundColor>
+                                <BorderWidth>1</BorderWidth>
+                                <BorderColor>#0000FF</BorderColor>
+                            </TButton>
+                            <TLabel>
+                                <Font xsi:type="TFont">
+                                    <EmSize>16</EmSize>
+                                    <FontString>16px 'sans-serif'</FontString>
+                                </Font>
+                                <Text>右と下にアンカー</Text>
+                                <TextWidth>116</TextWidth>
+                                <TextHeight>16</TextHeight>
+                                <TextColor>#000000</TextColor>
+                                <AutoSize>true</AutoSize>
+                                <Padding>5</Padding>
+                                <ActualWidth>126</ActualWidth>
+                                <ActualHeight>26</ActualHeight>
+                                <DesiredWidth>126</DesiredWidth>
+                                <DesiredHeight>26</DesiredHeight>
+                                <Position xsi:type="TPoint">
+                                    <X>0</X>
+                                    <Y>0</Y>
+                                </Position>
+                                <AbsPosition xsi:type="TPoint">
+                                    <X>174</X>
+                                    <Y>124</Y>
+                                </AbsPosition>
+                                <MarginRight>10</MarginRight>
+                                <MarginBottom>10</MarginBottom>
+                                <BackgroundColor>#E0E0E0</BackgroundColor>
+                                <BorderWidth>1</BorderWidth>
+                                <BorderColor>#0000FF</BorderColor>
+                            </TLabel>
+                            <TLabel>
+                                <Font xsi:type="TFont">
+                                    <EmSize>16</EmSize>
+                                    <FontString>16px 'sans-serif'</FontString>
+                                </Font>
+                                <Text>上と左と右にアンカー</Text>
+                                <TextWidth>144</TextWidth>
+                                <TextHeight>16</TextHeight>
+                                <TextColor>#000000</TextColor>
+                                <AutoSize>true</AutoSize>
+                                <Padding>5</Padding>
+                                <ActualWidth>280</ActualWidth>
+                                <ActualHeight>26</ActualHeight>
+                                <DesiredWidth>154</DesiredWidth>
+                                <DesiredHeight>26</DesiredHeight>
+                                <Position xsi:type="TPoint">
+                                    <X>0</X>
+                                    <Y>10</Y>
+                                </Position>
+                                <AbsPosition xsi:type="TPoint">
+                                    <X>20</X>
+                                    <Y>70</Y>
+                                </AbsPosition>
+                                <MarginLeft>10</MarginLeft>
+                                <MarginTop>60</MarginTop>
+                                <MarginRight>10</MarginRight>
+                                <BackgroundColor>#E0E0E0</BackgroundColor>
+                                <BorderWidth>1</BorderWidth>
+                                <BorderColor>#0000FF</BorderColor>
+                            </TLabel>
+                        </Children>
+                        <AutoSize>true</AutoSize>
+                        <Padding>5</Padding>
+                        <Width>300</Width>
+                        <Height>150</Height>
+                        <ActualWidth>300</ActualWidth>
+                        <ActualHeight>150</ActualHeight>
+                        <DesiredWidth>300</DesiredWidth>
+                        <DesiredHeight>150</DesiredHeight>
+                        <Position xsi:type="TPoint">
+                            <X>10</X>
+                            <Y>10</Y>
+                        </Position>
+                        <AbsPosition xsi:type="TPoint">
+                            <X>10</X>
+                            <Y>10</Y>
+                        </AbsPosition>
+                        <BackgroundColor>#E0E0E0</BackgroundColor>
+                        <BorderWidth>1</BorderWidth>
+                        <BorderColor>#0000FF</BorderColor>
+                    </TCanvas>
+                </Children>
+                <AutoSize>true</AutoSize>
+                <Padding>5</Padding>
+                <Width>500</Width>
+                <Height>500</Height>
+                <ActualWidth>500</ActualWidth>
+                <ActualHeight>500</ActualHeight>
+                <DesiredWidth>500</DesiredWidth>
+                <DesiredHeight>500</DesiredHeight>
+                <Position xsi:type="TPoint">
+                    <X>0</X>
+                    <Y>0</Y>
+                </Position>
+                <AbsPosition xsi:type="TPoint">
+                    <X>0</X>
+                    <Y>0</Y>
+                </AbsPosition>
+                <BackgroundColor>#E0E0E0</BackgroundColor>
+                <BorderWidth>1</BorderWidth>
+                <BorderColor>#0000FF</BorderColor>
+            </MainControl>
+            <Size xsi:type="TPoint">
+                <X>500</X>
+                <Y>500</Y>
+            </Size>
+            <MousePosition xsi:type="TPoint">
+                <X>0</X>
+                <Y>0</Y>
+            </MousePosition>
+        </TMyApplication>
+    </script>
+
+</head>
+<body>
+    <h1>レイアウト マネージャー</h1>
+<!--    <canvas id="canvassample" width="500" height="500" style="background-color:#E0E0E0;border-style:ridge" ></canvas>  -->
+    <canvas id="canvassample" width="500" height="500" style="border-style:ridge" ></canvas>
+    <textarea id="$txtLog" cols="160" rows="50"></textarea>
+</body>
+</html>

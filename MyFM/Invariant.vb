@@ -547,6 +547,40 @@ Public Class TNaviMakeSourceCode
                                 tw.TAB(1)
                                 tw.Fmt("Inherits", EToken.LP, .ClaFnc.NameVar, EToken.Comma, .ClaFnc.DirectSuperClassList(0).NameVar, EToken.RP, EToken.EOL)
                             End If
+
+                            ' $ClassNameを設定する。
+                            tw.TAB(1)
+                            tw.Fmt(.ClaFnc.NameVar, EToken.Dot, "prototype", EToken.Dot, "$ClassName", EToken.ASN, """", .ClaFnc.NameVar, """", EToken.EOL)
+
+                            ' $FieldListを設定する。
+                            tw.TAB(1)
+                            tw.Fmt(.ClaFnc.NameVar, EToken.Dot, "prototype", EToken.Dot, "$FieldList", EToken.ASN, EToken.LC, EToken.NL)
+
+                            Dim vfld = (From fld1 In .ClaFnc.FldCla Where fld1.isStrong() AndAlso Not fld1.ModVar.isShared).ToList()
+                            For Each fld In vfld
+
+                                Dim type_name As String
+
+                                If fld.TypeVar Is PrjMK.BoolType Then
+                                    type_name = "$BooleanType"
+                                ElseIf fld.TypeVar Is PrjMK.IntType Then
+                                    type_name = "$IntType"
+                                ElseIf fld.TypeVar Is PrjMK.DoubleType Then
+                                    type_name = "$DoubleType"
+                                ElseIf fld.TypeVar Is PrjMK.StringType Then
+                                    type_name = "$StringType"
+                                ElseIf fld.TypeVar.IsList() Then
+                                    type_name = "$ArrayType"
+                                Else
+                                    type_name = fld.TypeVar.NameVar
+                                End If
+
+                                tw.TAB(2)
+                                tw.Fmt("""", fld.NameVar, """", EToken.Colon, type_name, EToken.Comma, EToken.NL)
+                            Next
+
+                            tw.TAB(1)
+                            tw.Fmt(EToken.RC, EToken.NL)
                         End If
 
                         .TokenListVar = tw.GetTokenList()
@@ -969,7 +1003,7 @@ Public Class TNaviMakeSourceCode
                             End Select
 
                         Case Else
-                            Debug.WriteLine("Err Stmt Src:{0}", self)
+                            Debug.WriteLine("Err Stmt Src: {0}", self)
                             Debug.Assert(False)
                     End Select
                 End If

@@ -236,6 +236,7 @@ End Class
 '-------------------------------------------------------------------------------- TPictureBox
 Public Class TImageView
     Inherits TControl
+    Public ImageURL As String
     <_Weak()> Public ImageIV As Image
 
     Public Overrides Sub Draw(gr As TGraphics)

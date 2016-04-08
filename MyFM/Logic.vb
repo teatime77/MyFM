@@ -406,10 +406,6 @@ Public Class TVariable
     Public Overrides Function ToString() As String
         Return NameVar
     End Function
-
-    Public Function IsList() As Boolean
-        Return TypeVar.OrgCla IsNot Nothing
-    End Function
 End Class
 
 ' -------------------------------------------------------------------------------- TLocalVariable
