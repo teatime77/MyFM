@@ -272,6 +272,25 @@ Public Class TScrollBar
 
     Public LowValue As Double
     Public HighValue As Double
+
+    Public Overrides Sub Draw(gr As TGraphics)
+        Dim ctx As CanvasRenderingContext2D = gr.Context
+        gr.save()
+        ctx.beginPath()
+
+        If BackgroundColor <> Nothing Then
+            ctx.fillStyle = BackgroundColor
+            ctx.fillRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
+        End If
+
+        DrawBorder(gr, ctx)
+
+        gr.restore()
+
+        PrevButton.Draw(gr)
+        NextButton.Draw(gr)
+        Thumb.Draw(gr)
+    End Sub
 End Class
 
 '-------------------------------------------------------------------------------- TScrollView
@@ -285,6 +304,25 @@ Public Class TScrollView
 
     Public ViewOffsetX As Double
     Public ViewOffsetY As Double
+
+
+    Public Overrides Sub Draw(gr As TGraphics)
+        Dim ctx As CanvasRenderingContext2D = gr.Context
+        gr.save()
+        ctx.beginPath()
+
+        If BackgroundColor <> Nothing Then
+            ctx.fillStyle = BackgroundColor
+            ctx.fillRect(AbsPosition.X, AbsPosition.Y, ActualWidth, ActualHeight)
+        End If
+
+        DrawBorder(gr, ctx)
+
+        gr.restore()
+
+        HorizontalScrollBar.Draw(gr)
+        VerticalScrollBar.Draw(gr)
+    End Sub
 End Class
 
 '-------------------------------------------------------------------------------- TListBox

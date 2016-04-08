@@ -423,6 +423,11 @@ Public Class TMyApplication
                             .AbsPosition.Y = .Prev.AbsPosition.Y + .Prev.ActualHeight + parent_tvi.PaddingTVI
                         End If
                     End If
+
+                ElseIf TypeOf .ParentControl Is TScrollBar OrElse TypeOf .ParentControl Is TScrollView Then
+
+                    .AbsPosition.X = .ParentControl.AbsPosition.X + .Position.X
+                    .AbsPosition.Y = .ParentControl.AbsPosition.Y + .Position.Y
                 Else
 
                     .AbsPosition.X = .Position.X
