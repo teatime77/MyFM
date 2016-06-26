@@ -9,6 +9,8 @@
   <ClassNameTablePath>C:\usr\prj\MyIDE\etc\Translation\NameTable.txt</ClassNameTablePath>
   <Dataflow>false</Dataflow>
   <OutputLanguageList>
+    <ELanguage>TypeScript</ELanguage>
+    <ELanguage>JavaScript</ELanguage>
     <ELanguage>Basic</ELanguage>
   </OutputLanguageList>
   <LibraryList>

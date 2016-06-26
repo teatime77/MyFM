@@ -2647,8 +2647,13 @@ Public Class TProject
             Case EToken.Unknown, EToken.NL, EToken.Tab, EToken.Comment
             Case EToken.Int, EToken.Char_, EToken.String_
 
+            Case EToken.Constructor, EToken.Default_
+                Return True
+
             Case Else
-                Debug.Assert(False)
+                Debug.WriteLine("Is Reserved : {0}", e)
+                Return True
+
         End Select
 
         Return False

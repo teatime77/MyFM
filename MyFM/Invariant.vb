@@ -456,6 +456,10 @@ Public Class TNaviMakeSourceCode
 
                                         Case EToken.New_
                                             tw.Fmt(EToken.Var, .ClaFnc.NameVar, EToken.ASN, EToken.Function_)
+
+                                        Case EToken.Operator_
+                                            tw.Fmt(EToken.Operator_, self)
+
                                         Case Else
                                             Debug.Assert(False)
                                     End Select
@@ -1152,8 +1156,11 @@ Public Class TNaviMakeSourceCode
 
                                 If ParserMK.LanguageSP = ELanguage.JavaScript AndAlso .NewApp.OrgCla IsNot Nothing AndAlso .NewApp.OrgCla.NameVar = "TList" Then
                                     ' IEnumerableから作るリストは未対応
-                                    Debug.Assert(.ArgApp.Count = 0)
-                                    tw.Fmt(EToken.LB, EToken.RB)
+                                    If .ArgApp.Count <> 0 Then
+                                        tw.Fmt(EToken.LB, "IEnumerableから作るリストは未対応", EToken.RB)
+                                    Else
+                                        tw.Fmt(EToken.LB, EToken.RB)
+                                    End If
                                 Else
 
                                     tw.Fmt(EToken.New_)
